@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>接口测试</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body>
+	<form action="/file/upload" method="POST" enctype="multipart/form-data">
+		用户ID：<input type="text" name="userID"/><br/>
+		文件：<input type="file" name="file" /> <br/>
+		<input type="submit" />
+	</form><br/>
+	<form action="/file//download" method="POST" enctype="multipart/form-data">
+		用户ID：<input type="text" name="userID"/><br/>
+		文件路径：<input type="text" name="filePath" /> <br/>
+		<input type="submit" />
+	</form><br/>
+	<p>多文件上传</p>
+	<form action="/file/batchupload" method="POST" enctype="multipart/form-data">
+		
+		用户ID：<input type="text" name="userID"/><br/>
+		<p>
+			文件1：<input type="file" name="file" />
+		</p>
+		<p>
+			文件2：<input type="file" name="file" />
+		</p>
+		<p>
+			<input type="submit" value="上传" />
+		</p>
+	</form>
+</html>
+</html>
