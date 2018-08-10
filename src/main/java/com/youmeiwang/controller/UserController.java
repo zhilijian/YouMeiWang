@@ -36,7 +36,7 @@ public class UserController {
 //		}
 //		session.removeAttribute(code);
 		
-		if (userService.queryUserByCondition("phone", phone) != null) {
+		if (userService.queryUser("phone", phone) != null) {
 			return new CommonVO(false, "该手机号已被注册。","您可直接通过该手机号登录！");
 		}
 			
@@ -44,7 +44,7 @@ public class UserController {
 		String userID;
 		do {
 			userID = RandomUtil.getRandomNumber(8);
-		} while (userService.queryUserByCondition("userID", userID) != null);
+		} while (userService.queryUser("userID", userID) != null);
 		user.setUserID(userID);
 		user.setPhone(phone);
 		
@@ -70,7 +70,7 @@ public class UserController {
 //		}
 //		session.removeAttribute(code);
 		
-		User user = userService.queryUserByCondition("phone", phone);
+		User user = userService.queryUser("phone", phone);
 		Map<String, Object> data = new HashMap<String, Object>();
 		if (user != null) {
 			String userID = user.getUserID();
@@ -127,7 +127,7 @@ public class UserController {
 	
 	@GetMapping("/isvalidphone")
 	public SimpleVO isValidPhone(@RequestParam(name="phone", required=true) String phone) {
-		User user = userService.queryUserByCondition("phone", phone);
+		User user = userService.queryUser("phone", phone);
 		if (user == null) {
 			return new SimpleVO(true, "该手机未注册，可用！");
 		} else {

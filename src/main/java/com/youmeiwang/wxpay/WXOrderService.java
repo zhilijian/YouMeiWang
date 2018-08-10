@@ -28,7 +28,7 @@ public class WXOrderService {
 		wxOrder.setWorkID(workID);
 		wxOrder.setNonce_str(UUID.randomUUID().toString());
 //		wxOrder.setSign(sign);
-		wxOrder.setBody(workService.queryWorkByCondition("workID", workID).getWorkName());
+		wxOrder.setBody(workService.queryWork("workID", workID).getWorkName());
 		wxOrder.setOut_trade_no(format.format(date) + userID + UUID.randomUUID().toString().substring(22, 32));
 		wxOrder.setTotal_fee(money);
 		wxOrder.setSpbill_create_ip(reqIP);

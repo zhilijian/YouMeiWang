@@ -15,7 +15,7 @@ public class Topic {
 	private String topicName;
 	//主图路径
 	private String picturePath;
-	//专题描述 content
+	//专题描述 describe
 	private String describe;
 	//是否推荐 isRecommend 0：否 1：是
 	private Integer isRecommend;

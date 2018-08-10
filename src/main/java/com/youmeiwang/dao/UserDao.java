@@ -13,6 +13,8 @@ public interface UserDao {
 	
 	public void removeUser(String condition, String value);
 	
+	public void batchRemoveUser(String condition, String[] values);
+	
 	public void updateUser(User user);
 
 	public User queryUser(String condition, String value);

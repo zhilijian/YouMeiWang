@@ -42,10 +42,10 @@ public class TopicService {
 			works = topic.getWorks();
 		}
 		for (String workID : workIDs) {
-			if(ListUtil.isHasString(works, workID)) {
+			if(works.contains(workID)) {
 				continue;
 			} 
-			works = ListUtil.addString(works, workID);
+			works = ListUtil.addElement(works, workID);
 		}
 		topic.setWorks(works);
 		topicDao.updateTopic(topic);
@@ -53,6 +53,10 @@ public class TopicService {
 	
 	public void removeTopic(String condition, String value) {
 		topicDao.removeTopic(condition, value);
+	}
+	
+	public void batchRemoveTopic(String condition, String[] values) {
+		topicDao.batchRemoveTopic(condition, values);
 	}
 
 	public void updateTopic(Topic topic) {
@@ -71,6 +75,10 @@ public class TopicService {
 		return topicDao.getTopicAmount(condition1, value1, condition2, value2);
 	}
 	
+	public List<Topic> topicList() {
+		return topicDao.topicList();
+	}
+
 	public List<Topic> topicList(String condition1, String value1, String condition2, Integer value2, Integer page, Integer size) {
 		return topicDao.topicList(condition1, value1, condition2, value2, page, size);
 	}

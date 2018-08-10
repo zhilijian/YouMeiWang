@@ -26,7 +26,7 @@ public class WorkService {
 	
 	public void addCollectWork(String userID, String workID) {
 		User user = userDao.queryUser("userID", userID);
-		List<String> collectWork = ListUtil.addString(user.getCollectWork(), workID);
+		List<String> collectWork = ListUtil.addElement(user.getCollectWork(), workID);
 		user.setVerifyingWork(collectWork);
 		userDao.updateUser(user);
 	}
@@ -37,7 +37,7 @@ public class WorkService {
 	
 	public void removeCollectWork(String userID, String workID) {
 		User user = userDao.queryUser("userID", userID);
-		List<String> collectWork = ListUtil.removeString(user.getCollectWork(), workID);
+		List<String> collectWork = ListUtil.removeElement(user.getCollectWork(), workID);
 		user.setVerifyingWork(collectWork);
 		userDao.updateUser(user);
 	}
@@ -46,8 +46,13 @@ public class WorkService {
 		workDao.updateWork(work);
 	}
 	
-	public Work queryWorkByCondition(String condition, String value) {
+	public Work queryWork(String condition, String value) {
 		return workDao.queryWork(condition, value);
+	}
+	
+	public String queryWorkName(String condition, String value) {
+		Work work = workDao.queryWork(condition, value);
+		return work.getWorkName();
 	}
 	
 	public Long getAmount(String condition, String value) {

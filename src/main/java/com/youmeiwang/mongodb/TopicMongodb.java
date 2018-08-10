@@ -28,6 +28,14 @@ public class TopicMongodb implements TopicDao{
 		Query query = new Query(Criteria.where(condition).is(value));
 		mongoTemplate.remove(query, Topic.class);
 	}
+	
+	@Override
+	public void batchRemoveTopic(String condition, String[] values) {
+		for (String value : values) {
+			Query query = new Query(Criteria.where(condition).is(value));
+			mongoTemplate.remove(query, Topic.class);
+		}
+	}
 
 	@Override
 	public void updateTopic(Topic topic) {
@@ -68,6 +76,11 @@ public class TopicMongodb implements TopicDao{
 			query.addCriteria(Criteria.where(condition2).is(value2));
 		}
 		return mongoTemplate.count(query, Topic.class);
+	}
+	
+	@Override
+	public List<Topic> topicList() {
+		return mongoTemplate.findAll(Topic.class);
 	}
 
 	@Override

@@ -19,8 +19,10 @@ import com.youmeiwang.entity.User;
 import com.youmeiwang.service.AdminService;
 import com.youmeiwang.service.UserService;
 import com.youmeiwang.util.ContainUtil;
+import com.youmeiwang.util.ListUtil;
 import com.youmeiwang.vo.CommonVO;
 import com.youmeiwang.vo.ExtraVO;
+import com.youmeiwang.vo.SimpleVO;
 
 @CrossOrigin
 @RestController
@@ -49,7 +51,7 @@ public class UserManageController {
 //			return new ExtraVO(false, "管理员尚未登录。", "请先确认是否登录成功。", null);
 //		}
 		
-		boolean flag = ContainUtil.hasNumber(adminService.queryAdminByCondition("adminID", adminID).getAdminManager(), 0);
+		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getAdminManager(), 0);
 		if (!flag) {
 			return new ExtraVO(false, "该用户无此权限。","请先申请查看管理员的权限。", null);
 		}
@@ -60,30 +62,19 @@ public class UserManageController {
 		
 		try {
 			List<User> userlist = new LinkedList<User>();
-			Long userAmount = 0l;
-			if (condition != null) {
-				if (userService.queryUserByCondition("userID", condition) != null) {
-					userlist = userService.userList("userID", condition, "VIPKind", VIPKind, "memberKind", memberKind, page, size);
-					userAmount = userService.getAmount("userID", condition, "VIPKind", VIPKind, "memberKind", memberKind);
-				} else if (userService.queryUserByCondition("phone", condition) != null) {
-					userlist = userService.userList("phone", condition, "VIPKind", VIPKind, "memberKind", memberKind, page, size);
-					userAmount = userService.getAmount("phone", condition, "VIPKind", VIPKind, "memberKind", memberKind);
-				} else if (userService.queryUserByCondition("nickname", condition) != null) {
-					userlist = userService.userList("nickname", condition, "VIPKind", VIPKind, "memberKind", memberKind, page, size);
-					userAmount = userService.getAmount("nickname", condition, "VIPKind", VIPKind, "memberKind", memberKind);
-				} else {
-					return new ExtraVO(false, "用户查询失败。", "该搜索条件无法搜索到用户。", null);
-				}
-			} else {
-				userlist = userService.userList("userID", condition, "VIPKind", VIPKind, "memberKind", memberKind, page, size);
-				userAmount = userService.getAmount("userID", condition, "VIPKind", VIPKind, "memberKind", memberKind);
-			}
+			userlist.addAll(userService.userList("userID", condition, "VIPKind", VIPKind, "memberKind", memberKind, page, size));
+			userlist.addAll(userService.userList("phone", condition, "VIPKind", VIPKind, "memberKind", memberKind, page, size));
+			userlist.addAll(userService.userList("nickname", condition, "VIPKind", VIPKind, "memberKind", memberKind, page, size));
+			userlist = ListUtil.removeDuplicate(userlist);		
+					
+			Long userAmount = (long) userlist.size();
 			Long pageAmount = 0l;
 			if (userAmount % size == 0) {
 				pageAmount = userAmount / size;
 			} else {
 				pageAmount = userAmount / size + 1;
 			}
+			
 			List<Map<String, Object>> data = new LinkedList<Map<String, Object>>();
 			for (User user : userlist) {
 				Map<String, Object> map = new HashMap <String, Object>();
@@ -115,7 +106,7 @@ public class UserManageController {
 //			return new CommonVO(false, "管理员尚未登录。", "请先确认是否登录成功。");
 //		}
 		try {
-			User user = userService.queryUserByCondition("userID", userID);
+			User user = userService.queryUser("userID", userID);
 			if (user == null) {
 				return new CommonVO(false, "该用户不存在。", "请先核对该用户是否存在。");
 			}
@@ -139,4 +130,59 @@ public class UserManageController {
 		}
 	}
 	
+	@GetMapping("/batchremoveuser")
+	public SimpleVO BatchRemoveUser(@RequestParam(name="adminID", required=true) String adminID, 
+								@RequestParam(name="userIDs", required=true) String[] userIDs,
+								HttpSession session) {
+		
+//		if (session.getAttribute(adminID) == null) {
+//			return new SimpleVO(false, "该用户尚未登录。");
+//		}
+		
+		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getHomepageModule(), 1);
+		if (!flag) {
+			return new SimpleVO(false, "该用户无此权限。");
+		}
+		
+		try {
+			userService.batchRemoveUser("userID", userIDs);
+			return new SimpleVO(true, "批量删除成功！");
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new SimpleVO(false, "出错信息：" + e.getMessage());
+		}
+	}
+	
+	@PostMapping("/verifyapply")
+	public CommonVO verifyApply(@RequestParam(name = "adminID", required = true) String adminID,
+								@RequestParam(name = "userID", required = true) String userID,
+								@RequestParam(name = "isPass", required = true) boolean isPass,
+								@RequestParam(name = "dismissalMsg", required = false) String dismissalMsg, 
+								HttpSession session) {
+
+//		if (session.getAttribute(adminID) == null) {
+//			return new CommonVO(false, "管理员尚未登录。", "请先确认是否登录成功。");
+//		}
+
+		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getAdminManager(), 1);
+		if (!flag) {
+			return new CommonVO(false, "该用户无此权限。", "请先核对该管理员是否有此权限。");
+		}
+
+		User user = userService.queryUser("userID", userID);
+		
+		try {
+			if (isPass) {
+				user.setApplyForOriginal(2);
+			} else {
+				user.setApplyForOriginal(3);
+				user.setVerifyMessage(dismissalMsg);
+			}
+			
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		
+		return null;
+	}
 }

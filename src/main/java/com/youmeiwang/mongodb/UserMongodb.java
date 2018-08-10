@@ -28,6 +28,14 @@ public class UserMongodb implements UserDao {
 		Query query = new Query(Criteria.where(condition).is(value));
 		mongoTemplate.remove(query, User.class);
 	}
+	
+	@Override
+	public void batchRemoveUser(String condition, String[] values) {
+		for (String value : values) {
+			Query query = new Query(Criteria.where(condition).is(value));
+			mongoTemplate.remove(query, User.class);
+		}
+	}
 
 	@Override
 	public void updateUser(User user) {
@@ -50,6 +58,8 @@ public class UserMongodb implements UserDao {
 		update.set("notPassWork", user.getNotPassWork());
 		update.set("collectWork", user.getCollectWork());
 		update.set("downWork", user.getDownWork());
+		update.set("ApplyForOriginal", user.getApplyForOriginal());
+		update.set("verifyMessage", user.getVerifyMessage());
 	
 		mongoTemplate.updateFirst(query, update, User.class);
 	}

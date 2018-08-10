@@ -55,7 +55,7 @@ public class TopicController {
 //			return new CommonVO(false, "该用户尚未登录。", "请先确认是否登录成功。");
 //		}
 		
-		boolean flag = ContainUtil.hasNumber(adminService.queryAdminByCondition("adminID", adminID).getHomepageModule(), 1);
+		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getHomepageModule(), 1);
 		if (!flag) {
 			return new CommonVO(false, "该用户无此权限", "请先核对该用户是否有此权限。");
 		}
@@ -101,7 +101,7 @@ public class TopicController {
 //			return new CommonVO(false, "该用户尚未登录。", "请先确认是否登录成功。");
 //		}
 		
-		boolean flag = ContainUtil.hasNumber(adminService.queryAdminByCondition("adminID", adminID).getHomepageModule(), 1);
+		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getHomepageModule(), 1);
 		if (!flag) {
 			return new SimpleVO(false, "该用户无此权限。");
 		}
@@ -114,6 +114,31 @@ public class TopicController {
 			return new SimpleVO(false, "出错信息：" + e.getMessage());
 		}
 	}
+	
+	@GetMapping("/batchremovetopic")
+	public SimpleVO BatchRemoveTopic(@RequestParam(name="adminID", required=true) String adminID, 
+								@RequestParam(name="topicIDs", required=true) String[] topicIDs,
+								HttpSession session) {
+		
+//		if (session.getAttribute(adminID) == null) {
+//			return new SimpleVO(false, "该用户尚未登录。");
+//		}
+		
+		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getHomepageModule(), 1);
+		if (!flag) {
+			return new SimpleVO(false, "该用户无此权限。");
+		}
+		
+		try {
+			topicService.batchRemoveTopic("topicID", topicIDs);
+			return new SimpleVO(true, "批量删除成功！");
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new SimpleVO(false, "出错信息：" + e.getMessage());
+		}
+	}
+	
+	
 	
 	@PostMapping("/edittopic")
 	public SimpleVO editTopic(@RequestParam(name="adminID", required=true) String adminID,
@@ -128,7 +153,7 @@ public class TopicController {
 //			return new CommonVO(false, "该用户尚未登录。", "请先确认是否登录成功。");
 //		}
 		
-		boolean flag = ContainUtil.hasNumber(adminService.queryAdminByCondition("adminID", adminID).getHomepageModule(), 1);
+		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getHomepageModule(), 1);
 		if (!flag) {
 			return new SimpleVO(false, "该用户无此权限。");
 		}
@@ -149,6 +174,59 @@ public class TopicController {
 		}
 	}
 	
+	@GetMapping("/toedittopic")
+	public ExtraVO toEditTopic(@RequestParam(name="adminID", required=true) String adminID,
+							@RequestParam(name="topicID", required=true) String topicID,
+							@RequestParam(name="page", required=true) Integer page,
+							@RequestParam(name="size", required=true) Integer size,
+							HttpSession session) {
+		
+//		if (session.getAttribute(adminID) == null) {
+//			return new ExtraVO(false, "该用户尚未登录。", "请先确认是否登录成功。", null);
+//		}
+		
+		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getHomepageModule(), 1);
+		if (!flag) {
+			return new ExtraVO(false, "该用户无此权限。", "请先申请查看管理员的权限。", null);
+		}
+		try {
+			Topic topic = topicService.queryTopic("topicID", topicID);
+			if (topic == null) {
+				return new ExtraVO(false, "不存在此ID的专题。", "请先核对输入专题ID是否正确。", null);
+			}
+			List<Map<String, String>> worklist = new LinkedList<Map<String, String>>();
+			if (topic.getWorks() != null) {
+				for (String workID : topic.getWorks()) {
+					Map<String, String> work = new HashMap<String, String>();
+					work.put("workID", workID);
+					work.put("workName", workService.queryWorkName("workID", workID));
+					worklist.add(work);
+				}
+			}
+			
+			Map<String, Object> data = new HashMap<String, Object>();
+			data.put("topicID", topicID);
+			data.put("topicName", topic.getTopicName());
+			data.put("describe", topic.getDescribe());
+			data.put("picturePath", topic.getPicturePath());
+			data.put("works", worklist);
+			
+			Long topicAmount = (long) topic.getWorks().size();
+			Long pageAmount = 0l;
+			if (topicAmount % size == 0) {
+				pageAmount = topicAmount / size;
+			} else {
+				pageAmount = topicAmount / size + 1;
+			}
+			Map<String, Object> extra = new HashMap <String, Object>();
+			extra.put("topicAmount", topicAmount);
+			extra.put("pageAmount", pageAmount);
+			return new ExtraVO(true, "跳转编辑页面成功！", data, extra);
+		} catch (Exception e) {
+			return new ExtraVO(true, "跳转编辑页面失败。", "出错信息：" + e.getMessage(), null);
+		}
+	}
+	
 	@GetMapping("/topiclist")
 	public ExtraVO topicList(@RequestParam(name="adminID", required=true) String adminID,
 							@RequestParam(name="topicName", required=false) String topicName,
@@ -161,7 +239,7 @@ public class TopicController {
 //			return new ExtraVO(false, "该用户尚未登录。", "请先确认是否登录成功。", null);
 //		}
 		
-		boolean flag = ContainUtil.hasNumber(adminService.queryAdminByCondition("adminID", adminID).getHomepageModule(), 1);
+		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getHomepageModule(), 1);
 		if (!flag) {
 			return new ExtraVO(false, "该用户无此权限。", "请先申请查看管理员的权限。", null);
 		}
@@ -185,6 +263,7 @@ public class TopicController {
 				map.put("topicID", topic.getTopicID());
 				map.put("topicName", topic.getTopicName());
 				map.put("picturePath", topic.getPicturePath());
+				map.put("describe", topic.getDescribe());
 				map.put("workNum", topic.getWorks().size());
 				map.put("isRecommend", topic.getIsRecommend());
 				map.put("createTime", topic.getCreateTime());
@@ -211,7 +290,7 @@ public class TopicController {
 //			return new CommonVO(false, "该用户尚未登录。", "请先确认是否登录成功。");
 //		}
 		
-		boolean flag = ContainUtil.hasNumber(adminService.queryAdminByCondition("adminID", adminID).getHomepageModule(), 1);
+		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getHomepageModule(), 1);
 		if (!flag) {
 			return new SimpleVO(false, "该用户无此权限。");
 		}
@@ -240,13 +319,13 @@ public class TopicController {
 //			return new CommonVO(false, "该用户尚未登录。", "请先确认是否登录成功。");
 //		}
 		
-		boolean flag = ContainUtil.hasNumber(adminService.queryAdminByCondition("adminID", adminID).getHomepageModule(), 1);
+		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getHomepageModule(), 1);
 		if (!flag) {
 			return new CommonVO(false, "该用户无此权限。", "请先申请查看管理员的权限。");
 		}
 		
 		try {
-			Work work = workService.queryWorkByCondition("workID", workID);
+			Work work = workService.queryWork("workID", workID);
 			if (work == null) {
 				return new CommonVO(false, "添加关联模型失败。", "请先核对模型ID输入是否正确。");
 			}
@@ -257,6 +336,41 @@ public class TopicController {
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new CommonVO(false, "添加关联模型失败。", "出错信息：" + e.getMessage());
+		}
+	}
+	
+	@GetMapping("/publishtopic")
+	public SimpleVO publishTopic(@RequestParam(name="adminID", required=true) String adminID,
+								@RequestParam(name="topicIDs", required=true) String[] topicIDs,
+								HttpSession session) {
+		
+//		if (session.getAttribute(adminID) == null) {
+//			return new SimpleVO(false, "该用户尚未登录。");
+//		}
+		
+		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getHomepageModule(), 1);
+		if (!flag) {
+			return new SimpleVO(false, "该用户无此权限。");
+		}
+		
+		if (topicIDs.length != 4) {
+			return new SimpleVO(false, "输入的专题数目不为4。");
+		}
+		try {
+			List<Topic> topiclist = topicService.topicList();
+			for (Topic topic : topiclist) {
+				boolean isExist = ContainUtil.hasString(topicIDs, topic.getTopicID());
+				if (isExist) {
+					topic.setIsRecommend(1);
+				} else {
+					topic.setIsRecommend(0);
+				}
+				topicService.updateTopic(topic);
+			}
+			return new SimpleVO(true, "发布专题成功！");
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new SimpleVO(true, "发布专题成功！");
 		}
 	}
 }

@@ -30,11 +30,11 @@ public class AdminService {
 		adminDao.updateAdmin(admin);
 	}
 	
-	public Admin queryAdminByCondition(String condition, String value) {
+	public Admin queryAdmin(String condition, String value) {
 		return adminDao.queryAdmin(condition, value);
 	}
 
-	public Admin queryAdminByConditions(String condition1, String value1, String condition2, String value2) {
+	public Admin queryAdmin(String condition1, String value1, String condition2, String value2) {
 		return adminDao.queryAdmin(condition1, value1, condition2, value2);
 	}
 	

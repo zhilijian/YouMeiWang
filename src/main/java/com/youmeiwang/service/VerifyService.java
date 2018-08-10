@@ -41,9 +41,9 @@ public class VerifyService implements VerifyDao{
 		User user = userDao.queryUser("userID", userID);
 		Work work = workDao.queryWork("workID", workID);
 		
-		List<String> verifyingWork = ListUtil.removeString(user.getVerifyingWork(), workID);
+		List<String> verifyingWork = ListUtil.removeElement(user.getVerifyingWork(), workID);
 		work.setVerifyState(2);
-		List<String> verifiedWork = ListUtil.addString(user.getVerifiedWork(), workID);
+		List<String> verifiedWork = ListUtil.addElement(user.getVerifiedWork(), workID);
 		
 		user.setVerifyingWork(verifyingWork);
 		user.setVerifiedWork(verifiedWork);
@@ -57,9 +57,9 @@ public class VerifyService implements VerifyDao{
 		User user = userDao.queryUser("userID", userID);
 		Work work = workDao.queryWork("workID", workID);
 		
-		List<String> verifyingWork = ListUtil.removeString(user.getVerifyingWork(), workID);
+		List<String> verifyingWork = ListUtil.removeElement(user.getVerifyingWork(), workID);
 		work.setVerifyState(3);
-		List<String> notPassWork = ListUtil.addString(user.getNotPassWork(), workID);
+		List<String> notPassWork = ListUtil.addElement(user.getNotPassWork(), workID);
 		
 		user.setVerifyingWork(verifyingWork);
 		user.setNotPassWork(notPassWork);
@@ -73,9 +73,9 @@ public class VerifyService implements VerifyDao{
 		User user = userDao.queryUser("userID", userID);
 		Work work = workDao.queryWork("workID", workID);
 		
-		List<String> verifiedWork = ListUtil.removeString(user.getVerifiedWork(), workID);
+		List<String> verifiedWork = ListUtil.removeElement(user.getVerifiedWork(), workID);
 		work.setVerifyState(3);
-		List<String> notPassWork = ListUtil.addString(user.getNotPassWork(), workID);
+		List<String> notPassWork = ListUtil.addElement(user.getNotPassWork(), workID);
 		
 		user.setVerifiedWork(verifiedWork);
 		user.setNotPassWork(notPassWork);

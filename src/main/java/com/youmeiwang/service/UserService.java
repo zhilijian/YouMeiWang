@@ -18,15 +18,19 @@ public class UserService {
 		userDao.addUser(user);
 	}
 	
-	public void removeUserByCondition(String condition, String value) {
+	public void removeUser(String condition, String value) {
 		userDao.removeUser(condition, value);
 	}
-
+	
+	public void batchRemoveUser(String condition, String[] values) {
+		userDao.batchRemoveUser(condition, values);
+	}
+	
 	public void updateUser(User user) {
 		userDao.updateUser(user);
 	}
 
-	public User queryUserByCondition(String condition, String value) {
+	public User queryUser(String condition, String value) {
 		return userDao.queryUser(condition, value);
 	}
 	

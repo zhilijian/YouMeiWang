@@ -1,65 +1,47 @@
 package com.youmeiwang.util;
 
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 public class ListUtil {
 
-	public static boolean isHasString(List<String> list, String str) {
-		for (String string : list) {
-			if (string.equals(str)) {
-				return true;
-			} 
-		}
-		return false;
-	}
-	
-	public static List<String> addString(List<String> list, String str) {
-		list.add(str);
+	public static <E> List<E> addElement(List<E> list, E element) {
+		list.add(element);
 		return list;
 	}
 	
-	public static List<String> addString(List<String> list1, List<String> list2){
+	public static <E> List<E> addList(List<E> list1, List<E> list2){
 		list1.removeAll(list2);
 		list1.addAll(list2);
 		return list1;
 	}
 	
-	public static List<String> removeString(List<String> list, String str) {
-		Iterator<String> iter = list.iterator();
+	public static <E> List<E> removeElement(List<E> list, E element) {
+		Iterator<E> iter = list.iterator();
         while (iter.hasNext()) {
-        	String item = iter.next();
-            if (item.equals(str)) {
+        	E item = iter.next();
+            if (item.equals(element)) {
                 iter.remove();
             }
         }
 		return list;
 	}
 	
-	public static boolean isHasMap(List<Map<String, Object>> maplist, Map<String, Object> map1) {
-		for (Map<String, Object> map2 : maplist) {
-			if (map2.equals(map1)) {
-				return true;
-			} 
+	// 删除List中重复元素，保持顺序
+	public static <E> List<E> removeDuplicate(List<E> list) {
+		Set<E> set = new HashSet<E>();
+		List<E> newList = new LinkedList<E>();
+		for (Iterator<E> iter = list.iterator(); iter.hasNext();) {
+			E element = iter.next();
+			if (set.add(element))
+				newList.add(element);
 		}
-		return false;
-	}
-	
-	public static List<Map<String, Object>> addMap(List<Map<String, Object>> list, Map<String, Object> map) {
-		list.add(map);
+		list.clear();
+		list.addAll(newList);
 		return list;
-	}
-	
-	public static List<Map<String, Object>> removeMap(List<Map<String, Object>> list, Map<String, Object> map) {
-		Iterator<Map<String, Object>> iter = list.iterator();
-        while (iter.hasNext()) {
-        	Map<String, Object> item = iter.next();
-            if (item.equals(map)) {
-                iter.remove();
-            }
-        }
-		return list;
-	}
+	}   
 	
 }

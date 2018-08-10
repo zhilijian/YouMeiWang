@@ -31,9 +31,9 @@ public class User {
 	private Long balance;
 	//VIP类别 VIPKind
 	//0：大众用户	 0：个人VIP 1：企业VIP 2：原创VIP
-	private Integer[] VIPKind;
+	private Integer[] VIPKind = {0};
 	//会员种类 memberKind 0：普通用户 1：原创用户
-	private Integer memberKind;
+	private Integer memberKind = 0;
 	//会员到期时间 memberExpirationTime
 	private String memberExpirationTime;
 	//待审核作品
@@ -46,6 +46,11 @@ public class User {
 	private List<String> collectWork;
 	//下载的作品
 	private List<String> downWork;
+	//申请原创作者 ApplyForOriginal
+	//0：未申请 1：申请中 2：申请成功 3：申请驳回
+	private Integer ApplyForOriginal = 0;
+	//审核信息
+	private String verifyMessage;
 
 	public User() {
 	}
@@ -192,6 +197,22 @@ public class User {
 
 	public void setDownWork(List<String> downWork) {
 		this.downWork = downWork;
+	}
+
+	public Integer getApplyForOriginal() {
+		return ApplyForOriginal;
+	}
+
+	public void setApplyForOriginal(Integer applyForOriginal) {
+		ApplyForOriginal = applyForOriginal;
+	}
+
+	public String getVerifyMessage() {
+		return verifyMessage;
+	}
+
+	public void setVerifyMessage(String verifyMessage) {
+		this.verifyMessage = verifyMessage;
 	}
 
 }

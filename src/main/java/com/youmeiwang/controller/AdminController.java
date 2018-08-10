@@ -36,7 +36,7 @@ public class AdminController {
 						@RequestParam(name="password", required=true) String password, 
 						HttpSession session) {
 		Map<String, Object> data = new HashMap<String, Object>();
-		Admin admin = adminService.queryAdminByConditions("adminname", adminname, "password", password);
+		Admin admin = adminService.queryAdmin("adminname", adminname, "password", password);
 		if (admin != null) {
 			session.setAttribute(admin.getAdminID(), admin.getAdminID());
 			data.put("adminID", admin.getAdminID());
@@ -84,7 +84,7 @@ public class AdminController {
 //			return new CommonVO(false, "该用户尚未登录。", "请先确认是否登录成功。");
 //		}
 		
-		boolean flag = ContainUtil.hasNumber(adminService.queryAdminByCondition("adminID", adminID).getRoleAuthority(), 0);
+		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getRoleAuthority(), 0);
 		if (!flag) {
 			return new CommonVO(false, "该用户无此权限", "请先核对该用户是否有此权限。");
 		}
@@ -93,7 +93,7 @@ public class AdminController {
 		String newAdminID = null;
 		do {
 			newAdminID = RandomUtil.getRandomNumber(4);
-		} while (adminService.queryAdminByCondition("adminID", newAdminID) != null);
+		} while (adminService.queryAdmin("adminID", newAdminID) != null);
 		admin.setAdminID(newAdminID);
 		admin.setAdminname(adminname);
 		admin.setPassword(password);
@@ -132,7 +132,7 @@ public class AdminController {
 //		if (session.getAttribute(adminID) == null) {
 //			return new SimpleVO(false, "该用户尚未登录。");
 //		}
-		Admin admin = adminService.queryAdminByCondition("adminID", adminID);
+		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (!admin.getPassword().equals(password1)) {
 			return new SimpleVO(false, "旧密码输入错误。");
 		}
@@ -162,7 +162,7 @@ public class AdminController {
 //			return new SimpleVO(false, "该用户尚未登录。");
 //		}
 		
-		boolean flag = ContainUtil.hasNumber(adminService.queryAdminByCondition("adminID", adminID1).getRoleAuthority(), 0);
+		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID1).getRoleAuthority(), 0);
 		if (!flag) {
 			return new SimpleVO(false, "该用户无此权限。");
 		}
@@ -171,7 +171,7 @@ public class AdminController {
 			return new SimpleVO(false, "超级管理员权限无法修改。");
 		}
 		
-		Admin admin = adminService.queryAdminByCondition("adminID", adminID2);
+		Admin admin = adminService.queryAdmin("adminID", adminID2);
 		try {
 			admin.setPassword(password);
 			admin.setPosition(position);
@@ -197,7 +197,7 @@ public class AdminController {
 //			return new SimpleVO(false, "该用户尚未登录。");
 //		}
 		
-		boolean flag = ContainUtil.hasNumber(adminService.queryAdminByCondition("adminID", adminID1).getRoleAuthority(), 0);
+		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID1).getRoleAuthority(), 0);
 		if (!flag) {
 			return new SimpleVO(false, "该用户无此权限。");
 		}
@@ -225,7 +225,7 @@ public class AdminController {
 //			return new ExtraVO(false, "该用户尚未登录。", "请先确认是否登录成功。", null);
 //		}
 		
-		boolean flag = ContainUtil.hasNumber(adminService.queryAdminByCondition("adminID", adminID).getRoleAuthority(), 1);
+		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getRoleAuthority(), 1);
 		if (!flag) {
 			return new ExtraVO(false, "该用户无此权限。","请先申请查看管理员的权限。", null);
 		}
@@ -274,7 +274,7 @@ public class AdminController {
 //			return new CommonVO(false, "该用户尚未登录。", "请先确认是否登录成功。");
 //		}
 		
-		boolean flag = ContainUtil.hasNumber(adminService.queryAdminByCondition("adminID", adminID).getRoleAuthority(), 0);
+		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getRoleAuthority(), 0);
 		if (!flag) {
 			return new SimpleVO(false, "该用户无此权限。");
 		}

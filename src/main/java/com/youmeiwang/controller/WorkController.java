@@ -55,12 +55,12 @@ public class WorkController {
 //			return new CommonVO(false, "用户非法登录。", "请先登录再操作"); 
 //		}
 		
-		User user = userService.queryUserByCondition("userID", userID);
+		User user = userService.queryUser("userID", userID);
 		Work work = new Work();
 		String workID = null;
 		do {
 			workID = RandomUtil.getRandomString(10);
-		} while (workService.queryWorkByCondition("workID", workID) != null);
+		} while (workService.queryWork("workID", workID) != null);
 		work.setWorkID(workID);
 		work.setWorkName(workName);
 		work.setAuthorID(userID);
@@ -99,8 +99,8 @@ public class WorkController {
 //			return new CommonVO(false, "用户非法登录。", "请先登录再操作"); 
 //		}
 		
-		User user = userService.queryUserByCondition("userID", userID);
-		Work work = workService.queryWorkByCondition("workID", workID);
+		User user = userService.queryUser("userID", userID);
+		Work work = workService.queryWork("workID", workID);
 		CommonVO cvo = new CommonVO();
 		try {
 			if (isPass) {
@@ -134,25 +134,25 @@ public class WorkController {
 //			return new SimpleVO(false, "用户非法登录。"); 
 //		}
 		
-		User user = userService.queryUserByCondition("userID", userID);
-		Work work = workService.queryWorkByCondition("workID", workID);
+		User user = userService.queryUser("userID", userID);
+		Work work = workService.queryWork("workID", workID);
 		
 		List<String> verifyingWork = user.getVerifyingWork();
 		List<String> verifiedWork = user.getVerifiedWork();
 		List<String> notPassWork = user.getNotPassWork();
 		List<String> collectWork = user.getCollectWork();
 		
-		if (ListUtil.isHasString(verifyingWork, workID)) {
-			ListUtil.removeString(verifyingWork, workID);
+		if (verifyingWork.contains(workID)) {
+			ListUtil.removeElement(verifyingWork, workID);
 		}
-		if (ListUtil.isHasString(verifiedWork, workID)) {
-			ListUtil.removeString(verifiedWork, workID);
+		if (verifiedWork.contains(workID)) {
+			ListUtil.removeElement(verifiedWork, workID);
 		}
-		if (ListUtil.isHasString(notPassWork, workID)) {
-			ListUtil.removeString(notPassWork, workID);
+		if (notPassWork.contains(workID)) {
+			ListUtil.removeElement(notPassWork, workID);
 		}
-		if (ListUtil.isHasString(collectWork, workID)) {
-			ListUtil.removeString(collectWork, workID);
+		if (collectWork.contains(workID)) {
+			ListUtil.removeElement(collectWork, workID);
 		}
 		
 		work.setAuthorID(null);

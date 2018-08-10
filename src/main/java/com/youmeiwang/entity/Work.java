@@ -16,7 +16,7 @@ public class Work {
 	//authorID 发布者ID（用户ID）
 	private String authorID;
 	//primaryClassification 一级分类
-	//1：共享模型  2：原创模型  3：2D美术
+	//0：共享模型  1：原创模型  2：2D美术
 	private Integer primaryClassification;
 	//secondaryClassification 二级分类
 	private Integer secondaryClassification;
@@ -36,7 +36,7 @@ public class Work {
 	private Integer currency;
 	//labels 标签
 	private List<String> labels;
-	//verifyState 审核状态  1：待审核  2：已通过  3：未通过
+	//verifyState 审核状态  0：待审核  1：已通过  2：未通过
 	private Integer verifyState;
 	//topic 专题
 	private String topicID;
