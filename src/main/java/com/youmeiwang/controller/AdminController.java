@@ -42,10 +42,10 @@ public class AdminController {
 			data.put("adminID", admin.getAdminID());
 			data.put("adminname", adminname);
 			data.put("position", admin.getPosition());
-			data.put("adminManager", admin.getAdminManager());
-			data.put("workManager", admin.getWorkManager());
+			data.put("userManage", admin.getUserManage());
+			data.put("workManage", admin.getWorkManage());
 			data.put("homepageModule", admin.getHomepageModule());
-			data.put("rechargeManager", admin.getRechargeManager());
+			data.put("rechargeManage", admin.getRechargeManage());
 			data.put("roleAuthority", admin.getRoleAuthority());
 			return new CommonVO(true, "用户登录成功！", data);
 		} else {
@@ -73,10 +73,10 @@ public class AdminController {
 							@RequestParam(name="adminname", required=true) String adminname,
 							@RequestParam(name="password", required=true) String password,
 							@RequestParam(name="position", required=true) String position,
-							@RequestParam(name="adminManager", required=false) Integer[] adminManager,
-							@RequestParam(name="workManager", required=false) Integer[] workManager,
+							@RequestParam(name="userManage", required=false) Integer[] userManage,
+							@RequestParam(name="workManage", required=false) Integer[] workManage,
 							@RequestParam(name="homepageModule", required=false) Integer[] homepageModule,
-							@RequestParam(name="rechargeManager", required=false) Integer[] rechargeManager,
+							@RequestParam(name="rechargeManage", required=false) Integer[] rechargeManage,
 							@RequestParam(name="roleAuthority", required=false) Integer[] roleAuthority,
 							HttpSession session) {
 		
@@ -98,21 +98,21 @@ public class AdminController {
 		admin.setAdminname(adminname);
 		admin.setPassword(password);
 		admin.setPosition(position);
-		admin.setAdminManager(adminManager);
-		admin.setWorkManager(workManager);
+		admin.setUserManage(userManage);
+		admin.setWorkManage(workManage);
 		admin.setHomepageModule(homepageModule);
-		admin.setRechargeManager(rechargeManager);
+		admin.setRechargeManage(rechargeManage);
 		admin.setRoleAuthority(roleAuthority);
 		
 		Map<String, Object> data = new HashMap<String, Object>();
 		data.put("adminID", admin.getAdminID());
 		data.put("adminname", admin.getAdminname());
 		data.put("position", admin.getPosition());
-		data.put("adminManager", admin.getAdminManager());
-		data.put("workManager", admin.getWorkManager());
+		data.put("userManage", admin.getUserManage());
+		data.put("workManage", admin.getWorkManage());
 		data.put("homepageModule", admin.getHomepageModule());
-		data.put("rechargeManager", admin.getRechargeManager());
-		data.put("roleAuthority", admin.getPosition());
+		data.put("rechargeManage", admin.getRechargeManage());
+		data.put("roleAuthority", admin.getRoleAuthority());
 		
 		try {
 			adminService.addAdmin(admin);
@@ -151,10 +151,10 @@ public class AdminController {
 							@RequestParam(name="adminID2", required=true) String adminID2,
 							@RequestParam(name="password", required=false) String password,
 							@RequestParam(name="position", required=true) String position,
-							@RequestParam(name="adminManager", required=true) Integer[] adminManager,
-							@RequestParam(name="workManager", required=true) Integer[] workManager,
+							@RequestParam(name="userManage", required=true) Integer[] userManage,
+							@RequestParam(name="workManage", required=true) Integer[] workManage,
 							@RequestParam(name="homepageModule", required=true) Integer[] homepageModule,
-							@RequestParam(name="rechargeManager", required=true) Integer[] rechargeManager,
+							@RequestParam(name="rechargeManage", required=true) Integer[] rechargeManage,
 							@RequestParam(name="roleAuthority", required=true) Integer[] roleAuthority,
 							HttpSession session) {
 		
@@ -175,10 +175,10 @@ public class AdminController {
 		try {
 			admin.setPassword(password);
 			admin.setPosition(position);
-			admin.setAdminManager(adminManager);
-			admin.setWorkManager(workManager);
+			admin.setUserManage(userManage);
+			admin.setWorkManage(workManage);
 			admin.setHomepageModule(homepageModule);
-			admin.setRechargeManager(rechargeManager);
+			admin.setRechargeManage(rechargeManage);
 			admin.setRoleAuthority(roleAuthority);
 			adminService.updateAdmin(admin);
 			return new SimpleVO(true, "权限修改成功！");
@@ -248,10 +248,10 @@ public class AdminController {
 				Map<String, Object> map = new HashMap <String, Object>();
 				map.put("adminID", admin.getAdminID());
 				map.put("position", admin.getPosition());
-				map.put("adminManager", admin.getAdminManager());
-				map.put("workManager", admin.getWorkManager());
+				map.put("userManage", admin.getUserManage());
+				map.put("workManage", admin.getWorkManage());
 				map.put("homepageModule", admin.getHomepageModule());
-				map.put("rechargeManager", admin.getRechargeManager());
+				map.put("rechargeManage", admin.getRechargeManage());
 				map.put("roleAuthority", admin.getRoleAuthority());
 				data.add(map);
 			}

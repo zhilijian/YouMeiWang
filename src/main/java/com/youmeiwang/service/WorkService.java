@@ -31,7 +31,7 @@ public class WorkService {
 		userDao.updateUser(user);
 	}
 	
-	public void removeWorkByCondition(String condition, String value) {
+	public void removeWorkByCondition(String condition, Object value) {
 		workDao.removeWork(condition, value);
 	}
 	
@@ -46,11 +46,11 @@ public class WorkService {
 		workDao.updateWork(work);
 	}
 	
-	public Work queryWork(String condition, String value) {
+	public Work queryWork(String condition, Object value) {
 		return workDao.queryWork(condition, value);
 	}
 	
-	public String queryWorkName(String condition, String value) {
+	public String queryWorkName(String condition, Object value) {
 		Work work = workDao.queryWork(condition, value);
 		return work.getWorkName();
 	}
@@ -60,6 +60,10 @@ public class WorkService {
 	}
 	
 	public List<Work> workList(String condition, String value, Integer page, Integer size) {
+		return workDao.workList(condition, value, page, size);
+	}
+	
+	public List<Work> workList(String condition, Integer value, Integer page, Integer size) {
 		return workDao.workList(condition, value, page, size);
 	}
 }

@@ -27,5 +27,5 @@ public interface UserDao {
 	public List<User> userList(String condition, String value, Integer page, Integer size);
 
 	public List<User> userList(String condition1, String value1, String condition2, Integer value2, 
-			String condition3, Integer value3, Integer page, Integer size);
+			String condition3, Integer value3);
 }

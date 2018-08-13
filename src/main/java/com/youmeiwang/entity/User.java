@@ -19,10 +19,10 @@ public class User {
 	private String phone;
 	//用户头像(文件路径) portrait
 	private String portrait;
-	//支付宝 Alipay
-	private String Alipay;
+	//支付宝 alipay
+	private String alipay;
 	//QQ账号 QQ
-	private String QQ;
+	private String qq;
 	//邮箱 email
 	private String email;
 	//游币数量 youbiAmount
@@ -31,7 +31,7 @@ public class User {
 	private Long balance;
 	//VIP类别 VIPKind
 	//0：大众用户	 0：个人VIP 1：企业VIP 2：原创VIP
-	private Integer[] VIPKind = {0};
+	private Integer[] vipKind;
 	//会员种类 memberKind 0：普通用户 1：原创用户
 	private Integer memberKind = 0;
 	//会员到期时间 memberExpirationTime
@@ -48,9 +48,11 @@ public class User {
 	private List<String> downWork;
 	//申请原创作者 ApplyForOriginal
 	//0：未申请 1：申请中 2：申请成功 3：申请驳回
-	private Integer ApplyForOriginal = 0;
+	private Integer applyForOriginal;
 	//审核信息
 	private String verifyMessage;
+	//佣金比例
+	private String commissionRate;
 
 	public User() {
 	}
@@ -96,19 +98,19 @@ public class User {
 	}
 
 	public String getAlipay() {
-		return Alipay;
+		return alipay;
 	}
 
 	public void setAlipay(String alipay) {
-		Alipay = alipay;
+		this.alipay = alipay;
 	}
 
-	public String getQQ() {
-		return QQ;
+	public String getQq() {
+		return qq;
 	}
 
-	public void setQQ(String qQ) {
-		QQ = qQ;
+	public void setQq(String qq) {
+		this.qq = qq;
 	}
 
 	public String getEmail() {
@@ -135,12 +137,12 @@ public class User {
 		this.balance = balance;
 	}
 
-	public Integer[] getVIPKind() {
-		return VIPKind;
+	public Integer[] getVipKind() {
+		return vipKind;
 	}
 
-	public void setVIPKind(Integer[] vIPKind) {
-		VIPKind = vIPKind;
+	public void setVipKind(Integer[] vipKind) {
+		this.vipKind = vipKind;
 	}
 
 	public Integer getMemberKind() {
@@ -200,11 +202,11 @@ public class User {
 	}
 
 	public Integer getApplyForOriginal() {
-		return ApplyForOriginal;
+		return applyForOriginal;
 	}
 
 	public void setApplyForOriginal(Integer applyForOriginal) {
-		ApplyForOriginal = applyForOriginal;
+		this.applyForOriginal = applyForOriginal;
 	}
 
 	public String getVerifyMessage() {
@@ -215,4 +217,11 @@ public class User {
 		this.verifyMessage = verifyMessage;
 	}
 
+	public String getCommissionRate() {
+		return commissionRate;
+	}
+
+	public void setCommissionRate(String commissionRate) {
+		this.commissionRate = commissionRate;
+	}
 }

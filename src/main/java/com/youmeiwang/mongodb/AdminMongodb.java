@@ -44,10 +44,10 @@ public class AdminMongodb implements AdminDao{
 		update.set("adminname", admin.getAdminname());
 		update.set("password", admin.getPassword());
 		update.set("position", admin.getPosition());
-		update.set("adminManager", admin.getAdminManager());
-		update.set("workManager", admin.getWorkManager());
+		update.set("userManage", admin.getUserManage());
+		update.set("workManage", admin.getWorkManage());
 		update.set("homepageModule", admin.getHomepageModule());
-		update.set("rechargeManager", admin.getRechargeManager());
+		update.set("rechargeManage", admin.getRechargeManage());
 		update.set("roleAuthority", admin.getRoleAuthority());
 		mongoTemplate.updateFirst(query, update, Admin.class);
 	}

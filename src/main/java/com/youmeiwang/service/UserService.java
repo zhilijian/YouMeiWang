@@ -48,7 +48,7 @@ public class UserService {
 	}
 	
 	public List<User> userList(String condition1, String value1, String condition2, Integer value2, 
-			String condition3, Integer value3, Integer page, Integer size) {
-		return userDao.userList(condition1, value1, condition2, value2, condition3, value3, page, size);
+			String condition3, Integer value3) {
+		return userDao.userList(condition1, value1, condition2, value2, condition3, value3);
 	}
 }

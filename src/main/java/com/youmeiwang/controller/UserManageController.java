@@ -51,7 +51,7 @@ public class UserManageController {
 //			return new ExtraVO(false, "管理员尚未登录。", "请先确认是否登录成功。", null);
 //		}
 		
-		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getAdminManager(), 0);
+		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getUserManage(), 0);
 		if (!flag) {
 			return new ExtraVO(false, "该用户无此权限。","请先申请查看管理员的权限。", null);
 		}
@@ -61,13 +61,13 @@ public class UserManageController {
 		}
 		
 		try {
-			List<User> userlist = new LinkedList<User>();
-			userlist.addAll(userService.userList("userID", condition, "VIPKind", VIPKind, "memberKind", memberKind, page, size));
-			userlist.addAll(userService.userList("phone", condition, "VIPKind", VIPKind, "memberKind", memberKind, page, size));
-			userlist.addAll(userService.userList("nickname", condition, "VIPKind", VIPKind, "memberKind", memberKind, page, size));
-			userlist = ListUtil.removeDuplicate(userlist);		
+			List<User> userlist1 = new LinkedList<User>();
+			userlist1.addAll(userService.userList("userID", condition, "vipKind", VIPKind, "memberKind", memberKind));
+			userlist1.addAll(userService.userList("phone", condition, "vipKind", VIPKind, "memberKind", memberKind));
+			userlist1.addAll(userService.userList("nickname", condition, "vipKind", VIPKind, "memberKind", memberKind));
+			userlist1 = ListUtil.removeDuplicate(userlist1);		
 					
-			Long userAmount = (long) userlist.size();
+			Long userAmount = (long) userlist1.size();
 			Long pageAmount = 0l;
 			if (userAmount % size == 0) {
 				pageAmount = userAmount / size;
@@ -75,13 +75,20 @@ public class UserManageController {
 				pageAmount = userAmount / size + 1;
 			}
 			
+			List<User> userlist2 = new LinkedList<User>();
+			int currIdx = (page > 1 ? (page-1)*size : 0);
+			for (int i = 0; i < size && i < userlist1.size()-currIdx; i++) {
+				User user = userlist1.get(currIdx + i);
+				userlist2.add(user);
+			}
+			
 			List<Map<String, Object>> data = new LinkedList<Map<String, Object>>();
-			for (User user : userlist) {
+			for (User user : userlist2) {
 				Map<String, Object> map = new HashMap <String, Object>();
 				map.put("userID", user.getUserID());
 				map.put("phone", user.getPhone());
 				map.put("nickname", user.getNickname());
-				map.put("VIPKind", user.getVIPKind());
+				map.put("VIPKind", user.getVipKind());
 				map.put("memberKind", user.getMemberKind());
 				map.put("youbiAmount", user.getYoubiAmount());
 				map.put("balance", user.getBalance());
@@ -117,9 +124,9 @@ public class UserManageController {
 			data.put("nickname", user.getNickname());
 			data.put("phone", user.getPhone());
 			data.put("Alipay", user.getAlipay());
-			data.put("QQ", user.getQQ());
+			data.put("QQ", user.getQq());
 			data.put("email", user.getEmail());
-			data.put("VIPKind", user.getVIPKind());
+			data.put("VIPKind", user.getVipKind());
 			data.put("memberKind", user.getMemberKind());
 			data.put("youbiAmount", user.getYoubiAmount());
 			data.put("balance", user.getBalance());
@@ -164,7 +171,7 @@ public class UserManageController {
 //			return new CommonVO(false, "管理员尚未登录。", "请先确认是否登录成功。");
 //		}
 
-		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getAdminManager(), 1);
+		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getUserManage(), 1);
 		if (!flag) {
 			return new CommonVO(false, "该用户无此权限。", "请先核对该管理员是否有此权限。");
 		}
@@ -178,11 +185,19 @@ public class UserManageController {
 				user.setApplyForOriginal(3);
 				user.setVerifyMessage(dismissalMsg);
 			}
+			userService.updateUser(user);
+
+			Map<String, Object> data = new HashMap<String, Object>();
+			data.put("userID", userID);
+			data.put("nickname", user.getNickname());
+			data.put("phone", user.getPhone());
+			data.put("applyForOriginal", user.getApplyForOriginal());
 			
+			return new CommonVO(true, "审核原创作者成功！", data);
 		} catch (Exception e) {
-			// TODO: handle exception
+			e.printStackTrace();
+			return new CommonVO(false, "审核原创作者失败。", "出错信息：" +  e.getMessage());
 		}
-		
-		return null;
 	}
+	
 }

@@ -1,6 +1,7 @@
 package com.youmeiwang.controller;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -157,8 +158,10 @@ public class TopicController {
 		if (!flag) {
 			return new SimpleVO(false, "该用户无此权限。");
 		}
-		
-		List<String> works = Arrays.asList(workIDs);
+		List<String> works = new ArrayList<String>();
+		if (workIDs != null) {
+			works = Arrays.asList(workIDs);
+		}
 		
 		Topic topic = topicService.queryTopic("topicID", topicID);
 		topic.setTopicName(topicName);
@@ -329,9 +332,11 @@ public class TopicController {
 			if (work == null) {
 				return new CommonVO(false, "添加关联模型失败。", "请先核对模型ID输入是否正确。");
 			}
-			Map<String, String> data = new HashMap<String, String>();
-			data.put("workID", workID);
-			data.put("workName", work.getWorkName());
+			List<Map<String, String>> data = new LinkedList<Map<String, String>>();
+			Map<String, String> map = new HashMap<String, String>();
+			map.put("workID", workID);
+			map.put("workName", work.getWorkName());
+			data.add(map);
 			return new CommonVO(true, "添加关联模型成功！", data);
 		} catch (Exception e) {
 			e.printStackTrace();

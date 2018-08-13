@@ -45,12 +45,12 @@ public class UserMongodb implements UserDao {
 		update.set("nickname", user.getNickname());
 		update.set("phone", user.getPhone());
 		update.set("portrait", user.getPortrait());
-		update.set("Alipay", user.getAlipay());
-		update.set("QQ", user.getQQ());
+		update.set("alipay", user.getAlipay());
+		update.set("qq", user.getQq());
 		update.set("email", user.getEmail());
 		update.set("youbiAmount", user.getYoubiAmount());
 		update.set("balance", user.getBalance());
-		update.set("VIPKind", user.getVIPKind());
+		update.set("vipKind", user.getVipKind());
 		update.set("memberKind", user.getMemberKind());
 		update.set("memberExpirationTime", user.getMemberExpirationTime());
 		update.set("verifyingWork", user.getVerifyingWork());
@@ -58,8 +58,9 @@ public class UserMongodb implements UserDao {
 		update.set("notPassWork", user.getNotPassWork());
 		update.set("collectWork", user.getCollectWork());
 		update.set("downWork", user.getDownWork());
-		update.set("ApplyForOriginal", user.getApplyForOriginal());
+		update.set("applyForOriginal", user.getApplyForOriginal());
 		update.set("verifyMessage", user.getVerifyMessage());
+		update.set("commissionRate", user.getCommissionRate());
 	
 		mongoTemplate.updateFirst(query, update, User.class);
 	}
@@ -108,7 +109,7 @@ public class UserMongodb implements UserDao {
 
 	@Override
 	public List<User> userList(String condition1, String value1, String condition2, Integer value2, 
-			String condition3, Integer value3, Integer page, Integer size) {
+			String condition3, Integer value3) {
 		Query query = new Query();
 		if (value1 != null) {
 			query.addCriteria(Criteria.where(condition1).regex(value1));
@@ -119,8 +120,6 @@ public class UserMongodb implements UserDao {
 		if (value3 != null) {
 			query.addCriteria(Criteria.where(condition3).is(value3));
 		}
-		query.skip((page - 1) * size);
-		query.limit(size);
 		return mongoTemplate.find(query, User.class);
 	}
 

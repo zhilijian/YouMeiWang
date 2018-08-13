@@ -46,6 +46,8 @@ public class Work {
 	private String filePath;
 	//downloadNum 下载次数
 	private Long downloadNum;
+	//模型大小
+	private double modelSize;
 	
 	public String getWorkID() {
 		return workID;
@@ -156,5 +158,11 @@ public class Work {
 	}
 	public void setDownloadNum(Long downloadNum) {
 		this.downloadNum = downloadNum;
+	}
+	public double getModelSize() {
+		return modelSize;
+	}
+	public void setModelSize(double modelSize) {
+		this.modelSize = modelSize;
 	}
 }

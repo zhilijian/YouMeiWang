@@ -25,7 +25,7 @@ public class WorkMongodb  implements WorkDao{
 	}
 	
 	@Override
-	public void removeWork(String condition, String value) {
+	public void removeWork(String condition, Object value) {
 		Query query = new Query(Criteria.where(condition).is(value));
 		mongoTemplate.remove(query, Work.class);
 	}
@@ -51,11 +51,12 @@ public class WorkMongodb  implements WorkDao{
 		update.set("picturePath", work.getPicturePath());
 		update.set("filePath", work.getFilePath());
 		update.set("downloadNum", work.getDownloadNum());
+		update.set("modelSize", work.getModelSize());
 		mongoTemplate.updateFirst(query, update, Work.class);
 	}
 	
 	@Override
-	public Work queryWork(String condition, String value) {
+	public Work queryWork(String condition, Object value) {
 		Query query = new Query(Criteria.where(condition).is(value));
 		return mongoTemplate.findOne(query, Work.class);
 	}
@@ -74,6 +75,17 @@ public class WorkMongodb  implements WorkDao{
 		Query query = new Query();
 		if (value != null) {
 			query.addCriteria(Criteria.where(condition).regex(value));
+		}
+		query.skip((page - 1) * size);
+		query.limit(size);
+		return mongoTemplate.find(query, Work.class);
+	}
+
+	@Override
+	public List<Work> workList(String condition, Integer value, Integer page, Integer size) {
+		Query query = new Query();
+		if (value != null) {
+			query.addCriteria(Criteria.where(condition).is(value));
 		}
 		query.skip((page - 1) * size);
 		query.limit(size);
