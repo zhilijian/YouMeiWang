@@ -43,6 +43,7 @@ public class UserMongodb implements UserDao {
 		Update update = new Update();
 		update.set("username", user.getUsername());
 		update.set("nickname", user.getNickname());
+		update.set("fullname", user.getFullname());
 		update.set("phone", user.getPhone());
 		update.set("portrait", user.getPortrait());
 		update.set("alipay", user.getAlipay());
@@ -81,6 +82,15 @@ public class UserMongodb implements UserDao {
 	}
 	
 	@Override
+	public Long getAmount(String condition, Object value) {
+		Query query = new Query();
+		if (value != null) {
+			query.addCriteria(Criteria.where(condition).is(value));
+		}
+		return mongoTemplate.count(query, User.class);
+	}
+	
+	@Override
 	public Long getAmount(String condition1, String value1, String condition2, Integer value2, 
 			String condition3, Integer value3) {
 		Query query = new Query();
@@ -106,10 +116,21 @@ public class UserMongodb implements UserDao {
 		query.limit(size);
 		return mongoTemplate.find(query, User.class);
 	}
+	
+	@Override
+	public List<User> userList(String condition, Object value, Integer page, Integer size) {
+		Query query = new Query();
+		if (value != null) {
+			query.addCriteria(Criteria.where(condition).is(value));
+		}
+		query.skip((page - 1) * size);
+		query.limit(size);
+		return mongoTemplate.find(query, User.class);
+	}
 
 	@Override
 	public List<User> userList(String condition1, String value1, String condition2, Integer value2, 
-			String condition3, Integer value3) {
+			String condition3, Integer value3, String condition4, Integer value4) {
 		Query query = new Query();
 		if (value1 != null) {
 			query.addCriteria(Criteria.where(condition1).regex(value1));
@@ -119,6 +140,9 @@ public class UserMongodb implements UserDao {
 		}
 		if (value3 != null) {
 			query.addCriteria(Criteria.where(condition3).is(value3));
+		}
+		if (value4 != null) {
+			query.addCriteria(Criteria.where(condition3).is(value4));
 		}
 		return mongoTemplate.find(query, User.class);
 	}

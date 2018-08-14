@@ -48,7 +48,7 @@ public class WorkController {
 			@RequestParam(name="price", required=true) Integer price,
 			@RequestParam(name="currency", required=true) Integer currency,
 			@RequestParam(name="labels", required=true) List<String> labels,
-			@RequestParam(name="filePath", required=true) String filePath,
+			@RequestParam(name="filePath", required=true) String[] filePath,
 			HttpSession session ) {
 		
 //		if (session.getAttribute(userID) == null) {
@@ -63,7 +63,7 @@ public class WorkController {
 		} while (workService.queryWork("workID", workID) != null);
 		work.setWorkID(workID);
 		work.setWorkName(workName);
-		work.setAuthorID(userID);
+		work.setAuthor(user.getUsername());
 		work.setPrimaryClassification(primaryClassification);
 		work.setPattern(pattern);
 		work.setHasTextureMapping(hasTextureMapping);
@@ -72,15 +72,16 @@ public class WorkController {
 		work.setPrice(price);
 		work.setCurrency(currency);
 		work.setLabels(labels);
-		work.setVerifyState(1);
+		work.setVerifyState(0);
 		work.setFilePath(filePath);
 		
-		Map<String, Object> data = new HashMap<String, Object>();
-		data.put("userID", userID);
-		data.put("username", user.getUsername());
-		data.put("workID", workID);
-		data.put("workname", work.getWorkName());
 		try {
+			Map<String, Object> data = new HashMap<String, Object>();
+			data.put("userID", userID);
+			data.put("username", user.getUsername());
+			data.put("workID", workID);
+			data.put("workname", work.getWorkName());
+		
 			verifyService.addVerifyingWork(userID, workID);
 			workService.addWork(work);
 			return new CommonVO(true, "添加作品成功！", data);
@@ -155,7 +156,7 @@ public class WorkController {
 			ListUtil.removeElement(collectWork, workID);
 		}
 		
-		work.setAuthorID(null);
+		work.setAuthor(null);
 		
 		userService.updateUser(user);
 		workService.updateWork(work);

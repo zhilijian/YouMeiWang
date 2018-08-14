@@ -11,10 +11,12 @@ public class User {
 	//用户ID userID
 	@Indexed
 	private String userID;
-	//用户姓名 username
+	//账号 username
 	private String username;
 	//用户昵称 nickname
 	private String nickname;
+	//姓名 fullname
+	private String fullname;
 	//手机号 phone
 	private String phone;
 	//用户头像(文件路径) portrait
@@ -33,7 +35,7 @@ public class User {
 	//0：大众用户	 0：个人VIP 1：企业VIP 2：原创VIP
 	private Integer[] vipKind;
 	//会员种类 memberKind 0：普通用户 1：原创用户
-	private Integer memberKind = 0;
+	private Integer memberKind;
 	//会员到期时间 memberExpirationTime
 	private String memberExpirationTime;
 	//待审核作品
@@ -46,7 +48,7 @@ public class User {
 	private List<String> collectWork;
 	//下载的作品
 	private List<String> downWork;
-	//申请原创作者 ApplyForOriginal
+	//申请原创作者 applyForOriginal
 	//0：未申请 1：申请中 2：申请成功 3：申请驳回
 	private Integer applyForOriginal;
 	//审核信息
@@ -79,6 +81,14 @@ public class User {
 
 	public void setNickname(String nickname) {
 		this.nickname = nickname;
+	}
+
+	public String getFullname() {
+		return fullname;
+	}
+
+	public void setFullname(String fullname) {
+		this.fullname = fullname;
 	}
 
 	public String getPhone() {
@@ -224,4 +234,31 @@ public class User {
 	public void setCommissionRate(String commissionRate) {
 		this.commissionRate = commissionRate;
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((userID == null) ? 0 : userID.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		User other = (User) obj;
+		if (userID == null) {
+			if (other.userID != null)
+				return false;
+		} else if (!userID.equals(other.userID))
+			return false;
+		return true;
+	}
+	
+	
 }

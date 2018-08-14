@@ -29,13 +29,23 @@ public class WorkMongodb  implements WorkDao{
 		Query query = new Query(Criteria.where(condition).is(value));
 		mongoTemplate.remove(query, Work.class);
 	}
+	
+	@Override
+	public void removeWork(String condition1, Object value1, String condition2, Object value2) {
+		Query query = new Query();
+		Criteria criteria = new Criteria();
+		criteria.and(condition1).is(value1);
+		criteria.and(condition2).is(value2);
+		query.addCriteria(criteria);
+		mongoTemplate.remove(query, Work.class);
+	}
 
 	@Override
 	public void updateWork(Work work) {
 		Query query = new Query(Criteria.where("workId").is(work.getWorkID()));
 		Update update = new Update();
 		update.set("workName", work.getWorkName());
-		update.set("authorID", work.getAuthorID());
+		update.set("author", work.getAuthor());
 		update.set("primaryClassification", work.getPrimaryClassification());
 		update.set("secondaryClassification", work.getSecondaryClassification());
 		update.set("reclassify", work.getReclassify());
@@ -52,6 +62,7 @@ public class WorkMongodb  implements WorkDao{
 		update.set("filePath", work.getFilePath());
 		update.set("downloadNum", work.getDownloadNum());
 		update.set("modelSize", work.getModelSize());
+		update.set("remarks", work.getRemarks());
 		mongoTemplate.updateFirst(query, update, Work.class);
 	}
 	
@@ -66,6 +77,27 @@ public class WorkMongodb  implements WorkDao{
 		Query query = new Query();
 		if (value != null) {
 			query.addCriteria(Criteria.where(condition).regex(value));
+		}
+		return mongoTemplate.count(query, Work.class);
+	}
+	
+	@Override
+	public Long getAmount(String condition, Object value) {
+		Query query = new Query();
+		if (value != null) {
+			query.addCriteria(Criteria.where(condition).is(value));
+		}
+		return mongoTemplate.count(query, Work.class);
+	}
+	
+	@Override
+	public Long getAmount(String condition1, String value1, String condition2, Object value2) {
+		Query query = new Query();
+		if (value1 != null) {
+			query.addCriteria(Criteria.where(condition1).regex(value1));
+		}
+		if (value2 != null) {
+			query.addCriteria(Criteria.where(condition2).is(value2));
 		}
 		return mongoTemplate.count(query, Work.class);
 	}
@@ -89,6 +121,21 @@ public class WorkMongodb  implements WorkDao{
 		}
 		query.skip((page - 1) * size);
 		query.limit(size);
+		return mongoTemplate.find(query, Work.class);
+	}
+	
+	@Override
+	public List<Work> workList(String condition1, String value1, String condition2, Object value2, String condition3, Object value3, Integer page, Integer size) {
+		Query query = new Query();
+		if (value1 != null) {
+			query.addCriteria(Criteria.where(condition1).regex(value1));
+		}
+		if (value2 != null) {
+			query.addCriteria(Criteria.where(condition2).is(value2));
+		}
+		if (value3 != null) {
+			query.addCriteria(Criteria.where(condition3).is(value3));
+		}
 		return mongoTemplate.find(query, Work.class);
 	}
 

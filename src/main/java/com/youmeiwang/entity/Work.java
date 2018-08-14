@@ -13,8 +13,8 @@ public class Work {
 	private String workID;
 	//workName 作品名称
 	private String workName;
-	//authorID 发布者ID（用户ID）
-	private String authorID;
+	//author 发布者账号（username）
+	private String author;
 	//primaryClassification 一级分类
 	//0：共享模型  1：原创模型  2：2D美术
 	private Integer primaryClassification;
@@ -43,11 +43,13 @@ public class Work {
 	//picturePath 预览图 
 	private String[] picturePath;
 	//filePath 文件存储路径
-	private String filePath;
+	private String[] filePath;
 	//downloadNum 下载次数
 	private Long downloadNum;
-	//模型大小
+	//modelSize 模型大小
 	private double modelSize;
+	//remarks 备注 
+	private String remarks;
 	
 	public String getWorkID() {
 		return workID;
@@ -61,11 +63,11 @@ public class Work {
 	public void setWorkName(String workName) {
 		this.workName = workName;
 	}
-	public String getAuthorID() {
-		return authorID;
+	public String getAuthor() {
+		return author;
 	}
-	public void setAuthorID(String authorID) {
-		this.authorID = authorID;
+	public void setAuthor(String author) {
+		this.author = author;
 	}
 	public Integer getPrimaryClassification() {
 		return primaryClassification;
@@ -147,10 +149,10 @@ public class Work {
 	public void setPicturePath(String[] picturePath) {
 		this.picturePath = picturePath;
 	}
-	public String getFilePath() {
+	public String[] getFilePath() {
 		return filePath;
 	}
-	public void setFilePath(String filePath) {
+	public void setFilePath(String[] filePath) {
 		this.filePath = filePath;
 	}
 	public Long getDownloadNum() {
@@ -164,5 +166,34 @@ public class Work {
 	}
 	public void setModelSize(double modelSize) {
 		this.modelSize = modelSize;
+	}
+	public String getRemarks() {
+		return remarks;
+	}
+	public void setRemarks(String remarks) {
+		this.remarks = remarks;
+	}
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((workID == null) ? 0 : workID.hashCode());
+		return result;
+	}
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Work other = (Work) obj;
+		if (workID == null) {
+			if (other.workID != null)
+				return false;
+		} else if (!workID.equals(other.workID))
+			return false;
+		return true;
 	}
 }

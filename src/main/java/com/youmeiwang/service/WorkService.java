@@ -31,8 +31,12 @@ public class WorkService {
 		userDao.updateUser(user);
 	}
 	
-	public void removeWorkByCondition(String condition, Object value) {
+	public void removeWork(String condition, Object value) {
 		workDao.removeWork(condition, value);
+	}
+	
+	public void removeWork(String condition1, Object value1, String condition2, Object value2) {
+		workDao.removeWork(condition1, value1, condition2, value2);
 	}
 	
 	public void removeCollectWork(String userID, String workID) {
@@ -59,11 +63,24 @@ public class WorkService {
 		return workDao.getAmount(condition, value);
 	}
 	
+	public Long getAmount(String condition, Object value) {
+		return workDao.getAmount(condition, value);
+	}
+	
+	public Long getAmount(String condition1, String value1, String condition2, Object value2) {
+		return workDao.getAmount(condition1, value1, condition2, value2);
+	}
+	
 	public List<Work> workList(String condition, String value, Integer page, Integer size) {
 		return workDao.workList(condition, value, page, size);
 	}
 	
 	public List<Work> workList(String condition, Integer value, Integer page, Integer size) {
 		return workDao.workList(condition, value, page, size);
+	}
+	
+	public List<Work> workList(String condition1, String value1, 
+			String condition2, Object value2, String condition3, Object value3, Integer page, Integer size) {
+		return workDao.workList(condition1, value1, condition2, value2, condition3, value3, page, size);
 	}
 }

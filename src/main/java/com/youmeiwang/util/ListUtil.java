@@ -34,14 +34,11 @@ public class ListUtil {
 	public static <E> List<E> removeDuplicate(List<E> list) {
 		Set<E> set = new HashSet<E>();
 		List<E> newList = new LinkedList<E>();
-		for (Iterator<E> iter = list.iterator(); iter.hasNext();) {
-			E element = iter.next();
-			if (set.add(element))
+		for (E element : list) {
+			if (set.add(element)) {
 				newList.add(element);
+			}
 		}
-		list.clear();
-		list.addAll(newList);
-		return list;
+		return newList;
 	}   
-	
 }
