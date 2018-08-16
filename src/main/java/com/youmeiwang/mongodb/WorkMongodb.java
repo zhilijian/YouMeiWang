@@ -59,7 +59,7 @@ public class WorkMongodb  implements WorkDao{
 		update.set("verifyState", work.getVerifyState());
 		update.set("topicID", work.getTopicID());
 		update.set("picturePath", work.getPicturePath());
-		update.set("filePath", work.getFilePath());
+		update.set("fileNameAndPath", work.getFileNameAndPath());
 		update.set("downloadNum", work.getDownloadNum());
 		update.set("modelSize", work.getModelSize());
 		update.set("remarks", work.getRemarks());

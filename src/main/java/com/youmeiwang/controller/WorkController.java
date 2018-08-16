@@ -1,5 +1,6 @@
 package com.youmeiwang.controller;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,35 +48,36 @@ public class WorkController {
 			@RequestParam(name="hasCartoon", required=true) boolean hasCartoon,
 			@RequestParam(name="price", required=true) Integer price,
 			@RequestParam(name="currency", required=true) Integer currency,
-			@RequestParam(name="labels", required=true) List<String> labels,
-			@RequestParam(name="filePath", required=true) String[] filePath,
+			@RequestParam(name="labels", required=true) String[] labels,
+//			@RequestParam(name="filePath", required=true) String[] filePath,
 			HttpSession session ) {
 		
 //		if (session.getAttribute(userID) == null) {
 //			return new CommonVO(false, "用户非法登录。", "请先登录再操作"); 
 //		}
 		
-		User user = userService.queryUser("userID", userID);
-		Work work = new Work();
-		String workID = null;
-		do {
-			workID = RandomUtil.getRandomString(10);
-		} while (workService.queryWork("workID", workID) != null);
-		work.setWorkID(workID);
-		work.setWorkName(workName);
-		work.setAuthor(user.getUsername());
-		work.setPrimaryClassification(primaryClassification);
-		work.setPattern(pattern);
-		work.setHasTextureMapping(hasTextureMapping);
-		work.setBinding(isBinding);
-		work.setBinding(hasCartoon);
-		work.setPrice(price);
-		work.setCurrency(currency);
-		work.setLabels(labels);
-		work.setVerifyState(0);
-		work.setFilePath(filePath);
 		
 		try {
+			User user = userService.queryUser("userID", userID);
+			Work work = new Work();
+			String workID = null;
+			do {
+				workID = RandomUtil.getRandomString(10);
+			} while (workService.queryWork("workID", workID) != null);
+			work.setWorkID(workID);
+			work.setWorkName(workName);
+			work.setAuthor(user.getUsername());
+			work.setPrimaryClassification(primaryClassification);
+			work.setPattern(pattern);
+			work.setHasTextureMapping(hasTextureMapping);
+			work.setBinding(isBinding);
+			work.setBinding(hasCartoon);
+			work.setPrice(price);
+			work.setCurrency(currency);
+			work.setLabels(Arrays.asList(labels));
+			work.setVerifyState(0);
+//			work.setFilePath(Arrays.asList(filePath));
+			
 			Map<String, Object> data = new HashMap<String, Object>();
 			data.put("userID", userID);
 			data.put("username", user.getUsername());

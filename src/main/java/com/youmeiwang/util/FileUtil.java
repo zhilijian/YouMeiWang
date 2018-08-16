@@ -21,19 +21,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import com.youmeiwang.config.UrlConfig;
-import com.youmeiwang.controller.FileController;
 
 public class FileUtil {
 	
-	private static final Logger logger = LoggerFactory.getLogger(FileController.class);
-
 	public static void downFile(String filename, String path, HttpServletResponse response, HttpServletRequest request, ResourceLoader resourceLoader) {
 		
 		InputStream inputStream = null;
@@ -78,20 +73,16 @@ public class FileUtil {
 
 		// 获取文件名
         String oldFileName = file.getOriginalFilename();
-        logger.info("上传的文件名为：" + oldFileName);
         // 解决中文问题，liunx下中文路径，图片显示问题
         // 设置文件的前缀名
         String prefixName = generatePrefix();
-        logger.info("保存的前缀名为：" + prefixName);
         // 获取文件的后缀名
         String suffixName = oldFileName.substring(oldFileName.lastIndexOf("."));
-        logger.info("保存的后缀名为：" + suffixName);
         String newFileName = prefixName + suffixName;
         // 文件上传后的路径
         String filePath = UrlConfig.FILEPATHURL + userID + "//";
         
         File destination = new File(filePath + newFileName);
-        destination.getAbsolutePath();
         
         // 检测是否存在目录
         if (!destination.getParentFile().exists()) {
@@ -101,7 +92,7 @@ public class FileUtil {
         file.transferTo(destination);
         
         Map<String, Object> data = new HashMap<String, Object>();
-        data.put("fileName", destination.getName());
+        data.put("fileName", oldFileName);
     	data.put("filePath", destination.getAbsolutePath());
     	return data;
 	}

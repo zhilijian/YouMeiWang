@@ -64,13 +64,13 @@ public class UserManageController {
 		}
 		
 		try {
-			Set<User> userlist1 = new HashSet<User>();
-			userlist1.addAll(userService.userList("userID", condition, "vipKind", VIPKind, "memberKind", memberKind, "applyForOriginal", applyForOriginal));
-			userlist1.addAll(userService.userList("phone", condition, "vipKind", VIPKind, "memberKind", memberKind, "applyForOriginal", applyForOriginal));
-			userlist1.addAll(userService.userList("nickname", condition, "vipKind", VIPKind, "memberKind", memberKind, "applyForOriginal", applyForOriginal));
-			List<User> userlist3 = new ArrayList<User>(userlist1);
+			Set<User> userset = new HashSet<User>();
+			userset.addAll(userService.userList("userID", condition, "vipKind", VIPKind, "memberKind", memberKind, "applyForOriginal", applyForOriginal));
+			userset.addAll(userService.userList("phone", condition, "vipKind", VIPKind, "memberKind", memberKind, "applyForOriginal", applyForOriginal));
+			userset.addAll(userService.userList("nickname", condition, "vipKind", VIPKind, "memberKind", memberKind, "applyForOriginal", applyForOriginal));
+			List<User> userlist1 = new ArrayList<User>(userset);
 			
-			Long userAmount = (long) userlist1.size();
+			Long userAmount = (long) userset.size();
 			Long pageAmount = 0l;
 			if (userAmount % size == 0) {
 				pageAmount = userAmount / size;
@@ -80,8 +80,8 @@ public class UserManageController {
 			
 			List<User> userlist2 = new LinkedList<User>();
 			int currIdx = (page > 1 ? (page-1)*size : 0);
-			for (int i = 0; i < size && i < userlist1.size()-currIdx; i++) {
-				User user = userlist3.get(currIdx + i);
+			for (int i = 0; i < size && i < userset.size()-currIdx; i++) {
+				User user = userlist1.get(currIdx + i);
 				userlist2.add(user);
 			}
 			

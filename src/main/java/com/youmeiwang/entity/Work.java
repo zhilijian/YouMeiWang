@@ -1,6 +1,7 @@
 package com.youmeiwang.entity;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -30,7 +31,7 @@ public class Work {
 	private boolean isBinding;
 	//hasCartoon 有无动画
 	private boolean hasCartoon;
-	//price 价格 售价
+	//price 售价
 	private Integer price;
 	//currency 币种  1:游币  2：元
 	private Integer currency;
@@ -41,15 +42,17 @@ public class Work {
 	//topic 专题
 	private String topicID;
 	//picturePath 预览图 
-	private String[] picturePath;
+	private List<String> picturePath;
 	//filePath 文件存储路径
-	private String[] filePath;
+	private List<Map<String, String>> fileNameAndPath;
 	//downloadNum 下载次数
 	private Long downloadNum;
 	//modelSize 模型大小
 	private double modelSize;
 	//remarks 备注 
 	private String remarks;
+	//审核信息
+	private String verifyMessage;
 	
 	public String getWorkID() {
 		return workID;
@@ -143,17 +146,17 @@ public class Work {
 	public void setTopicID(String topicID) {
 		this.topicID = topicID;
 	}
-	public String[] getPicturePath() {
+	public List<String> getPicturePath() {
 		return picturePath;
 	}
-	public void setPicturePath(String[] picturePath) {
+	public void setPicturePath(List<String> picturePath) {
 		this.picturePath = picturePath;
 	}
-	public String[] getFilePath() {
-		return filePath;
+	public List<Map<String, String>> getFileNameAndPath() {
+		return fileNameAndPath;
 	}
-	public void setFilePath(String[] filePath) {
-		this.filePath = filePath;
+	public void setFileNameAndPath(List<Map<String, String>> fileNameAndPath) {
+		this.fileNameAndPath = fileNameAndPath;
 	}
 	public Long getDownloadNum() {
 		return downloadNum;
@@ -172,6 +175,12 @@ public class Work {
 	}
 	public void setRemarks(String remarks) {
 		this.remarks = remarks;
+	}
+	public String getVerifyMessage() {
+		return verifyMessage;
+	}
+	public void setVerifyMessage(String verifyMessage) {
+		this.verifyMessage = verifyMessage;
 	}
 	@Override
 	public int hashCode() {
