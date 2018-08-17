@@ -94,6 +94,8 @@ public class FileUtil {
         Map<String, Object> data = new HashMap<String, Object>();
         data.put("fileName", oldFileName);
     	data.put("filePath", destination.getAbsolutePath());
+    	data.put("fileSize", destination.length());
+    	data.put("pattern", suffixName);
     	return data;
 	}
 	

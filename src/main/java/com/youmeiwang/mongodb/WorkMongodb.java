@@ -45,7 +45,6 @@ public class WorkMongodb  implements WorkDao{
 		Query query = new Query(Criteria.where("workId").is(work.getWorkID()));
 		Update update = new Update();
 		update.set("workName", work.getWorkName());
-		update.set("author", work.getAuthor());
 		update.set("primaryClassification", work.getPrimaryClassification());
 		update.set("secondaryClassification", work.getSecondaryClassification());
 		update.set("reclassify", work.getReclassify());
@@ -54,13 +53,13 @@ public class WorkMongodb  implements WorkDao{
 		update.set("isBinding", work.isBinding());
 		update.set("hasCartoon", work.isHasCartoon());
 		update.set("price", work.getLabels());
-		update.set("currency", work.getCurrency());
 		update.set("labels", work.getLabels());
 		update.set("verifyState", work.getVerifyState());
 		update.set("topicID", work.getTopicID());
 		update.set("picturePath", work.getPicturePath());
 		update.set("fileNameAndPath", work.getFileNameAndPath());
 		update.set("downloadNum", work.getDownloadNum());
+		update.set("collectNum", work.getCollectNum());
 		update.set("modelSize", work.getModelSize());
 		update.set("remarks", work.getRemarks());
 		mongoTemplate.updateFirst(query, update, Work.class);
@@ -101,7 +100,7 @@ public class WorkMongodb  implements WorkDao{
 		}
 		return mongoTemplate.count(query, Work.class);
 	}
-
+	
 	@Override
 	public List<Work> workList(String condition, String value, Integer page, Integer size) {
 		Query query = new Query();
@@ -138,5 +137,4 @@ public class WorkMongodb  implements WorkDao{
 		}
 		return mongoTemplate.find(query, Work.class);
 	}
-
 }

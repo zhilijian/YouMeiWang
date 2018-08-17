@@ -43,26 +43,66 @@ public class UserMongodb implements UserDao {
 		Update update = new Update();
 		update.set("username", user.getUsername());
 		update.set("nickname", user.getNickname());
-		update.set("fullname", user.getFullname());
-		update.set("phone", user.getPhone());
-		update.set("portrait", user.getPortrait());
-		update.set("alipay", user.getAlipay());
-		update.set("qq", user.getQq());
-		update.set("email", user.getEmail());
-		update.set("youbiAmount", user.getYoubiAmount());
-		update.set("balance", user.getBalance());
-		update.set("vipKind", user.getVipKind());
-		update.set("memberKind", user.getMemberKind());
-		update.set("memberExpirationTime", user.getMemberExpirationTime());
-		update.set("verifyingWork", user.getVerifyingWork());
-		update.set("verifiedWork", user.getVerifiedWork());
-		update.set("notPassWork", user.getNotPassWork());
-		update.set("collectWork", user.getCollectWork());
-		update.set("downWork", user.getDownWork());
-		update.set("applyForOriginal", user.getApplyForOriginal());
-		update.set("verifyMessage", user.getVerifyMessage());
-		update.set("commissionRate", user.getCommissionRate());
-	
+		if (user.getFullname() != null) {
+			update.set("fullname", user.getFullname());
+		}
+		if (user.getPhone() != null) {
+			update.set("phone", user.getPhone());
+		}
+		if (user.getPortrait() != null) {
+			update.set("portrait", user.getPortrait());		
+		}
+		if (user.getAlipay() != null) {
+			update.set("alipay", user.getAlipay());
+		}
+		if (user.getQq() != null) {
+			update.set("qq", user.getQq());
+		}
+		if (user.getEmail() != null) {
+			update.set("email", user.getEmail());
+		}
+		if (user.getYoubiAmount() != null) {
+			update.set("youbiAmount", user.getYoubiAmount());
+		}
+		if (user.getBalance() != null) {
+			update.set("balance", user.getBalance());
+		}
+		if (user.getVipKind() != null) {
+			update.set("vipKind", user.getVipKind());
+		}
+		if (user.getMemberKind() != null) {
+			update.set("memberKind", user.getMemberKind());
+		}
+		if (user.getMemberKind() != null) {
+			update.set("memberKind", user.getMemberKind());
+		}
+		if (user.getMemberExpirationTime() != null) {
+			update.set("memberExpirationTime", user.getMemberExpirationTime());
+		}
+		if (user.getVerifyingWork() != null) {
+			update.set("verifyingWork", user.getVerifyingWork());
+		}
+		if (user.getVerifiedWork() != null) {
+			update.set("verifiedWork", user.getVerifiedWork());
+		}
+		if (user.getNotPassWork() != null) {
+			update.set("notPassWork", user.getNotPassWork());
+		}
+		if (user.getCollectWork() != null) {
+			update.set("collectWork", user.getCollectWork());
+		}
+		if (user.getDownWork() != null) {
+			update.set("downWork", user.getDownWork());
+		}
+		if (user.getApplyForOriginal() != null) {
+			update.set("applyForOriginal", user.getApplyForOriginal());
+		}
+		if (user.getVerifyMessage() != null) {
+			update.set("verifyMessage", user.getVerifyMessage());
+		}
+		if (user.getCommissionRate() != null) {
+			update.set("commissionRate", user.getCommissionRate());
+		}
 		mongoTemplate.updateFirst(query, update, User.class);
 	}
 

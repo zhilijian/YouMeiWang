@@ -32,7 +32,7 @@ public class User {
 	//余额 balance
 	private Long balance;
 	//VIP类别 VIPKind
-	//0：大众用户	 0：个人VIP 1：企业VIP 2：原创VIP
+	//0：大众用户	 1：个人VIP 2：企业VIP 3：原创VIP
 	private Integer[] vipKind;
 	//会员种类 memberKind 0：普通用户 1：原创用户
 	private Integer memberKind;
@@ -46,6 +46,8 @@ public class User {
 	private List<String> notPassWork;
 	//收藏的作品
 	private List<String> collectWork;
+	//收藏的专题 collectTopic
+	private List<String> collectTopic;
 	//下载的作品
 	private List<String> downWork;
 	//申请原创作者 applyForOriginal
@@ -201,6 +203,14 @@ public class User {
 
 	public void setCollectWork(List<String> collectWork) {
 		this.collectWork = collectWork;
+	}
+
+	public List<String> getCollectTopic() {
+		return collectTopic;
+	}
+
+	public void setCollectTopic(List<String> collectTopic) {
+		this.collectTopic = collectTopic;
 	}
 
 	public List<String> getDownWork() {

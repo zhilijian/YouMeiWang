@@ -24,7 +24,7 @@ public class Work {
 	//reclassify 三级分类
 	private Integer reclassify;
 	//pattern 格式
-	private String pattern;
+	private List<Integer> pattern;
 	//hasTextureMapping 材质贴图
 	private boolean hasTextureMapping;
 	//isBinding 绑定情况
@@ -33,8 +33,6 @@ public class Work {
 	private boolean hasCartoon;
 	//price 售价
 	private Integer price;
-	//currency 币种  1:游币  2：元
-	private Integer currency;
 	//labels 标签
 	private List<String> labels;
 	//verifyState 审核状态  0：待审核  1：已通过  2：未通过
@@ -47,12 +45,16 @@ public class Work {
 	private List<Map<String, String>> fileNameAndPath;
 	//downloadNum 下载次数
 	private Long downloadNum;
+	//被收藏次数 collectNum
+	private Long collectNum;
 	//modelSize 模型大小
 	private double modelSize;
 	//remarks 备注 
 	private String remarks;
 	//审核信息
 	private String verifyMessage;
+	//上传时间
+	private String uploadTime;
 	
 	public String getWorkID() {
 		return workID;
@@ -90,10 +92,10 @@ public class Work {
 	public void setReclassify(Integer reclassify) {
 		this.reclassify = reclassify;
 	}
-	public String getPattern() {
+	public List<Integer> getPattern() {
 		return pattern;
 	}
-	public void setPattern(String pattern) {
+	public void setPattern(List<Integer> pattern) {
 		this.pattern = pattern;
 	}
 	public boolean isHasTextureMapping() {
@@ -120,12 +122,6 @@ public class Work {
 	public void setPrice(Integer price) {
 		this.price = price;
 	}
-	public Integer getCurrency() {
-		return currency;
-	}
-	public void setCurrency(Integer currency) {
-		this.currency = currency;
-	}   
 	public List<String> getLabels() {
 		return labels;
 	}
@@ -164,6 +160,12 @@ public class Work {
 	public void setDownloadNum(Long downloadNum) {
 		this.downloadNum = downloadNum;
 	}
+	public Long getCollectNum() {
+		return collectNum;
+	}
+	public void setCollectNum(Long collectNum) {
+		this.collectNum = collectNum;
+	}
 	public double getModelSize() {
 		return modelSize;
 	}
@@ -181,6 +183,12 @@ public class Work {
 	}
 	public void setVerifyMessage(String verifyMessage) {
 		this.verifyMessage = verifyMessage;
+	}
+	public String getUploadTime() {
+		return uploadTime;
+	}
+	public void setUploadTime(String uploadTime) {
+		this.uploadTime = uploadTime;
 	}
 	@Override
 	public int hashCode() {

@@ -1,5 +1,6 @@
 package com.youmeiwang.service;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,6 +70,14 @@ public class WorkService {
 	
 	public Long getAmount(String condition1, String value1, String condition2, Object value2) {
 		return workDao.getAmount(condition1, value1, condition2, value2);
+	}
+	
+	public List<Work> workList(String condition, List<String> values) {
+		List<Work> worklist = new LinkedList<Work>();
+		for (String value : values) {
+			worklist.add(workDao.queryWork(condition, value));
+		}
+		return worklist;
 	}
 	
 	public List<Work> workList(String condition, String value, Integer page, Integer size) {
