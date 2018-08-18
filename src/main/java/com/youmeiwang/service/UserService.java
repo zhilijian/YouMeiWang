@@ -34,6 +34,11 @@ public class UserService {
 		return userDao.queryUser(condition, value);
 	}
 	
+	public String queryNickname(String condition, String value) {
+		User user = userDao.queryUser(condition, value);
+		return user.getNickname();
+	}
+	
 	public Long getAmount(String condition, String value) {
 		return userDao.getAmount(condition, value);
 	}

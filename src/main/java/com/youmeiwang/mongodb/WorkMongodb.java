@@ -3,6 +3,8 @@ package com.youmeiwang.mongodb;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -60,6 +62,7 @@ public class WorkMongodb  implements WorkDao{
 		update.set("fileNameAndPath", work.getFileNameAndPath());
 		update.set("downloadNum", work.getDownloadNum());
 		update.set("collectNum", work.getCollectNum());
+		update.set("browseNum", work.getBrowseNum());
 		update.set("modelSize", work.getModelSize());
 		update.set("remarks", work.getRemarks());
 		mongoTemplate.updateFirst(query, update, Work.class);
@@ -102,6 +105,48 @@ public class WorkMongodb  implements WorkDao{
 	}
 	
 	@Override
+	public Long getAmount(String condition1, Object value1, 
+			String condition2, Object value2, String condition3,Object value3) {
+		Query query = new Query();
+		if (value1 != null) {
+			query.addCriteria(Criteria.where(condition1).is(value1));
+		}
+		if (value2 != null) {
+			query.addCriteria(Criteria.where(condition2).is(value2));
+		}
+		if (value3 != null) {
+			query.addCriteria(Criteria.where(condition3).is(value3));
+		}
+		return mongoTemplate.count(query, Work.class);
+	}
+	
+	@Override
+	public List<Work> workSortDESC(String condition1, Object value1, String condition2, Object value2, String condition3, Integer limit) {
+		Query query = new Query();
+		if (value1 != null) {
+			query.addCriteria(Criteria.where(condition1).is(value1));
+		}
+		if (value2 != null) {
+			query.addCriteria(Criteria.where(condition2).is(value2));
+		}
+		query.with(new Sort(new Order(Sort.Direction.DESC, condition3)));
+		return mongoTemplate.find(query, Work.class);
+	}
+	
+	@Override
+	public List<Work> workSortASC(String condition1, Object value1, String condition2, Object value2, String condition3, Integer limit) {
+		Query query = new Query();
+		if (value1 != null) {
+			query.addCriteria(Criteria.where(condition1).is(value1));
+		}
+		if (value2 != null) {
+			query.addCriteria(Criteria.where(condition2).is(value2));
+		}
+		query.with(new Sort(new Order(Sort.Direction.ASC, condition3)));
+		return mongoTemplate.find(query, Work.class);
+	}
+	
+	@Override
 	public List<Work> workList(String condition, String value, Integer page, Integer size) {
 		Query query = new Query();
 		if (value != null) {
@@ -137,4 +182,20 @@ public class WorkMongodb  implements WorkDao{
 		}
 		return mongoTemplate.find(query, Work.class);
 	}
+	
+	@Override
+	public List<Work> workList(String condition1, Object value1, String condition2, Object value2, String condition3, Object value3, Integer page, Integer size) {
+		Query query = new Query();
+		if (value1 != null) {
+			query.addCriteria(Criteria.where(condition1).is(value1));
+		}
+		if (value2 != null) {
+			query.addCriteria(Criteria.where(condition2).is(value2));
+		}
+		if (value3 != null) {
+			query.addCriteria(Criteria.where(condition3).is(value3));
+		}
+		return mongoTemplate.find(query, Work.class);
+	}
+
 }

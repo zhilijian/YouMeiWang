@@ -43,10 +43,12 @@ public class Work {
 	private List<String> picturePath;
 	//filePath 文件存储路径
 	private List<Map<String, String>> fileNameAndPath;
-	//downloadNum 下载次数
+	//downloadNum 被下载次数
 	private Long downloadNum;
 	//被收藏次数 collectNum
 	private Long collectNum;
+	//被浏览次数
+	private Long browseNum;
 	//modelSize 模型大小
 	private double modelSize;
 	//remarks 备注 
@@ -165,6 +167,12 @@ public class Work {
 	}
 	public void setCollectNum(Long collectNum) {
 		this.collectNum = collectNum;
+	}
+	public Long getBrowseNum() {
+		return browseNum;
+	}
+	public void setBrowseNum(Long browseNum) {
+		this.browseNum = browseNum;
 	}
 	public double getModelSize() {
 		return modelSize;

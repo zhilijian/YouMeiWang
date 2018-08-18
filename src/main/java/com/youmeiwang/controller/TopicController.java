@@ -139,8 +139,6 @@ public class TopicController {
 		}
 	}
 	
-	
-	
 	@PostMapping("/edittopic")
 	public SimpleVO editTopic(@RequestParam(name="adminID", required=true) String adminID,
 							@RequestParam(name="topicID", required=true) String topicID,
@@ -378,4 +376,6 @@ public class TopicController {
 			return new SimpleVO(true, "发布专题成功！");
 		}
 	}
+	
+	
 }

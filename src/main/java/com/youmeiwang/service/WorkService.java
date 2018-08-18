@@ -72,6 +72,18 @@ public class WorkService {
 		return workDao.getAmount(condition1, value1, condition2, value2);
 	}
 	
+	public Long getAmount(String condition1, Object value1, String condition2, Object value2, String condition3, Object value3) {
+		return workDao.getAmount(condition1, value1, condition2, value2, condition3, value3);
+	}
+	
+	public List<Work> workSortDESC(String condition1, Object value1, String condition2, Object value2, String condition3, Integer limit) {
+		return workDao.workSortDESC(condition1, value1, condition2, value2, condition3, limit);
+	}
+	
+	public List<Work> workSortASC(String condition1, Object value1, String condition2, Object value2, String condition3, Integer limit) {
+		return workDao.workSortASC(condition1, value1, condition2, value2, condition3, limit);
+	}
+	
 	public List<Work> workList(String condition, List<String> values) {
 		List<Work> worklist = new LinkedList<Work>();
 		for (String value : values) {
@@ -89,6 +101,11 @@ public class WorkService {
 	}
 	
 	public List<Work> workList(String condition1, String value1, 
+			String condition2, Object value2, String condition3, Object value3, Integer page, Integer size) {
+		return workDao.workList(condition1, value1, condition2, value2, condition3, value3, page, size);
+	}
+	
+	public List<Work> workList(String condition1, Object value1, 
 			String condition2, Object value2, String condition3, Object value3, Integer page, Integer size) {
 		return workDao.workList(condition1, value1, condition2, value2, condition3, value3, page, size);
 	}

@@ -146,6 +146,7 @@ public class WorkController {
 //		}
 			
 		try {
+			User user = userService.queryUser("userID", userID);
 			Work work = workService.queryWork("workID", workID);
 			if (work == null || work.getAuthor() == null) {
 				return new CommonVO(false, "不存在此ID的作品或者该作品已被作者删除", "请查看其他作品。");
@@ -153,6 +154,7 @@ public class WorkController {
 			Map<String, Object> data = new HashMap<String, Object>();
 			data.put("workID", workID);
 			data.put("workName", work.getWorkName());
+			data.put("author", work.getAuthor());
 			data.put("primaryClassification", work.getPrimaryClassification());
 			data.put("secondaryClassification", work.getSecondaryClassification());
 			data.put("reclassify", work.getReclassify());
@@ -164,12 +166,17 @@ public class WorkController {
 			data.put("labels", work.getLabels());
 			data.put("remarks", work.getRemarks());
 			data.put("picturePath", work.getPicturePath());
-			data.put("fileNameAndPath", work.getFileNameAndPath());
+			data.put("uploadTime", work.getUploadTime());
+			data.put("browseNum", work.getBrowseNum());
+			data.put("collectNum", work.getCollectNum());
+			data.put("downloadNum", work.getDownloadNum());
+			boolean flag = user.getCollectWork().contains(workID);
+			data.put("iscollected", flag);
 			return new CommonVO(true, "查看作品成功！", data);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new CommonVO(false, "查看作品失败。", "出错信息：" + e.toString());
-		}	
+		}
 	}
 	
 	@GetMapping("/worklist")
@@ -231,6 +238,79 @@ public class WorkController {
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new CommonVO(false, "作品展示失败。", "出错信息：" + e.toString());
+		}
+	}
+
+	@GetMapping("/worksearch")
+	public CommonVO workSearch(@RequestParam(name="userID", required=true) String userID,
+			@RequestParam(name="primaryClassification", required=false) Integer primaryClassification,
+			@RequestParam(name="secondaryClassification", required=false) Integer secondaryClassification,
+			@RequestParam(name="reclassify", required=false) Integer reclassify,
+			@RequestParam(name="page", required=true) Integer page,
+			@RequestParam(name="size", required=true) Integer size,
+			HttpSession session) {
+		
+//		if (session.getAttribute(userID) == null) {
+//			return new CommonVO(false, "用户非法登录。", "请先登录后进行操作"); 
+//		}
+		
+		try {
+			List<Work> worklist = workService.workList("primaryClassification", primaryClassification, 
+					"secondaryClassification", secondaryClassification, "reclassify", reclassify, page, size);
+			List<Map<String, Object>> maplist = new LinkedList<Map<String, Object>>();
+			for (Work work : worklist) {
+				Map<String, Object> workmap = new HashMap<String, Object>();
+				workmap.put("workID", work.getWorkID());
+				workmap.put("workName", work.getWorkName());
+				workmap.put("price", work.getPrice());
+				maplist.add(workmap);
+			}
+			
+			Long workAmount = workService.getAmount("primaryClassification", primaryClassification, 
+					"secondaryClassification", secondaryClassification, "reclassify", reclassify);
+			Long pageAmount = 0l;
+			if (workAmount % size == 0) {
+				pageAmount = workAmount / size;
+			} else {
+				pageAmount = workAmount / size + 1;
+			}
+			Map<String, Object> data = new HashMap<String, Object>();
+			data.put("worklist", maplist);
+			data.put("workAmount", workAmount);
+			data.put("pageAmount", pageAmount);
+			return new CommonVO(true, "模型搜索成功！", data);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new CommonVO(false, "模型搜索失败。", "出错信息：" + e.toString());
+		}
+	}
+
+	@GetMapping("/worksort")
+	public CommonVO workSort(@RequestParam(name="userID", required=true) String userID,
+			@RequestParam(name="primaryClassification", required=false) Integer primaryClassification,
+			@RequestParam(name="secondaryClassification", required=false) Integer secondaryClassification,
+			@RequestParam(name="limit", required=true) Integer limit,
+			HttpSession session) {
+		
+//		if (session.getAttribute(userID) == null) {
+//			return new CommonVO(false, "用户非法登录。", "请先登录后进行操作"); 
+//		}
+		
+		try {
+			List<Work> worklist = workService.workSortDESC("primaryClassification", primaryClassification, "secondaryClassification", secondaryClassification, "downloadNum", limit);
+			List<Map<String, Object>> data = new LinkedList<Map<String, Object>>();
+			for (Work work : worklist) {
+				Map<String, Object> workmap = new HashMap<String, Object>();
+				workmap.put("workID", work.getWorkID());
+				workmap.put("workName", work.getWorkName());
+				workmap.put("price", work.getPrice());
+				workmap.put("downloadNum", work.getDownloadNum());
+				data.add(workmap);
+			}
+			return new CommonVO(true, "查询模型成功！", data);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new CommonVO(false, "查询模型失败。", "出错信息：" + e.toString());
 		}
 	}
 }
