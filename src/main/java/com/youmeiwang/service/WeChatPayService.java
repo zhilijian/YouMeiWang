@@ -1,4 +1,4 @@
-package com.youmeiwang.wxpay;
+package com.youmeiwang.service;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -19,18 +19,20 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.stereotype.Service;
 
+import com.youmeiwang.config.WXConfig;
+import com.youmeiwang.entity.Order;
 import com.youmeiwang.util.MD5Util;
 import com.youmeiwang.util.XMLObjectConvertUtil;
 
 @Service
-public class WXpayService {
+public class WeChatPayService {
 
-	public Map<String, String> createOrder(WXOrder wxOrder, String reqIp) throws MalformedURLException, IOException {
-		String orderInfo = createOrderInfo(wxOrder, reqIp);
+	public Map<String, String> createOrder(Order order, String reqIP) throws MalformedURLException, IOException {
+		String orderInfo = createOrderInfo(order, reqIP);
 		SortedMap<String, String> responseMap = order(orderInfo);
 		if ("SUCCESS".equals(responseMap.get("return_code"))) {
-//			String newSign = createSign(responseMap);
-//			if (newSign.equals(responseMap.get("sign"))) {
+			String newSign = createSign(responseMap);
+			if (newSign.equals(responseMap.get("sign"))) {
 				SortedMap<String, String> resultMap = new TreeMap<String, String>();
 				resultMap.put("appid", WXConfig.APPID);
 				resultMap.put("mch_id", WXConfig.MCH_ID);
@@ -42,7 +44,7 @@ public class WXpayService {
 				String sign = createSign(resultMap);
 				resultMap.put("sign", sign);
 				return resultMap;
-//			}
+			}
 		}
 		return null;
 	}
@@ -67,10 +69,10 @@ public class WXpayService {
 		return responseMap;
 	}
 	
-	public SortedMap<String, String> queryOrderResult(String transaction_id) throws MalformedURLException, IOException {
+	public SortedMap<String, String> queryOrderResult(String condition) throws MalformedURLException, IOException {
 		// 微信查询订单接口
 		final String url = "https://api.mch.weixin.qq.com/pay/orderquery";
-		String queryOrderInfo = createQueryOrderInfo(transaction_id);
+		String queryOrderInfo = createQueryOrderInfo(condition);
 		// 连接 微信查询订单接口
 		HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
 		conn.setRequestMethod("POST");
@@ -132,7 +134,7 @@ public class WXpayService {
 	/**
 	 * 生成预付单
 	 */
-	private String createOrderInfo(WXOrder wxOrder, String reqIp) {
+	private String createOrderInfo(Order order, String reqIP) {
 		// 创建可排序的Map集合
 		SortedMap<String, String> parameters = new TreeMap<String, String>();
 		// 应用id
@@ -142,13 +144,13 @@ public class WXpayService {
 		// 随机字符串
 		parameters.put("nonce_str", UUID.randomUUID().toString().substring(0, 32));
 		// 商品描述
-		parameters.put("body", wxOrder.getBody());
+		parameters.put("body", order.getBody());
 		// 商户流水号
-		parameters.put("out_trade_no", wxOrder.getOut_trade_no());
+		parameters.put("out_trade_no", order.getOutTradeNo());
 		// 支付总额
-		parameters.put("total_fee", wxOrder.getTotal_fee().toString());
+		parameters.put("total_fee", order.getTotalFee().toString());
 		// 用户端实际ip
-		parameters.put("spbill_create_ip", reqIp);
+		parameters.put("spbill_create_ip", reqIP);
 		// 通知地址
 		parameters.put("notify_url", WXConfig.NOTIFY_URL);
 		// 交易类型

@@ -25,7 +25,7 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
-import com.youmeiwang.config.UrlConfig;
+import com.youmeiwang.config.CommonConfig;
 
 public class FileUtil {
 	
@@ -80,7 +80,7 @@ public class FileUtil {
         String suffixName = oldFileName.substring(oldFileName.lastIndexOf("."));
         String newFileName = prefixName + suffixName;
         // 文件上传后的路径
-        String filePath = UrlConfig.FILEPATHURL + userID + "//";
+        String filePath = CommonConfig.FilePathUrl + userID + "//";
         
         File destination = new File(filePath + newFileName);
         

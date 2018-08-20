@@ -25,7 +25,7 @@ import com.youmeiwang.vo.CommonVO;
 public class MsgController {
 	
 	@GetMapping("/sendalimsg")
-	public CommonVO sendAliMsg(@RequestParam(name="phone", required=true) String phone, HttpSession session) throws ClientException {
+	public CommonVO sendAliMsg(@RequestParam(name="username", required=true) String username, HttpSession session) throws ClientException {
 	    
 		String code = RandomUtil.getRandomNumber(6);
 	    String jsonContent = "{\"code\":\"" + code + "\"}";
@@ -33,7 +33,7 @@ public class MsgController {
 	    session.setAttribute(code, code);
 	    
 	    Map<String, String> paramMap = new HashMap<String, String>();
-	    paramMap.put("phoneNumber", phone);
+	    paramMap.put("phoneNumber", username);
 	    paramMap.put("msgSign", "游美网");
 	    paramMap.put("templateCode", "SMS_114070227");
 	    paramMap.put("jsonContent", jsonContent);
