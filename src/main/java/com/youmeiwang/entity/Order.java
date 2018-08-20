@@ -26,9 +26,9 @@ public class Order {
 	//终端IP
 //	private String spbill_create_ip;
 	//交易起始时间
-	private Long startTime;
+	private String startTime;
 	//
-	private Long successTime;
+	private String endTime;
 	//用户标识
 //	private String openid;
 	//支付方式 payType
@@ -66,17 +66,17 @@ public class Order {
 	public void setTotalFee(Integer totalFee) {
 		this.totalFee = totalFee;
 	}
-	public Long getStartTime() {
+	public String getStartTime() {
 		return startTime;
 	}
-	public void setStartTime(Long startTime) {
+	public void setStartTime(String startTime) {
 		this.startTime = startTime;
 	}
-	public Long getSuccessTime() {
-		return successTime;
+	public String getEndTime() {
+		return endTime;
 	}
-	public void setSuccessTime(Long successTime) {
-		this.successTime = successTime;
+	public void setEndTime(String endTime) {
+		this.endTime = endTime;
 	}
 	public String getPayType() {
 		return payType;

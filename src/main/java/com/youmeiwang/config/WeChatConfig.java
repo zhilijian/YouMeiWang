@@ -3,7 +3,7 @@ package com.youmeiwang.config;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class WXConfig {
+public class WeChatConfig {
 
 //	@Value("${wechat.pay.appID}")
 	public static String APPID = "wx4f1788d8ac74e1e3";
@@ -15,7 +15,7 @@ public class WXConfig {
 	public static String KEY = "E32D3D18EA874A3E8E1A711D140BD975";
 	
 //	@Value("${wechat.pay.notify_url}")
-	public static String NOTIFY_URL = "http://21228q028k.iask.in:82/clubcard/wxnotify";
+	public static String NOTIFY_URL = "http://www.linshaocong.cn:8081/wechatpay/wechatnotify";
 	
 //	@Value("${wechat.pay.sign_type}")
 	public static String SIGN_TYPE = "MD5";

@@ -7,6 +7,8 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -19,7 +21,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.stereotype.Service;
 
-import com.youmeiwang.config.WXConfig;
+import com.youmeiwang.config.WeChatConfig;
 import com.youmeiwang.entity.Order;
 import com.youmeiwang.util.MD5Util;
 import com.youmeiwang.util.XMLObjectConvertUtil;
@@ -27,29 +29,17 @@ import com.youmeiwang.util.XMLObjectConvertUtil;
 @Service
 public class WeChatPayService {
 
-	public Map<String, String> createOrder(Order order, String reqIP) throws MalformedURLException, IOException {
+	/**
+	 * 调用微信统一下单接口
+	 */
+	public SortedMap<String, String> createOrder(Order order, String reqIP) throws MalformedURLException, IOException {
+		// 微信统一下单接口
+		final String url = "https://api.mch.weixin.qq.com/pay/unifiedorder";
 		String orderInfo = createOrderInfo(order, reqIP);
-		SortedMap<String, String> responseMap = order(orderInfo);
-		if ("SUCCESS".equals(responseMap.get("return_code"))) {
-			String newSign = createSign(responseMap);
-			if (newSign.equals(responseMap.get("sign"))) {
-				SortedMap<String, String> resultMap = new TreeMap<String, String>();
-				resultMap.put("appid", WXConfig.APPID);
-				resultMap.put("mch_id", WXConfig.MCH_ID);
-				resultMap.put("prepay_id", responseMap.get("prepay_id"));
-				resultMap.put("package", "Sign=WXPay");
-				resultMap.put("timestamp", String.valueOf(System.currentTimeMillis()));
-				resultMap.put("nonce_str", UUID.randomUUID().toString().substring(0, 30));
-				resultMap.put("code_url", responseMap.get("code_url"));
-				String sign = createSign(resultMap);
-				resultMap.put("sign", sign);
-				return resultMap;
-			}
-		}
-		return null;
+		return orderRequest(orderInfo, url);
 	}
 	
-	public SortedMap<String, String> receiveNotify(HttpServletRequest request) {
+	public SortedMap<String, String> receiveOrder(HttpServletRequest request) {
 		// 获取输入流
 		BufferedReader reader;
 		StringBuffer sb = new StringBuffer();
@@ -65,50 +55,81 @@ public class WeChatPayService {
 			e.printStackTrace();
 			return null;
 		}
-		SortedMap<String, String> responseMap = XMLObjectConvertUtil.praseXMLToMap(sb.toString());
-		return responseMap;
+		return XMLObjectConvertUtil.praseXMLToMap(sb.toString());
 	}
 	
-	public SortedMap<String, String> queryOrderResult(String condition) throws MalformedURLException, IOException {
+	public SortedMap<String, String> queryOrder(String out_trade_no) throws MalformedURLException, IOException {
 		// 微信查询订单接口
 		final String url = "https://api.mch.weixin.qq.com/pay/orderquery";
-		String queryOrderInfo = createQueryOrderInfo(condition);
-		// 连接 微信查询订单接口
-		HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
-		conn.setRequestMethod("POST");
-		// 打开传输输出流
-		conn.setDoOutput(true);
-		// 获取输出流
-		BufferedOutputStream buffer = new BufferedOutputStream(conn.getOutputStream());
-		buffer.write(queryOrderInfo.getBytes());
-		buffer.flush();
-		buffer.close();
-		// 获取输入流
-		BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-		// 接受数据
-		String line = null;
-		StringBuffer sb = new StringBuffer();
-		// 将输入流中的信息放在sb中
-		while ((line = reader.readLine()) != null) {
-			sb.append(line);
-		}
-		SortedMap<String, String> responseMap = XMLObjectConvertUtil.praseXMLToMap(sb.toString());
-		if ("SUCCESS".equals(responseMap.get("return_code"))) {
-			String newSign = createSign(responseMap);
-			if (newSign.equals(responseMap.get("sign"))) {
-				return responseMap;
-			}
-		}
-		return null;
+		String orderInfo = createQueryOrCloseInfo(out_trade_no);
+		return orderRequest(orderInfo, url);
+	}
+	
+	public SortedMap<String, String> closeOrder(String out_trade_no) throws MalformedURLException, IOException {
+		// 微信查询订单接口
+		final String url = "https://api.mch.weixin.qq.com/pay/closeorder";
+		String orderInfo = createQueryOrCloseInfo(out_trade_no);
+		return orderRequest(orderInfo, url);
+	}
+	
+	public SortedMap<String, String> refundOrder(Order order, Integer refund_fee, String refund_desc) throws MalformedURLException, IOException {
+		final String url = "https://api.mch.weixin.qq.com/secapi/pay/refund";
+		String orderInfo = createRefundInfo(order, refund_fee, refund_desc);
+		return orderRequest(orderInfo, url);
 	}
 	
 	/**
-	 * 调用微信统一下单接口
+	 * 生成统一下单信息
 	 */
-	private SortedMap<String, String> order(String orderInfo) throws MalformedURLException, IOException {
-		// 微信统一下单接口
-		final String url = "https://api.mch.weixin.qq.com/pay/unifiedorder";
-		// 连接微信统一下单接口
+	public String createOrderInfo(Order order, String reqIP) {
+		SortedMap<String, String> parameters = new TreeMap<String, String>();
+		parameters.put("appid", WeChatConfig.APPID);
+		parameters.put("mch_id", WeChatConfig.MCH_ID);
+		parameters.put("nonce_str", UUID.randomUUID().toString().substring(0, 32));
+		parameters.put("body", order.getBody());
+		parameters.put("out_trade_no", order.getOutTradeNo());
+		parameters.put("total_fee", order.getTotalFee().toString());
+		parameters.put("spbill_create_ip", reqIP);
+		parameters.put("notify_url", WeChatConfig.NOTIFY_URL);
+		parameters.put("trade_type", WeChatConfig.TRADE_TYPE);
+		parameters.put("sign", createSign(parameters));
+		return XMLObjectConvertUtil.praseMapToXML(parameters);
+	}
+	
+	/**
+	 * 生成查询/关闭订单信息
+	 */
+	private String createQueryOrCloseInfo(String out_trade_no) {
+		SortedMap<String, String> parameters = new TreeMap<String, String>();
+		parameters.put("appid", WeChatConfig.APPID);
+		parameters.put("mch_id", WeChatConfig.MCH_ID);
+		parameters.put("out_trade_no", out_trade_no);
+		parameters.put("nonce_str", UUID.randomUUID().toString().substring(0, 32));
+		parameters.put("sign", createSign(parameters));
+		return XMLObjectConvertUtil.praseMapToXML(parameters);
+	}
+	
+	/*
+	 * 生成申请退款信息
+	 */
+	public String createRefundInfo(Order order, Integer refund_fee, String refund_desc) {
+		SortedMap<String, String> parameters = new TreeMap<String, String>();
+		parameters.put("appid", WeChatConfig.APPID);
+		parameters.put("mch_id", WeChatConfig.MCH_ID);
+		parameters.put("nonce_str", UUID.randomUUID().toString().substring(0, 32));
+		parameters.put("sign", createSign(parameters));
+		parameters.put("out_trade_no", order.getOutTradeNo());
+		parameters.put("out_refund_no", new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + UUID.randomUUID().toString().substring(14, 32));
+		parameters.put("total_fee", order.getTotalFee().toString());
+		parameters.put("refund_fee", refund_fee.toString());
+		parameters.put("refund_desc", refund_desc);
+		parameters.put("refund_fee", refund_fee.toString());
+		parameters.put("notify_url", WeChatConfig.NOTIFY_URL);
+		return XMLObjectConvertUtil.praseMapToXML(parameters);
+	}
+	
+	private SortedMap<String, String> orderRequest(String orderInfo, String url) throws MalformedURLException, IOException {
+		// 连接 微信查询订单接口
 		HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
 		conn.setRequestMethod("POST");
 		// 打开传输输出流
@@ -127,54 +148,7 @@ public class WeChatPayService {
 		while ((line = reader.readLine()) != null) {
 			sb.append(line);
 		}
-		SortedMap<String, String> responseMap = XMLObjectConvertUtil.praseXMLToMap(sb.toString());
-		return responseMap;
-	}
-	
-	/**
-	 * 生成预付单
-	 */
-	private String createOrderInfo(Order order, String reqIP) {
-		// 创建可排序的Map集合
-		SortedMap<String, String> parameters = new TreeMap<String, String>();
-		// 应用id
-		parameters.put("appid", WXConfig.APPID);
-		// 商户号
-		parameters.put("mch_id", WXConfig.MCH_ID);
-		// 随机字符串
-		parameters.put("nonce_str", UUID.randomUUID().toString().substring(0, 32));
-		// 商品描述
-		parameters.put("body", order.getBody());
-		// 商户流水号
-		parameters.put("out_trade_no", order.getOutTradeNo());
-		// 支付总额
-		parameters.put("total_fee", order.getTotalFee().toString());
-		// 用户端实际ip
-		parameters.put("spbill_create_ip", reqIP);
-		// 通知地址
-		parameters.put("notify_url", WXConfig.NOTIFY_URL);
-		// 交易类型
-		parameters.put("trade_type", WXConfig.TRADE_TYPE);
-		//签名
-		parameters.put("sign", createSign(parameters));
-		
-		String xml = XMLObjectConvertUtil.praseMapToXML(parameters);
-		return xml;
-	}
-	
-	/**
-	 * 生成查询订单信息
-	 */
-	private String createQueryOrderInfo(String out_trade_no) {
-		// 创建可排序的Map集合
-		SortedMap<String, String> parameters = new TreeMap<String, String>();
-		parameters.put("appid", WXConfig.APPID);
-		parameters.put("mch_id", WXConfig.MCH_ID);
-		parameters.put("nonce_str", UUID.randomUUID().toString().substring(0, 32));
-		parameters.put("out_trade_no", out_trade_no);
-		parameters.put("sign", createSign(parameters));
-		String xml = XMLObjectConvertUtil.praseMapToXML(parameters);
-		return xml;
+		return XMLObjectConvertUtil.praseXMLToMap(sb.toString());
 	}
 	
 	/**
@@ -194,8 +168,8 @@ public class WeChatPayService {
 			}
 		}
 		/* 拼接 key,设置路径:微信商户平台(pay.weixin.com)->账户设置->API安全-->秘钥设置 */
-		sb.append("key=" + WXConfig.KEY);
-		String sign = MD5Util.getMD5(sb.toString(), WXConfig.CHARSET).toUpperCase();
+		sb.append("key=" + WeChatConfig.KEY);
+		String sign = MD5Util.getMD5(sb.toString(), WeChatConfig.CHARSET).toUpperCase();
 		return sign;
 	}
 }

@@ -31,10 +31,10 @@ public class OrderMongodb implements OrderDao{
 	public void updateOrder(Order order) {
 		Query query = new Query(Criteria.where("outTradeNo").is(order.getOutTradeNo()));
 		Update update = new Update();
-		update.set("productID", order.getProductID());
 		update.set("body", order.getBody());
 		update.set("totalFee", order.getTotalFee());
-		update.set("timeStart", order.getStartTime());
+		update.set("startTime", order.getStartTime());
+		update.set("payStatus", order.getPayStatus());
 		mongoTemplate.updateFirst(query, update, Order.class);
 	}
 	

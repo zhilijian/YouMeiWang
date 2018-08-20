@@ -23,25 +23,20 @@ public class OrderService {
 	
 	public Order createOrder(String userID, String workID, Integer money, String payType) {
 		Order order = new Order();
-		SimpleDateFormat format = new  SimpleDateFormat("yyyyMMddHHmmss");
-		Date date = new Date();
-		order.setOutTradeNo(format.format(date) + userID + UUID.randomUUID().toString().substring(22, 32));
+		order.setOutTradeNo(new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + userID + UUID.randomUUID().toString().substring(22, 32));
 		order.setUserID(userID);
 		order.setProductID(workID);
 		order.setTotalFee(money);
-		order.setStartTime(System.currentTimeMillis());
+		order.setStartTime(new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()));
 		order.setPayType(payType);
-		order.setPayStatus("WAIT_BUYER_PAY");
+		order.setPayStatus("NOTPAY");
 		Work work = workDao.queryWork("workID", workID);
-		if (work == null) {
+		if (work == null && money != null) {
 			order.setBody("充值");
+			order.setTotalFee(money);
 		} else {
 			order.setBody(work.getWorkName());
-		}
-		if (money == null) {
 			order.setTotalFee(work.getPrice());
-		} else {
-			order.setTotalFee(money);
 		}
 		orderDao.addOrder(order);
 		return order;
