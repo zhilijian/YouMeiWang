@@ -3,6 +3,7 @@ package com.youmeiwang.controller;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.UUID;
@@ -18,8 +19,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.youmeiwang.config.WeChatConfig;
 import com.youmeiwang.entity.Order;
+import com.youmeiwang.entity.User;
 import com.youmeiwang.service.OrderService;
+import com.youmeiwang.service.UserService;
 import com.youmeiwang.service.WeChatPayService;
+import com.youmeiwang.util.ListUtil;
 import com.youmeiwang.vo.CommonVO;
 
 @CrossOrigin
@@ -27,6 +31,9 @@ import com.youmeiwang.vo.CommonVO;
 @RequestMapping("/wechatpay")
 public class PayController {
 
+	@Autowired
+	private UserService userService;
+	
 	@Autowired
 	private OrderService orderService;
 	
@@ -38,8 +45,16 @@ public class PayController {
 			HttpServletRequest request, HttpSession session) {
 		
 //		if (session.getAttribute(userID) == null) {
-//			return new SimpleVO(false, "用户尚未登录。"); 
+//			return new CommonVO(false, "用户尚未登录。"); 
 //		}
+		
+		if (workID == null && money == null) {
+			return new CommonVO(false, "微信支付订单发送失败。", "商品和金额不能同时为空。");
+		}
+		
+		if (workID != null && money != null) {
+			return new CommonVO(false, "微信支付订单发送失败。", "只可以进行购买商品或充值得操作。");
+		}
 		
 //		String reqIP = request.getRemoteAddr();
 		String reqIP = "192.168.0.128";
@@ -47,7 +62,7 @@ public class PayController {
 		Order order = orderService.createOrder(userID, workID, money, "WeChatPay");
 		try {
 			Map<String, Object> data = new HashMap<String, Object>();
-			SortedMap<String, String> resultMap = wechatPayService.createOrder(order, reqIP);
+ 			SortedMap<String, String> resultMap = wechatPayService.createOrder(order, reqIP);
 			String newSign = wechatPayService.createSign(resultMap);
 			if ("SUCCESS".equals(resultMap.get("return_code")) && newSign.equals(resultMap.get("sign"))) {
 				data.put("outTradeNo", order.getOutTradeNo());
@@ -72,27 +87,44 @@ public class PayController {
 	
 	@PostMapping("/wechatnotify")
 	public String wechatNotify(HttpServletRequest request) {
-		SortedMap<String, String> resultMap = wechatPayService.receiveOrder(request);
-		if (resultMap != null && "SUCCESS".equals(resultMap.get("return_code"))) {
-			String newSign = wechatPayService.createSign(resultMap);
-			if (newSign.equals(resultMap.get("sign"))) {
-				SortedMap<String, String> responseMap = null;
-				try {
-					responseMap = wechatPayService.queryOrder(resultMap.get("out_trade_no"));
-				} catch (Exception e) {
-					e.printStackTrace();
-					return "<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[参数格式校验错误]]></return_msg></xml>";
-				}
-				if (responseMap != null && "SUCCESS".equals(responseMap.get("result_code"))) {
-					String trade_state = responseMap.get("trade_state");
-					orderService.setOrder("outTradeNo", responseMap.get("out_trade_no"), "payStatus", trade_state);
-					Order order = orderService.queryOrder("outTradeNo", responseMap.get("out_trade_no"));
-					orderService.setOrder("outTradeNo", order.getOutTradeNo(), "endTime", new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()));
-					return "<xml><return_code><![CDATA[SUCCESS]]></return_code></xml>";
-				}
+		try {
+			SortedMap<String, String> resultMap = wechatPayService.receiveOrder(request);
+			if (resultMap == null || !"SUCCESS".equals(resultMap.get("return_code"))) {
+				return "<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[请求失败。]]></return_msg></xml>";
 			}
+			
+			String newSign = wechatPayService.createSign(resultMap);
+			if (!newSign.equals(resultMap.get("sign"))) {
+				return "<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[签名错误。]]></return_msg></xml>";
+			}
+			
+			SortedMap<String, String> responseMap = wechatPayService.queryOrder(resultMap.get("out_trade_no"));
+			if (responseMap == null || !"SUCCESS".equals(responseMap.get("result_code"))) {
+				return "<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[响应失败。]]></return_msg></xml>";
+			}
+			
+			String trade_state = responseMap.get("trade_state");
+			orderService.setOrder("outTradeNo", responseMap.get("out_trade_no"), "payStatus", trade_state);
+			
+			Order order = orderService.queryOrder("outTradeNo", responseMap.get("out_trade_no"));
+			User user = userService.queryUser("userID", order.getUserID());
+			if ("SUCCESS".equals(trade_state)) {
+				if ("RECHARGE".equals(responseMap.get("attach"))) {
+					long balance = user.getBalance()==null ? 0 : user.getBalance();
+					user.setBalance(balance + Integer.parseInt(responseMap.get("total_fee")));
+				} else {
+					List<String> worklist = ListUtil.addElement(user.getPurchaseWork(), responseMap.get("attach"));
+					user.setPurchaseWork(worklist);
+				}
+				userService.updateUser(user); 
+			}
+			
+			orderService.setOrder("outTradeNo", order.getOutTradeNo(), "endTime", new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()));
+			return "<xml><return_code><![CDATA[SUCCESS]]></return_code></xml>";
+		} catch (Exception e) {
+			e.printStackTrace();
+			return "<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[" + e.toString() +"]]></return_msg></xml>";
 		}
-		return "<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[验签失败]]></return_msg></xml>";
 	}
 	
 	@PostMapping("/orderquery")
@@ -131,7 +163,7 @@ public class PayController {
 	public CommonVO closeOrder(String userID, String outTradeNo, Integer refund_fee, String refund_desc) {
 		try {
 			Order order = orderService.queryOrder("outTradeNo", outTradeNo);
-			SortedMap<String, String> responseMap = wechatPayService.refundOrder(order, refund_fee, refund_desc);
+			SortedMap<String, String> responseMap = wechatPayService.closeOrder(outTradeNo);
 			Map<String, Object> data = new HashMap<String, Object>();
 			if (responseMap == null || "FAIL".equals(responseMap.get("return_code"))) {
 				return new CommonVO(false, "微信支付订单查询失败。", "出错信息：" + responseMap.get("return_msg"));
@@ -152,7 +184,7 @@ public class PayController {
 		}
 	}
 	
-	@PostMapping("/refund")
+	@PostMapping("/refund")//需要双向证书，暂不执行
 	public CommonVO refund(String userID, String outTradeNo, Integer refund_fee, String refund_desc) {
 		try {
 			Order order = orderService.queryOrder("outTradeNo", outTradeNo);

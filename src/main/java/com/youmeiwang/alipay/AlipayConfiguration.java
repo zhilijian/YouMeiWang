@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Configuration;
 
 
 @Configuration
-@EnableConfigurationProperties(AlipayConfig.class)
+@EnableConfigurationProperties(AliPayConfig.class)
 public class AlipayConfiguration {
 
 //	@Bean

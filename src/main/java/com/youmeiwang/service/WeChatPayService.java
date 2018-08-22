@@ -92,6 +92,7 @@ public class WeChatPayService {
 		parameters.put("spbill_create_ip", reqIP);
 		parameters.put("notify_url", WeChatConfig.NOTIFY_URL);
 		parameters.put("trade_type", WeChatConfig.TRADE_TYPE);
+		parameters.put("attach", order.getAttach());
 		parameters.put("sign", createSign(parameters));
 		return XMLObjectConvertUtil.praseMapToXML(parameters);
 	}

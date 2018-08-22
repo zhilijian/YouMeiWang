@@ -35,6 +35,8 @@ public class Order {
 	private String payType;
 	//支付状态 payStatus
 	private String payStatus;
+	//
+	private String attach;
 	
 	public String getOutTradeNo() {
 		return outTradeNo;
@@ -89,6 +91,12 @@ public class Order {
 	}
 	public void setPayStatus(String payStatus) {
 		this.payStatus = payStatus;
+	}
+	public String getAttach() {
+		return attach;
+	}
+	public void setAttach(String attach) {
+		this.attach = attach;
 	}
 	@Override
 	public int hashCode() {

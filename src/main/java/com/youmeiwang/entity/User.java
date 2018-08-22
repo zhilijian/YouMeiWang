@@ -50,6 +50,8 @@ public class User {
 	private List<String> collectTopic;
 	//下载的作品
 	private List<String> downWork;
+	//购买的作品
+	private List<String> purchaseWork;
 	//申请原创作者 applyForOriginal
 	//0：未申请 1：申请中 2：申请成功 3：申请驳回
 	private Integer applyForOriginal;
@@ -219,6 +221,14 @@ public class User {
 
 	public void setDownWork(List<String> downWork) {
 		this.downWork = downWork;
+	}
+
+	public List<String> getPurchaseWork() {
+		return purchaseWork;
+	}
+
+	public void setPurchaseWork(List<String> purchaseWork) {
+		this.purchaseWork = purchaseWork;
 	}
 
 	public Integer getApplyForOriginal() {

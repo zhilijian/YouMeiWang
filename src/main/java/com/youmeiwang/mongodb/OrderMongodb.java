@@ -35,6 +35,7 @@ public class OrderMongodb implements OrderDao{
 		update.set("totalFee", order.getTotalFee());
 		update.set("startTime", order.getStartTime());
 		update.set("payStatus", order.getPayStatus());
+		update.set("attach", order.getAttach());
 		mongoTemplate.updateFirst(query, update, Order.class);
 	}
 	

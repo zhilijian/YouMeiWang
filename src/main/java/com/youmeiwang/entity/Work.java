@@ -50,7 +50,7 @@ public class Work {
 	//被浏览次数
 	private Long browseNum;
 	//modelSize 模型大小
-	private double modelSize;
+	private Long modelSize;
 	//remarks 备注 
 	private String remarks;
 	//审核信息
@@ -174,10 +174,10 @@ public class Work {
 	public void setBrowseNum(Long browseNum) {
 		this.browseNum = browseNum;
 	}
-	public double getModelSize() {
+	public Long getModelSize() {
 		return modelSize;
 	}
-	public void setModelSize(double modelSize) {
+	public void setModelSize(Long modelSize) {
 		this.modelSize = modelSize;
 	}
 	public String getRemarks() {

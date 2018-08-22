@@ -31,12 +31,14 @@ public class OrderService {
 		order.setPayType(payType);
 		order.setPayStatus("NOTPAY");
 		Work work = workDao.queryWork("workID", workID);
-		if (work == null && money != null) {
+		if (work == null) {
 			order.setBody("充值");
 			order.setTotalFee(money);
+			order.setAttach("RECHARGE");
 		} else {
-			order.setBody(work.getWorkName());
+			order.setBody("购买" + work.getWorkName());
 			order.setTotalFee(work.getPrice());
+			order.setAttach(workID);
 		}
 		orderDao.addOrder(order);
 		return order;

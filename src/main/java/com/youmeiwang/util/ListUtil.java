@@ -8,9 +8,13 @@ import java.util.Set;
 
 public class ListUtil {
 
-	public static <E> List<E> addElement(List<E> list, E element) {
-		list.add(element);
-		return list;
+	public static <E> List<E> addElement(List<E> list1, E element) {
+		List<E> list2 = new LinkedList<E>();
+		if (list1 != null) {
+			list2 = list1;
+		}
+		list2.add(element);
+		return list2;
 	}
 	
 	public static <E> List<E> addList(List<E> list1, List<E> list2){

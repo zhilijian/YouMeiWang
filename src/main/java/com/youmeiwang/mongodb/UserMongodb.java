@@ -94,6 +94,9 @@ public class UserMongodb implements UserDao {
 		if (user.getDownWork() != null) {
 			update.set("downWork", user.getDownWork());
 		}
+		if (user.getPurchaseWork() != null) {
+			update.set("purchaseWork", user.getPurchaseWork());
+		}
 		if (user.getApplyForOriginal() != null) {
 			update.set("applyForOriginal", user.getApplyForOriginal());
 		}
