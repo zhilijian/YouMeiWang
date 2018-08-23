@@ -21,9 +21,8 @@ public class WorkMongodb  implements WorkDao{
 	private MongoTemplate mongoTemplate;
 	
 	@Override
-	public Work addWork(Work work) {
+	public void addWork(Work work) {
 		mongoTemplate.insert(work);
-		return null;
 	}
 	
 	@Override
@@ -44,27 +43,29 @@ public class WorkMongodb  implements WorkDao{
 
 	@Override
 	public void updateWork(Work work) {
-		Query query = new Query(Criteria.where("workId").is(work.getWorkID()));
+		Query query = new Query(Criteria.where("workID").is(work.getWorkID()));
 		Update update = new Update();
 		update.set("workName", work.getWorkName());
 		update.set("primaryClassification", work.getPrimaryClassification());
+		update.set("yijifenlei", work.getYijifenlei());
 		update.set("secondaryClassification", work.getSecondaryClassification());
+		update.set("erjifenlei", work.getErjifenlei());
 		update.set("reclassify", work.getReclassify());
+		update.set("sanjifenlei", work.getSanjifenlei());
 		update.set("pattern", work.getPattern());
+		update.set("geshi", work.getGeshi());
 		update.set("hasTextureMapping", work.isHasTextureMapping());
 		update.set("isBinding", work.isBinding());
 		update.set("hasCartoon", work.isHasCartoon());
 		update.set("price", work.getLabels());
 		update.set("labels", work.getLabels());
-		update.set("verifyState", work.getVerifyState());
-		update.set("topicID", work.getTopicID());
-		update.set("picturePath", work.getPicturePath());
-		update.set("fileNameAndPath", work.getFileNameAndPath());
+		update.set("picture", work.getPictures());
+		update.set("file", work.getFiles());
 		update.set("downloadNum", work.getDownloadNum());
 		update.set("collectNum", work.getCollectNum());
 		update.set("browseNum", work.getBrowseNum());
-		update.set("modelSize", work.getModelSize());
 		update.set("remarks", work.getRemarks());
+		update.set("isDelete", work.getIsDelete());
 		mongoTemplate.updateFirst(query, update, Work.class);
 	}
 	
@@ -169,13 +170,17 @@ public class WorkMongodb  implements WorkDao{
 	}
 	
 	@Override
-	public List<Work> workList(String condition1, String value1, String condition2, Object value2, String condition3, Object value3, Integer page, Integer size) {
+	public List<Work> workList(Boolean flag, String condition1, String value1, String condition2, Object value2, String condition3, Object value3, Integer page, Integer size) {
 		Query query = new Query();
 		if (value1 != null) {
-			query.addCriteria(Criteria.where(condition1).regex(value1));
+			if (flag) {
+				query.addCriteria(Criteria.where(condition1).regex(value1));
+			} else {
+				query.addCriteria(Criteria.where(condition1).is(value1));
+			}
 		}
 		if (value2 != null) {
-			query.addCriteria(Criteria.where(condition2).is(value2));
+			query.addCriteria(Criteria.where(condition2).is(value2)); 
 		}
 		if (value3 != null) {
 			query.addCriteria(Criteria.where(condition3).is(value3));

@@ -93,7 +93,7 @@ public class FileUtil {
         
         Map<String, Object> data = new HashMap<String, Object>();
         data.put("fileName", oldFileName);
-    	data.put("filePath", destination.getAbsolutePath().substring(3));
+    	data.put("filePath", CommonConfig.DownloadPathUrl + destination.getAbsolutePath().substring(3));
     	data.put("fileSize", destination.length());
     	data.put("pattern", suffixName);
     	return data;

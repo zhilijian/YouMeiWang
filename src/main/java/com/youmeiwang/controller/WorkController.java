@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.gson.Gson;
 import com.youmeiwang.entity.User;
 import com.youmeiwang.entity.Work;
 import com.youmeiwang.service.UserService;
@@ -46,14 +47,17 @@ public class WorkController {
 	@PostMapping("/addverifyingwork")
 	public CommonVO addVerifyingWork(@RequestParam(name="userID", required=true) String userID,
 			@RequestParam(name="workName", required=true) String workName,
-			@RequestParam(name="primaryClassification", required=true) Integer primaryClassification,
-			@RequestParam(name="pattern", required=true) Integer[] pattern,
+			@RequestParam(name="primaryClassification", required=true) String primaryClassification,
+			@RequestParam(name="secondaryClassification", required=true) String secondaryClassification,
+			@RequestParam(name="reclassify", required=false) String reclassify,
+			@RequestParam(name="pattern", required=true) String pattern,
 			@RequestParam(name="hasTextureMapping", required=true) boolean hasTextureMapping,
 			@RequestParam(name="isBinding", required=true) boolean isBinding,
 			@RequestParam(name="hasCartoon", required=true) boolean hasCartoon,
 			@RequestParam(name="price", required=true) Integer price,
 			@RequestParam(name="labels", required=true) String[] labels,
-//			@RequestParam(name="filePath", required=true) String[] filePath,
+			@RequestParam(name="pictures", required=true) String pictures,
+			@RequestParam(name="files", required=true) String files,
 			HttpSession session ) {
 		
 //		if (session.getAttribute(userID) == null) {
@@ -71,16 +75,59 @@ public class WorkController {
 			work.setWorkID(workID);
 			work.setWorkName(workName);
 			work.setAuthor(user.getUsername());
-			work.setPrimaryClassification(primaryClassification);
-			work.setPattern(Arrays.asList(pattern));
+			String[] primaryClassifications = primaryClassification.split(":");
+			work.setPrimaryClassification(Integer.valueOf(primaryClassifications[0]));
+			work.setYijifenlei(primaryClassifications[1]);
+			String[] secondaryClassifications = secondaryClassification.split(":");
+			work.setSecondaryClassification(Integer.valueOf(secondaryClassifications[0]));
+			work.setErjifenlei(secondaryClassifications[1]);
+			if (reclassify != null) {
+				String[] reclassifies = reclassify.split(":");
+				work.setReclassify(Integer.valueOf(reclassifies[0]));
+				work.setSanjifenlei(reclassifies[1]);
+			}
+			List<Integer> intlist = new LinkedList<Integer>();
+			List<String> strlist = new LinkedList<String>();
+			String[] patterns = pattern.split(",");
+			for (String str1 : patterns) {
+				String[] str2 = str1.split(":");
+				intlist.add(Integer.valueOf(str2[0]));
+				strlist.add(str2[1]);
+			}
+			work.setPattern(intlist);
+			work.setGeshi(strlist);
 			work.setHasTextureMapping(hasTextureMapping);
 			work.setBinding(isBinding);
 			work.setBinding(hasCartoon);
 			work.setPrice(price);
 			work.setLabels(Arrays.asList(labels));
 			work.setVerifyState(0);
-//			work.setFilePath(Arrays.asList(filePath));
-			work.setUploadTime(new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
+			List<Map<String, Object>> picturelist = new ArrayList<Map<String, Object>>();
+			String[] picture = pictures.split(";");
+			for (String str : picture) {
+				@SuppressWarnings("unchecked")
+				Map<String, Object> map = new Gson().fromJson(str, Map.class);
+				picturelist.add(map);
+			}
+			work.setPictures(picturelist);
+			List<Map<String, Object>> filelist = new ArrayList<Map<String, Object>>();
+			String[] file = pictures.split(";");
+			Long modelSize = 0l;
+			for (String str : file) {
+				@SuppressWarnings("unchecked")
+				Map<String, Object> map = new Gson().fromJson(str, Map.class);
+				filelist.add(map);
+				double d = (double) map.get("fileSize");
+				modelSize = modelSize + Math.round(d);
+			}
+			work.setFiles(filelist);
+			work.setModelSize(modelSize);
+			work.setDownloadNum(0l);
+			work.setCollectNum(0l);
+			work.setBrowseNum(0l);
+			work.setUploadTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+			work.setIsDelete(false);
+			workService.addWork(work);
 			
 			Map<String, Object> data = new HashMap<String, Object>();
 			data.put("userID", userID);
@@ -89,7 +136,6 @@ public class WorkController {
 			data.put("workname", work.getWorkName());
 		
 			verifyService.addVerifyingWork(userID, workID);
-			workService.addWork(work);
 			return new CommonVO(true, "添加作品成功！", data);
 		} catch (Exception e) {
 			return new CommonVO(false, "添加作品失败。", "错误信息：" + e.getMessage());
@@ -165,11 +211,12 @@ public class WorkController {
 			data.put("price", work.getPrice());
 			data.put("labels", work.getLabels());
 			data.put("remarks", work.getRemarks());
-			data.put("picturePath", work.getPicturePath());
-			data.put("uploadTime", work.getUploadTime());
+			data.put("pictures", work.getPictures());
+			data.put("files", work.getFiles());
 			data.put("browseNum", work.getBrowseNum());
 			data.put("collectNum", work.getCollectNum());
 			data.put("downloadNum", work.getDownloadNum());
+			data.put("uploadTime", work.getUploadTime());
 			boolean flag = user.getCollectWork().contains(workID);
 			data.put("iscollected", flag);
 			return new CommonVO(true, "查看作品成功！", data);
@@ -217,7 +264,7 @@ public class WorkController {
 			
 			List<Map<String, Object>> data = new LinkedList<Map<String, Object>>();
 			if (workIDs ==null) {
-				return new CommonVO(true, "该用户无此类作品。", "{}");
+				return new CommonVO(false, "该用户无此类作品。", "{}");
 			}
 			
 			for (String workID : workIDs) {
@@ -228,6 +275,9 @@ public class WorkController {
 				}
 				workmap.put("workID", workID);
 				workmap.put("workName", work.getWorkName());
+				workmap.put("pictures", work.getPictures().get(0));
+				workmap.put("secondaryClassification", work.getSecondaryClassification());
+				workmap.put("labels", work.getLabels());
 				workmap.put("modelSize", work.getModelSize());
 				workmap.put("uploadTime", work.getUploadTime());
 				workmap.put("downloadNum", work.getDownloadNum());

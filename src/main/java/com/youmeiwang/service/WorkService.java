@@ -21,8 +21,8 @@ public class WorkService {
 	@Autowired
 	private WorkDao workDao;
 	
-	public Work addWork(Work work) {
-		return workDao.addWork(work);
+	public void addWork(Work work) {
+		workDao.addWork(work);
 	}
 	
 	public void addCollectWork(String userID, String workID) {
@@ -100,9 +100,9 @@ public class WorkService {
 		return workDao.workList(condition, value, page, size);
 	}
 	
-	public List<Work> workList(String condition1, String value1, 
-			String condition2, Object value2, String condition3, Object value3, Integer page, Integer size) {
-		return workDao.workList(condition1, value1, condition2, value2, condition3, value3, page, size);
+	public List<Work> workList(Boolean flag, String condition1, String value1, 
+			String condition2, Integer value2, String condition3, Integer value3, Integer page, Integer size) {
+		return workDao.workList(flag, condition1, value1, condition2, value2, condition3, value3, page, size);
 	}
 	
 	public List<Work> workList(String condition1, Object value1, 

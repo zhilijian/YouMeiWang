@@ -9,7 +9,7 @@ import com.youmeiwang.entity.Work;
 @Repository
 public interface WorkDao {
 
-	public Work addWork(Work work);
+	public void addWork(Work work);
 	
 	public void removeWork(String condition, Object value);
 	
@@ -35,7 +35,7 @@ public interface WorkDao {
 	
 	public List<Work> workList(String condition, Integer value, Integer page, Integer size);
 	
-	public List<Work> workList(String condition1, String value1, String condition2, Object value2, String condition3, Object value3, Integer page, Integer size);
+	public List<Work> workList(Boolean flag, String condition1, String value1, String condition2, Object value2, String condition3, Object value3, Integer page, Integer size);
 
 	public List<Work> workList(String condition1, Object value1, String condition2, Object value2, String condition3, Object value3, Integer page, Integer size);
 }

@@ -19,12 +19,16 @@ public class Work {
 	//primaryClassification 一级分类
 	//0：共享模型  1：原创模型  2：2D美术
 	private Integer primaryClassification;
+	private String yijifenlei;
 	//secondaryClassification 二级分类
 	private Integer secondaryClassification;
+	private String erjifenlei;
 	//reclassify 三级分类
-	private Integer reclassify;
+	private Integer reclassify; 
+	private String sanjifenlei;
 	//pattern 格式
 	private List<Integer> pattern;
+	private List<String> geshi;
 	//hasTextureMapping 材质贴图
 	private boolean hasTextureMapping;
 	//isBinding 绑定情况
@@ -38,11 +42,11 @@ public class Work {
 	//verifyState 审核状态  0：待审核  1：已通过  2：未通过
 	private Integer verifyState;
 	//topic 专题
-	private String topicID;
+	private String topicName;
 	//picturePath 预览图 
-	private List<String> picturePath;
+	private List<Map<String, Object>> pictures;
 	//filePath 文件存储路径
-	private List<Map<String, String>> fileNameAndPath;
+	private List<Map<String, Object>> files;
 	//downloadNum 被下载次数
 	private Long downloadNum;
 	//被收藏次数 collectNum
@@ -57,6 +61,8 @@ public class Work {
 	private String verifyMessage;
 	//上传时间
 	private String uploadTime;
+	//
+	private Boolean isDelete;
 	
 	public String getWorkID() {
 		return workID;
@@ -82,11 +88,23 @@ public class Work {
 	public void setPrimaryClassification(Integer primaryClassification) {
 		this.primaryClassification = primaryClassification;
 	}
+	public String getYijifenlei() {
+		return yijifenlei;
+	}
+	public void setYijifenlei(String yijifenlei) {
+		this.yijifenlei = yijifenlei;
+	}
 	public Integer getSecondaryClassification() {
 		return secondaryClassification;
 	}
 	public void setSecondaryClassification(Integer secondaryClassification) {
 		this.secondaryClassification = secondaryClassification;
+	}
+	public String getErjifenlei() {
+		return erjifenlei;
+	}
+	public void setErjifenlei(String erjifenlei) {
+		this.erjifenlei = erjifenlei;
 	}
 	public Integer getReclassify() {
 		return reclassify;
@@ -94,11 +112,23 @@ public class Work {
 	public void setReclassify(Integer reclassify) {
 		this.reclassify = reclassify;
 	}
+	public String getSanjifenlei() {
+		return sanjifenlei;
+	}
+	public void setSanjifenlei(String sanjifenlei) {
+		this.sanjifenlei = sanjifenlei;
+	}
 	public List<Integer> getPattern() {
 		return pattern;
 	}
 	public void setPattern(List<Integer> pattern) {
 		this.pattern = pattern;
+	}
+	public List<String> getGeshi() {
+		return geshi;
+	}
+	public void setGeshi(List<String> geshi) {
+		this.geshi = geshi;
 	}
 	public boolean isHasTextureMapping() {
 		return hasTextureMapping;
@@ -136,25 +166,23 @@ public class Work {
 	public void setVerifyState(Integer verifyState) {
 		this.verifyState = verifyState;
 	}
-	public Work() {
+	public String getTopicName() {
+		return topicName;
 	}
-	public String getTopicID() {
-		return topicID;
+	public void setTopicName(String topicName) {
+		this.topicName = topicName;
 	}
-	public void setTopicID(String topicID) {
-		this.topicID = topicID;
+	public List<Map<String, Object>> getPictures() {
+		return pictures;
 	}
-	public List<String> getPicturePath() {
-		return picturePath;
+	public void setPictures(List<Map<String, Object>> pictures) {
+		this.pictures = pictures;
 	}
-	public void setPicturePath(List<String> picturePath) {
-		this.picturePath = picturePath;
+	public List<Map<String, Object>> getFiles() {
+		return files;
 	}
-	public List<Map<String, String>> getFileNameAndPath() {
-		return fileNameAndPath;
-	}
-	public void setFileNameAndPath(List<Map<String, String>> fileNameAndPath) {
-		this.fileNameAndPath = fileNameAndPath;
+	public void setFiles(List<Map<String, Object>> files) {
+		this.files = files;
 	}
 	public Long getDownloadNum() {
 		return downloadNum;
@@ -197,6 +225,12 @@ public class Work {
 	}
 	public void setUploadTime(String uploadTime) {
 		this.uploadTime = uploadTime;
+	}
+	public Boolean getIsDelete() {
+		return isDelete;
+	}
+	public void setIsDelete(Boolean isDelete) {
+		this.isDelete = isDelete;
 	}
 	@Override
 	public int hashCode() {
