@@ -39,11 +39,19 @@ public class AliPayConfig {
 		"vt9rPdFMj9GVA9ccGWXbxsrFrUo5JjKyHniN96q+NexZtjO1dJUwAm8n2VSuPUd4" + 
 		"75tt5LKtfXLQQN3q6aEBCRxN0N0t7+lKti+7W8gAg6O58iQorhKPB9yFc3tPDeOG" + 
 		"sC4wg5nskQflKfn1Tb5tjIXg";
-	public static final String ALIPAY_PUBLIC_KEY = "MIGfMA0GCSqGSIb3DQEBA"
-			+ "QUAA4GNADCBiQKBgQCnxj/9qwVfgoUh/y2W89L6BkRAFljhNhgPdyPuBV6"
-			+ "4bfQNN1PjbCzkIM6qRdKBoLPXmKKMiFYnkd6rAoprih3/PrQEB/VsW8OoM"
-			+ "8fxn67UDYuyBTqA23MML9q1+ilIZwBC2AQ2UBVOrFXfFl75p6/B5KsiNG9"
-			+ "zpgmLCUYuLkxpLQIDAQAB";
+//	public static final String ALIPAY_PUBLIC_KEY = "MIGfMA0GCSqGSIb3DQEBA"
+//			+ "QUAA4GNADCBiQKBgQCnxj/9qwVfgoUh/y2W89L6BkRAFljhNhgPdyPuBV6"
+//			+ "4bfQNN1PjbCzkIM6qRdKBoLPXmKKMiFYnkd6rAoprih3/PrQEB/VsW8OoM"
+//			+ "8fxn67UDYuyBTqA23MML9q1+ilIZwBC2AQ2UBVOrFXfFl75p6/B5KsiNG9"
+//			+ "zpgmLCUYuLkxpLQIDAQAB";
+	public static final String ALIPAY_PUBLIC_KEY = "MIIBIjANBgkqhkiG9w0BA"
+			+ "QEFAAOCAQ8AMIIBCgKCAQEAx0pnAL58C0pD5RA00kIFrvF5sHOdrKAV4ZX"
+			+ "Hxtyb2YFqmhh58xABfR7Z74X4sAbb5omNsPEfJd89Y4RSexGrudxBAy/JP"
+			+ "vwF9LQyvjwPJBjW97xndQIrzCt18nLtl7neIIXcggU7kIfVeeD88lqtlii"
+			+ "n9cohz8j+TT6wqan1ldWiSlRYfGc+4vk7CNki4ffsgo6qOejwZNxFemvoe"
+			+ "FnHaaseNFSpmIc9DJtcaDAV/5knkL2wO5WyOp8nijVwWtmSv70/Ep3jJq8"
+			+ "PE01qSG2HYOCqtLnpNYxDANNFHA49i2oJzn5mmjGOzXTEwzUDDnI6GvdsV"
+			+ "ivUFQdiCHtZ3SRLNQIDAQAB";
 	
 	/** 签名类型 */
 	public static String SIGNTYPE = "RSA2";

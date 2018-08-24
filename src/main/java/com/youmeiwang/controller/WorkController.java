@@ -68,7 +68,7 @@ public class WorkController {
 			User user = userService.queryUser("userID", userID);
 			String workID = null;
 			do {
-				workID = RandomUtil.getRandomString(10);
+				workID = RandomUtil.getRandomNumber(10);
 			} while (workService.queryWork("workID", workID) != null);
 			
 			Work work = new Work();
@@ -172,7 +172,7 @@ public class WorkController {
 				break;
 			}
 			
-			work.setAuthor(null);
+			work.setIsDelete(true);
 			userService.updateUser(user);
 			workService.updateWork(work);
 			return new SimpleVO(true, "删除作品成功。"); 
@@ -201,10 +201,12 @@ public class WorkController {
 			data.put("workID", workID);
 			data.put("workName", work.getWorkName());
 			data.put("author", work.getAuthor());
-			data.put("primaryClassification", work.getPrimaryClassification());
-			data.put("secondaryClassification", work.getSecondaryClassification());
-			data.put("reclassify", work.getReclassify());
-			data.put("pattern", work.getPattern());
+			data.put("primaryClassification", work.getYijifenlei());
+			data.put("secondaryClassification", work.getErjifenlei());
+			if (work.getReclassify() != null) {
+				data.put("reclassify", work.getSanjifenlei());
+			}
+			data.put("pattern", work.getGeshi());
 			data.put("hasTextureMapping", work.isHasTextureMapping());
 			data.put("isBinding", work.isBinding());
 			data.put("hasCartoon", work.isHasCartoon());

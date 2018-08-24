@@ -1,7 +1,5 @@
 package com.youmeiwang.controller;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -16,7 +14,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.alipay.api.AlipayClient;
 import com.alipay.api.domain.AlipayTradePagePayModel;
+import com.alipay.api.request.AlipayTradeCloseRequest;
 import com.alipay.api.request.AlipayTradePagePayRequest;
+import com.alipay.api.request.AlipayTradeQueryRequest;
+import com.alipay.api.response.AlipayTradeCloseResponse;
+import com.alipay.api.response.AlipayTradeQueryResponse;
 import com.youmeiwang.alipay.AliPayConfig;
 import com.youmeiwang.entity.Order;
 import com.youmeiwang.entity.User;
@@ -82,10 +84,10 @@ public class AliPayController {
 	public String alipayNotify(HttpServletRequest request) {
 		try {
 			Map<String, String> responseMap = alipayService.receiveOrder(request);
-			if (responseMap == null) {
+			if (responseMap == null) { 
 				return "fail";
 			}
-			String trade_state = responseMap.get("trade_state");
+			String trade_state = responseMap.get("trade_status");
 			orderService.setOrder("outTradeNo", responseMap.get("out_trade_no"), "payStatus", trade_state);
 			
 			Order order = orderService.queryOrder("outTradeNo", responseMap.get("out_trade_no"));
@@ -94,19 +96,67 @@ public class AliPayController {
 			if ("TRADE_SUCCESS".equals(trade_state)) {
 				if ("RECHARGE".equals(responseMap.get("body"))) {
 					long balance = user.getBalance()==null ? 0 : user.getBalance();
-					user.setBalance(balance + Integer.parseInt(responseMap.get("total_fee")));
+					user.setBalance(balance + Double.valueOf(responseMap.get("total_amount")).longValue());
 				} else {
 					List<String> worklist = ListUtil.addElement(user.getPurchaseWork(), responseMap.get("body"));
 					user.setPurchaseWork(worklist);
 				}
 				userService.updateUser(user);
 			}
-			orderService.setOrder("outTradeNo", responseMap.get("out_trade_no"), "endTime", new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()));
+			orderService.setOrder("outTradeNo", responseMap.get("out_trade_no"), "endTime", responseMap.get("notify_time"));
 			return "success";
 		} catch (Exception e) {
 			e.printStackTrace();
 			return "fail";
 		}
+	}
+	
+	@PostMapping("/closeorder")
+	public CommonVO closeOrder(String userID,  String out_trade_no,
+			HttpSession session) {
+		
+//		if (session.getAttribute(userID) == null) {
+//			return new CommonVO(false, "用户尚未登录。"); 
+//		}
+		
+		try {
+			AlipayTradePagePayModel model = alipayService.queryOrCloseModel(out_trade_no);
+			AlipayTradeCloseRequest alipayRequest = new AlipayTradeCloseRequest();
+			alipayRequest.setBizModel(model);
+			AlipayTradeCloseResponse response = alipayClient.execute(alipayRequest);
+			if (response.isSuccess()) {
+				return new CommonVO(true, "支付宝支付交易关闭成功！", response.getSubMsg()); 
+			} else {
+				return new CommonVO(false, "支付宝支付交易关闭失败。", response.getSubMsg()); 
+			}
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        return new CommonVO(false, "支付宝支付交易关闭失败。", "出错信息：" + e.toString());
+	    }
+	}
+	
+	@PostMapping("/queryorder")
+	public CommonVO queryOrder(String userID,  String out_trade_no,
+			HttpSession session) {
+		
+//		if (session.getAttribute(userID) == null) {
+//			return new CommonVO(false, "用户尚未登录。"); 
+//		}
+		
+		try {
+			AlipayTradePagePayModel model = alipayService.queryOrCloseModel(out_trade_no);
+			AlipayTradeQueryRequest alipayRequest = new AlipayTradeQueryRequest();
+			alipayRequest.setBizModel(model);
+			AlipayTradeQueryResponse response = alipayClient.execute(alipayRequest);
+			if (response.isSuccess()) {
+				return new CommonVO(true, "支付宝支付交易查询成功！", response.getSubMsg()); 
+			} else {
+				return new CommonVO(false, "支付宝支付交易查询失败。", response.getSubMsg()); 
+			}
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        return new CommonVO(false, "支付宝支付交易查询失败。", "出错信息：" + e.toString());
+	    }
 	}
 	
 }
