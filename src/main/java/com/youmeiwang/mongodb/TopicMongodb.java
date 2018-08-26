@@ -53,6 +53,15 @@ public class TopicMongodb implements TopicDao{
 	}
 	
 	@Override
+	public void setTopic(String condition, String value1, String target, Object value2) {
+		Query query = new Query(Criteria.where(condition).is(value1));
+		Update update = new Update();
+		update.set(target, value2);
+		mongoTemplate.updateFirst(query, update, Topic.class);
+	}
+
+	
+	@Override
 	public void changeIsRecommend(String topicID, Integer isRecommend) {
 		Query query = new Query(Criteria.where("topicID").is(topicID));
 		Update update = new Update();
@@ -64,6 +73,12 @@ public class TopicMongodb implements TopicDao{
 	public Topic queryTopic(String condition, String value) {
 		Query query = new Query(Criteria.where(condition).is(value));
 		return mongoTemplate.findOne(query, Topic.class);
+	}
+	
+	@Override
+	public Long getTopicAmount() {
+		Query query = new Query();
+		return mongoTemplate.count(query, Topic.class);
 	}
 	
 	@Override
@@ -97,4 +112,5 @@ public class TopicMongodb implements TopicDao{
 		query.limit(size);
 		return mongoTemplate.find(query, Topic.class);
 	}
+
 }

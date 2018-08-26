@@ -5,9 +5,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpSession;
 
@@ -294,7 +296,7 @@ public class WorkController {
 	}
 
 	@GetMapping("/worksearch")
-	public CommonVO workSearch(@RequestParam(name="userID", required=true) String userID,
+	public CommonVO workSearch(@RequestParam(name="condition", required=false) String condition,
 			@RequestParam(name="primaryClassification", required=false) Integer primaryClassification,
 			@RequestParam(name="secondaryClassification", required=false) Integer secondaryClassification,
 			@RequestParam(name="reclassify", required=false) Integer reclassify,
@@ -302,24 +304,46 @@ public class WorkController {
 			@RequestParam(name="size", required=true) Integer size,
 			HttpSession session) {
 		
-//		if (session.getAttribute(userID) == null) {
-//			return new CommonVO(false, "用户非法登录。", "请先登录后进行操作"); 
-//		}
-		
 		try {
-			List<Work> worklist = workService.workList("primaryClassification", primaryClassification, 
-					"secondaryClassification", secondaryClassification, "reclassify", reclassify, page, size);
+			Map<String, Object> conditions = new HashMap<String, Object>();
+			if (primaryClassification != null) {
+				conditions.put("primaryClassification", primaryClassification);
+			}
+			if (secondaryClassification != null) {
+				conditions.put("secondaryClassification", secondaryClassification);
+			}
+			if (reclassify != null) {
+				conditions.put("reclassify", reclassify);
+			}
+			
+			Set<Work> workset = new HashSet<Work>();
+			if (condition == null) {
+				workset.addAll(workService.workList(condition, condition, page, size));
+			} else {
+				workset.addAll(workService.workList(2, "workID", condition, conditions, page, size));
+				workset.addAll(workService.workList(2, "workName", condition, conditions, page, size));
+				workset.addAll(workService.workList(1, "labels", condition, conditions, page, size));
+			}
+			List<Work> worklist1 = new ArrayList<Work>(workset);
+			List<Work> worklist2 = new LinkedList<Work>();
+			int currIdx = (page > 1 ? (page-1)*size : 0);
+			for (int i = 0; i < size && i < worklist1.size()-currIdx; i++) {
+				Work work = worklist1.get(currIdx + i);
+				worklist2.add(work);
+			}
+			
 			List<Map<String, Object>> maplist = new LinkedList<Map<String, Object>>();
-			for (Work work : worklist) {
+			for (Work work : worklist2) {
 				Map<String, Object> workmap = new HashMap<String, Object>();
 				workmap.put("workID", work.getWorkID());
 				workmap.put("workName", work.getWorkName());
 				workmap.put("price", work.getPrice());
+				workmap.put("lables", work.getLabels());
+				workmap.put("yijifenlei", work.getYijifenlei());
 				maplist.add(workmap);
 			}
 			
-			Long workAmount = workService.getAmount("primaryClassification", primaryClassification, 
-					"secondaryClassification", secondaryClassification, "reclassify", reclassify);
+			Long workAmount = (long) worklist1.size();
 			Long pageAmount = 0l;
 			if (workAmount % size == 0) {
 				pageAmount = workAmount / size;
@@ -338,15 +362,10 @@ public class WorkController {
 	}
 
 	@GetMapping("/worksort")
-	public CommonVO workSort(@RequestParam(name="userID", required=true) String userID,
-			@RequestParam(name="primaryClassification", required=false) Integer primaryClassification,
+	public CommonVO workSort(@RequestParam(name="primaryClassification", required=false) Integer primaryClassification,
 			@RequestParam(name="secondaryClassification", required=false) Integer secondaryClassification,
 			@RequestParam(name="limit", required=true) Integer limit,
 			HttpSession session) {
-		
-//		if (session.getAttribute(userID) == null) {
-//			return new CommonVO(false, "用户非法登录。", "请先登录后进行操作"); 
-//		}
 		
 		try {
 			List<Work> worklist = workService.workSortDESC("primaryClassification", primaryClassification, "secondaryClassification", secondaryClassification, "downloadNum", limit);
@@ -364,5 +383,26 @@ public class WorkController {
 			e.printStackTrace();
 			return new CommonVO(false, "查询模型失败。", "出错信息：" + e.toString());
 		}
+	}
+	
+	@PostMapping("/")
+	
+	private Map<String, Object> workRecommend(String primaryClassification, 
+			String secondaryClassification, String sortCondition, Integer limit) {
+		
+		Map<String, Object> conditions = new HashMap<String, Object>();
+		conditions.put("primaryClassification", primaryClassification);
+		conditions.put("secondaryClassification", secondaryClassification);
+		List<Work> worklist = workService.workSortDESC(sortCondition, conditions, limit);
+		
+		Map<String, Object> data = new HashMap<String, Object>();
+		for (Work work : worklist) {
+			data.put("workID", work.getWorkID());
+			data.put("workName", work.getWorkName());
+			data.put("picture", work.getPictures().get(0));
+			data.put("yijifenlei", work.getYijifenlei());
+			data.put("price", work.getPrice());
+		}
+		return data;
 	}
 }

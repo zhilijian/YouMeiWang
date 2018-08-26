@@ -17,9 +17,13 @@ public interface TopicDao {
 
 	public void updateTopic(Topic topic);
 	
+	public void setTopic(String condition, String value1, String target, Object value2);
+	
 	public void changeIsRecommend(String topicID, Integer isRecommend);
 	
 	public Topic queryTopic(String condition, String value);
+	
+	public Long getTopicAmount();
 	
 	public Long getTopicAmount(String condition1, String value1, String condition2, Integer value2);
 	

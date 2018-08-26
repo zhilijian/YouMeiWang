@@ -19,6 +19,8 @@ public interface UserDao {
 
 	public User queryUser(String condition, String value);
 	
+	public void setUser(String condition, Object value1, String target, Object value2);
+	
 	public Long getAmount(String condition, String value);
 	
 	public Long getAmount(String condition, Object value);

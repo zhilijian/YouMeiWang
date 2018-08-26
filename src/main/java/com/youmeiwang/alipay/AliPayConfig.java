@@ -60,7 +60,7 @@ public class AliPayConfig {
     /** 编码 */
 	public static String CHARSET = "UTF-8";
     /** 同步地址 */
-	public static String RETURNURL = "";
+	public static String RETURNURL = "http://www.baidu.com";
     /** 异步地址 */
 	public static String NOTIFYURL = "http://www.linshaocong.cn:8081/alipay/alipaynotify";
     

@@ -63,12 +63,21 @@ public class TopicService {
 		topicDao.updateTopic(topic);
 	}
 	
+	public void setTopic(String condition, String value1, 
+			String target, Object value2) {
+		topicDao.setTopic(condition, value1, target, value2);
+	}
+	
 	public void changeIsRecommend(String topicID, Integer isRecommend) {
 		topicDao.changeIsRecommend(topicID, isRecommend);
 	}
 	
 	public Topic queryTopic(String condition, String value) {
 		return topicDao.queryTopic(condition, value);
+	}
+	
+	public Long getTopicAmount() {
+		return topicDao.getTopicAmount();
 	}
 	
 	public Long getTopicAmount(String condition1, String value1, String condition2, Integer value2) {

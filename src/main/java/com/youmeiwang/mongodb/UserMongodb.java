@@ -110,11 +110,19 @@ public class UserMongodb implements UserDao {
 	}
 
 	@Override
+	public void setUser(String condition, Object value1, String target, Object value2) {
+		Query query = new Query(Criteria.where(condition).is(value1));
+		Update update = new Update();
+		update.set(target, value2);
+		mongoTemplate.updateFirst(query, update, User.class);
+	}
+
+	@Override
 	public User queryUser(String condition, String value) {
 		Query query = new Query(Criteria.where(condition).is(value));
 		return mongoTemplate.findOne(query, User.class);
 	}
-	
+
 	@Override
 	public Long getAmount(String condition, String value) {
 		Query query = new Query();

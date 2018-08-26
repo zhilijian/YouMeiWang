@@ -2,6 +2,7 @@ package com.youmeiwang.service;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -84,6 +85,10 @@ public class WorkService {
 		return workDao.workSortASC(condition1, value1, condition2, value2, condition3, limit);
 	}
 	
+	public List<Work> workSortDESC(String condition, Map<String, Object> conditions, Integer limit) {
+		return workDao.workSortDESC(condition, conditions, limit);
+	}
+	
 	public List<Work> workList(String condition, List<String> values) {
 		List<Work> worklist = new LinkedList<Work>();
 		for (String value : values) {
@@ -108,5 +113,9 @@ public class WorkService {
 	public List<Work> workList(String condition1, Object value1, 
 			String condition2, Object value2, String condition3, Object value3, Integer page, Integer size) {
 		return workDao.workList(condition1, value1, condition2, value2, condition3, value3, page, size);
+	}
+	
+	public List<Work> workList(Integer searchTpye, String condition, String value, Map<String, Object> conditions, Integer page, Integer size) {
+		return workDao.workList(searchTpye, condition, value, conditions, page, size);
 	}
 }

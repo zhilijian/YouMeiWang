@@ -34,6 +34,10 @@ public class UserService {
 		return userDao.queryUser(condition, value);
 	}
 	
+	public void setUser(String condition, Object value1, String target, Object value2) {
+		userDao.setUser(condition, value1, target, value2);
+	}
+	
 	public String queryNickname(String condition, String value) {
 		User user = userDao.queryUser(condition, value);
 		return user.getNickname();

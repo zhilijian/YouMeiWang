@@ -63,7 +63,7 @@ public class AliPayController {
 			Order order = orderService.createOrder(userID, workID, money, "AliPay");
 			AlipayTradePagePayModel model = alipayService.createModel(order);
 			AlipayTradePagePayRequest alipayRequest = new AlipayTradePagePayRequest();
-//			alipayRequest.setReturnUrl(AliPayConfig.RETURNURL);
+			alipayRequest.setReturnUrl(AliPayConfig.RETURNURL);
 			alipayRequest.setNotifyUrl(AliPayConfig.NOTIFYURL);
 			alipayRequest.setBizModel(model);
 			

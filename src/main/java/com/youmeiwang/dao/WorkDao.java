@@ -1,6 +1,7 @@
 package com.youmeiwang.dao;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Repository;
 
@@ -28,6 +29,8 @@ public interface WorkDao {
 	public Long getAmount(String condition1, Object value1, String condition2, Object value2, String condition3, Object value3);
 	
 	public List<Work> workSortDESC(String condition1, Object value1, String condition2, Object value2, String condition3, Integer limit);
+
+	public List<Work> workSortDESC(String condition, Map<String, Object> conditions, Integer limit);
 	
 	public List<Work> workSortASC(String condition1, Object value1, String condition2, Object value2, String condition3, Integer limit);
 	
@@ -38,4 +41,6 @@ public interface WorkDao {
 	public List<Work> workList(Boolean flag, String condition1, String value1, String condition2, Object value2, String condition3, Object value3, Integer page, Integer size);
 
 	public List<Work> workList(String condition1, Object value1, String condition2, Object value2, String condition3, Object value3, Integer page, Integer size);
+	
+	public List<Work> workList(Integer searchType, String condition, String value, Map<String, Object> conditions, Integer page, Integer size);
 }

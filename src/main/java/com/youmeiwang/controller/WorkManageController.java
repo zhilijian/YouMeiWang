@@ -112,7 +112,7 @@ public class WorkManageController {
 			}
 			List<Integer> intlist = new LinkedList<Integer>();
 			List<String> strlist = new LinkedList<String>();
-			String[] patterns = pattern.split(";");
+			String[] patterns = pattern.split(",");
 			for (String str1 : patterns) {
 				String[] str2 = str1.split(":");
 				intlist.add(Integer.valueOf(str2[0]));
@@ -192,7 +192,12 @@ public class WorkManageController {
 			if (work.getReclassify() != null) {
 				data.put("reclassify", work.getReclassify() + ":" + work.getSanjifenlei());
 			}
-			data.put("pattern", work.getPattern());
+			List<String> geshi = new LinkedList<String>();
+			for (int i = 0; i < work.getPattern().size(); i++) {
+				geshi.add(work.getPattern().get(i) + ":" + work.getGeshi().get(i));
+			}
+			data.put("pattern", geshi);
+			
 			data.put("hasTextureMapping", work.isHasTextureMapping());
 			data.put("isBinding", work.isBinding());
 			data.put("hasCartoon", work.isHasCartoon());

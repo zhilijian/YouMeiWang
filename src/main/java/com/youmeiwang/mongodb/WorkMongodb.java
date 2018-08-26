@@ -1,6 +1,7 @@
 package com.youmeiwang.mongodb;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -131,9 +132,25 @@ public class WorkMongodb  implements WorkDao{
 			query.addCriteria(Criteria.where(condition2).is(value2));
 		}
 		query.with(new Sort(new Order(Sort.Direction.DESC, condition3)));
+		query.limit(limit);
 		return mongoTemplate.find(query, Work.class);
 	}
 	
+	
+	
+	@Override
+	public List<Work> workSortDESC(String condition, Map<String, Object> conditions, Integer limit) {
+		Query query = new Query();
+		if (conditions != null) {
+			for (String key : conditions.keySet()) {
+				query.addCriteria(Criteria.where(key).is(conditions.get(key)));
+			}
+		}
+		query.with(new Sort(new Order(Sort.Direction.DESC, condition)));
+		query.limit(limit);
+		return mongoTemplate.find(query, Work.class);
+	}
+
 	@Override
 	public List<Work> workSortASC(String condition1, Object value1, String condition2, Object value2, String condition3, Integer limit) {
 		Query query = new Query();
@@ -191,7 +208,7 @@ public class WorkMongodb  implements WorkDao{
 	@Override
 	public List<Work> workList(String condition1, Object value1, String condition2, Object value2, String condition3, Object value3, Integer page, Integer size) {
 		Query query = new Query();
-		if (value1 != null) {
+		if (value1 != null && !value1.equals("")) {
 			query.addCriteria(Criteria.where(condition1).is(value1));
 		}
 		if (value2 != null) {
@@ -199,6 +216,34 @@ public class WorkMongodb  implements WorkDao{
 		}
 		if (value3 != null) {
 			query.addCriteria(Criteria.where(condition3).is(value3));
+		}
+		return mongoTemplate.find(query, Work.class);
+	}
+
+	@Override
+	public List<Work> workList(Integer searchType, String condition, String value, Map<String, Object> conditions, Integer page, Integer size) {
+		Query query = new Query();
+		switch (searchType) {
+		case 1:
+			query.addCriteria(Criteria.where(condition).is(value));
+			break;
+		case 2:
+			query.addCriteria(Criteria.where(condition).regex(value));
+			break;
+		case 3:
+			query.addCriteria(Criteria.where(condition).in(value));
+			break;
+		default:
+			break;
+		}
+		if (conditions != null) {
+			for (String key : conditions.keySet()) {
+				query.addCriteria(Criteria.where(key).is(conditions.get(key)));
+			}
+		}
+		if (page != null && size != null) {
+			query.skip((page - 1) * size);
+			query.limit(size);
 		}
 		return mongoTemplate.find(query, Work.class);
 	}
