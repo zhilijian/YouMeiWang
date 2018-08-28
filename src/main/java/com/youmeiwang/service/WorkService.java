@@ -56,6 +56,10 @@ public class WorkService {
 		return workDao.queryWork(condition, value);
 	}
 	
+	public void setWork(String condition, Object value1, String target, Object value2) {
+		workDao.setWork(condition, value1, target, value2);
+	}
+	
 	public String queryWorkName(String condition, Object value) {
 		Work work = workDao.queryWork(condition, value);
 		return work.getWorkName();

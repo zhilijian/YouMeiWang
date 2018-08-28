@@ -360,7 +360,7 @@ public class TopicManageController {
 			return new SimpleVO(false, "输入的专题数目不为4。");
 		}
 		try {
-			List<Topic> topiclist = topicService.topicList();
+			List<Topic> topiclist = topicService.topicList(null,null,null);
 			for (Topic topic : topiclist) {
 				boolean isExist = ContainUtil.hasString(topicIDs, topic.getTopicID());
 				if (isExist) {

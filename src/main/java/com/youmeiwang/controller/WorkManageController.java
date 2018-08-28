@@ -72,7 +72,7 @@ public class WorkManageController {
 		@RequestParam(name="workName", required=true) String workName,
 		@RequestParam(name="primaryClassification", required=true) String primaryClassification,
 		@RequestParam(name="secondaryClassification", required=true) String secondaryClassification,
-		@RequestParam(name="reclassify", required=true) String reclassify,
+		@RequestParam(name="reclassify", required=false) String reclassify,
 		@RequestParam(name="pattern", required=true) String pattern,
 		@RequestParam(name="hasTextureMapping", required=true) boolean hasTextureMapping,
 		@RequestParam(name="isBinding", required=true) boolean isBinding,
@@ -197,7 +197,6 @@ public class WorkManageController {
 				geshi.add(work.getPattern().get(i) + ":" + work.getGeshi().get(i));
 			}
 			data.put("pattern", geshi);
-			
 			data.put("hasTextureMapping", work.isHasTextureMapping());
 			data.put("isBinding", work.isBinding());
 			data.put("hasCartoon", work.isHasCartoon());
@@ -234,8 +233,13 @@ public class WorkManageController {
 		
 		try {
 			Set<Work> workset = new HashSet<Work>();
-			workset.addAll(workService.workList("author", condition, "primaryClassification", primaryClassification, "verifyState", verifyState, page, size));
-			workset.addAll(workService.workList("workID", condition, "primaryClassification", primaryClassification, "verifyState", verifyState, page, size));
+			Map<String, Object> conditions = new HashMap<String, Object>();
+			conditions.put("primaryClassification", primaryClassification);
+			if (verifyState != null) {
+				conditions.put("verifyState", verifyState);
+			}
+			workset.addAll(workService.workList(2, "author", condition, conditions, null, null));
+			workset.addAll(workService.workList(2, "workID", condition, conditions, null, null));
 			List<Work> worklist1 = new ArrayList<Work>(workset);
 			List<Work> worklist2 = new LinkedList<Work>();
 			int currIdx = (page > 1 ? (page-1)*size : 0);
@@ -279,7 +283,7 @@ public class WorkManageController {
 			return new CommonVO(true, "查询模型成功！", data);
 		} catch (Exception e) {
 			e.printStackTrace();
-			return new CommonVO(false, "查询模型失败。", "出错信息：" + e.getMessage());
+			return new CommonVO(false, "查询模型失败。", "出错信息：" + e.toString());
 		}
 	}
 }

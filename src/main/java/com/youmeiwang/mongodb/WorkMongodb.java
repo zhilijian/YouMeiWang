@@ -16,7 +16,7 @@ import com.youmeiwang.dao.WorkDao;
 import com.youmeiwang.entity.Work;
 
 @Component
-public class WorkMongodb  implements WorkDao{
+public class WorkMongodb implements WorkDao{
 
 	@Autowired
 	private MongoTemplate mongoTemplate;
@@ -58,10 +58,10 @@ public class WorkMongodb  implements WorkDao{
 		update.set("hasTextureMapping", work.isHasTextureMapping());
 		update.set("isBinding", work.isBinding());
 		update.set("hasCartoon", work.isHasCartoon());
-		update.set("price", work.getLabels());
+		update.set("price", work.getPrice());
 		update.set("labels", work.getLabels());
-		update.set("picture", work.getPictures());
-		update.set("file", work.getFiles());
+		update.set("pictures", work.getPictures());
+		update.set("files", work.getFiles());
 		update.set("downloadNum", work.getDownloadNum());
 		update.set("collectNum", work.getCollectNum());
 		update.set("browseNum", work.getBrowseNum());
@@ -76,6 +76,14 @@ public class WorkMongodb  implements WorkDao{
 		return mongoTemplate.findOne(query, Work.class);
 	}
 	
+	@Override
+	public void setWork(String condition, Object value1, String target, Object value2) {
+		Query query = new Query(Criteria.where(condition).is(value1));
+		Update update = new Update();
+		update.set(target, value2);
+		mongoTemplate.updateFirst(query, update, Work.class);
+	}
+
 	@Override
 	public Long getAmount(String condition, String value) {
 		Query query = new Query();
@@ -225,13 +233,19 @@ public class WorkMongodb  implements WorkDao{
 		Query query = new Query();
 		switch (searchType) {
 		case 1:
-			query.addCriteria(Criteria.where(condition).is(value));
+			if (value != null) {
+				query.addCriteria(Criteria.where(condition).is(value));
+			}
 			break;
 		case 2:
-			query.addCriteria(Criteria.where(condition).regex(value));
+			if (value != null) {
+				query.addCriteria(Criteria.where(condition).regex(value));
+			}
 			break;
 		case 3:
-			query.addCriteria(Criteria.where(condition).in(value));
+			if (value != null) {
+				query.addCriteria(Criteria.where(condition).in(value));
+			}
 			break;
 		default:
 			break;

@@ -46,7 +46,7 @@ public class WorkController {
 	@Autowired
 	private VerifyService verifyService;
 	
-	@PostMapping("/addverifyingwork")
+	@PostMapping("/addverifyingwork") 
 	public CommonVO addVerifyingWork(@RequestParam(name="userID", required=true) String userID,
 			@RequestParam(name="workName", required=true) String workName,
 			@RequestParam(name="primaryClassification", required=true) String primaryClassification,
@@ -100,7 +100,7 @@ public class WorkController {
 			work.setGeshi(strlist);
 			work.setHasTextureMapping(hasTextureMapping);
 			work.setBinding(isBinding);
-			work.setBinding(hasCartoon);
+			work.setHasCartoon(hasCartoon);
 			work.setPrice(price);
 			work.setLabels(Arrays.asList(labels));
 			work.setVerifyState(0);
@@ -155,28 +155,27 @@ public class WorkController {
 		try {
 			User user = userService.queryUser("userID", userID);
 			Work work = workService.queryWork("workID", workID); 
-			String username = userService.queryUser("userID", userID).getUsername();
-			String author = workService.queryWork("workID", workID).getAuthor();
-			if (!username.equals(author)) {
+			if (!user.getUsername().equals(work.getAuthor())) {
 				return new SimpleVO(false, "非作者无法删除该作品。"); 
 			}
+			List<String> worklist = new ArrayList<String>();
 			switch (work.getVerifyState()) {
 			case 0:
-				user.setVerifyingWork(ListUtil.removeElement(user.getVerifyingWork(), workID));
+				worklist = ListUtil.removeElement(user.getVerifyingWork(), workID);
+				userService.setUser("userID", userID, "verifyingWork", worklist);
 				break;
 			case 1:
-				user.setVerifiedWork(ListUtil.removeElement(user.getVerifiedWork(), workID));
+				worklist = ListUtil.removeElement(user.getVerifiedWork(), workID);
+				userService.setUser("userID", userID, "verifiedWork", worklist);
 				break;
 			case 2:
-				user.setNotPassWork(ListUtil.removeElement(user.getNotPassWork(), workID));
+				worklist = ListUtil.removeElement(user.getNotPassWork(), workID);
+				userService.setUser("userID", userID, "notPassWork", worklist);
 				break;
 			default:
 				break;
 			}
-			
-			work.setIsDelete(true);
-			userService.updateUser(user);
-			workService.updateWork(work);
+			workService.setWork("workID", workID, "isDelete", true);
 			return new SimpleVO(true, "删除作品成功。"); 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -185,18 +184,14 @@ public class WorkController {
 	}
 	
 	@GetMapping("/workdetail")
-	public CommonVO workDetail(@RequestParam(name="userID", required=true) String userID,
+	public CommonVO workDetail(@RequestParam(name="userID", required=false) String userID,
 			@RequestParam(name="workID", required=true) String workID,
 			HttpSession session) {
 		
-//		if (session.getAttribute(userID) == null) {
-//			return new SimpleVO(false, "用户非法登录。"); 
-//		}
-			
 		try {
 			User user = userService.queryUser("userID", userID);
 			Work work = workService.queryWork("workID", workID);
-			if (work == null || work.getAuthor() == null) {
+			if (work == null || work.getIsDelete() == true) {
 				return new CommonVO(false, "不存在此ID的作品或者该作品已被作者删除", "请查看其他作品。");
 			}
 			Map<String, Object> data = new HashMap<String, Object>();
@@ -221,8 +216,10 @@ public class WorkController {
 			data.put("collectNum", work.getCollectNum());
 			data.put("downloadNum", work.getDownloadNum());
 			data.put("uploadTime", work.getUploadTime());
-			boolean flag = user.getCollectWork().contains(workID);
-			data.put("iscollected", flag);
+			if (userID != null) {
+				boolean flag = user.getCollectWork().contains(workID);
+				data.put("iscollected", flag);
+			}
 			return new CommonVO(true, "查看作品成功！", data);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -376,6 +373,8 @@ public class WorkController {
 				workmap.put("workName", work.getWorkName());
 				workmap.put("price", work.getPrice());
 				workmap.put("downloadNum", work.getDownloadNum());
+				workmap.put("collectNum", work.getCollectNum());
+				workmap.put("picture", work.getPictures().get(0).get("filePath"));
 				data.add(workmap);
 			}
 			return new CommonVO(true, "查询模型成功！", data);
@@ -385,24 +384,40 @@ public class WorkController {
 		}
 	}
 	
-	@PostMapping("/")
-	
-	private Map<String, Object> workRecommend(String primaryClassification, 
-			String secondaryClassification, String sortCondition, Integer limit) {
+	@GetMapping("/collectorcancel")
+	public SimpleVO collectOrCancel(@RequestParam(name="userID", required=true) String userID,
+			@RequestParam(name="workID", required=true) String workID,
+			@RequestParam(name="collectOrCancel", required=true) Boolean collectOrCancel,
+			HttpSession session) {
 		
-		Map<String, Object> conditions = new HashMap<String, Object>();
-		conditions.put("primaryClassification", primaryClassification);
-		conditions.put("secondaryClassification", secondaryClassification);
-		List<Work> worklist = workService.workSortDESC(sortCondition, conditions, limit);
+//		if (session.getAttribute(userID) == null) {
+//			return new CommonVO(false, "用户非法登录。", "请先登录再操作"); 
+//		}
 		
-		Map<String, Object> data = new HashMap<String, Object>();
-		for (Work work : worklist) {
-			data.put("workID", work.getWorkID());
-			data.put("workName", work.getWorkName());
-			data.put("picture", work.getPictures().get(0));
-			data.put("yijifenlei", work.getYijifenlei());
-			data.put("price", work.getPrice());
+		try {
+			User user = userService.queryUser("userID", userID);
+			List<String> collectWork1 = new ArrayList<String>();
+			List<String> collectWork2 = new ArrayList<String>();
+			if (user.getCollectWork() != null) {
+				collectWork1 = user.getCollectWork();
+			}
+			
+			if (collectOrCancel) {
+				if (collectWork1.contains(workID)) {
+					return new SimpleVO(false, "该作品已被收藏。"); 
+				}
+				collectWork2 = ListUtil.addElement(collectWork1, workID);
+			} else {
+				if (!collectWork1.contains(workID)) {
+					return new SimpleVO(false, "该作品尚未被收藏。"); 
+				} 
+				collectWork2 = ListUtil.removeElement(collectWork1, workID);
+			}
+			userService.setUser("userID", userID, "collectWork", collectWork2);
+			return new SimpleVO(true, "收藏作品成功！");
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new SimpleVO(false, "出错信息：" + e.toString()); 
 		}
-		return data;
 	}
 }

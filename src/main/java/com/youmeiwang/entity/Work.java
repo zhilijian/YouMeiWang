@@ -27,6 +27,12 @@ public class Work {
 	private Integer reclassify; 
 	private String sanjifenlei;
 	//pattern 格式
+	/*
+	 * pattern 格式
+	 * ma/mb 0，obj 1，3ds 2 ，max 3，fbx 4，ztl 5，
+	 * stl 6 unity3d 7，blend 8，lwo 9， poser 10，
+	 * skp 11，dae 12，cad 13，通用 14，其他 15
+	 */
 	private List<Integer> pattern;
 	private List<String> geshi;
 	//hasTextureMapping 材质贴图

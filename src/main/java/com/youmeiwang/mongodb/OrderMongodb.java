@@ -1,5 +1,8 @@
 package com.youmeiwang.mongodb;
 
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -51,6 +54,41 @@ public class OrderMongodb implements OrderDao{
 	public Order queryOrder(String condition, Object value) {
 		Query query = new Query(Criteria.where(condition).is(value));
 		return mongoTemplate.findOne(query, Order.class);
+	}
+
+	@Override
+	public List<Order> orderList(Integer searchType, String condition, String value, 
+			Map<String, Object> conditions,Integer page, Integer size) {
+		Query query = new Query();
+		switch (searchType) {
+		case 1:
+			if (value != null) {
+				query.addCriteria(Criteria.where(condition).is(value));
+			}
+			break;
+		case 2:
+			if (value != null) {
+				query.addCriteria(Criteria.where(condition).regex(value));
+			}
+			break;
+		case 3:
+			if (value != null) {
+				query.addCriteria(Criteria.where(condition).in(value));
+			}
+			break;
+		default:
+			break;
+		}
+		if (conditions != null) {
+			for (String key : conditions.keySet()) {
+				query.addCriteria(Criteria.where(key).is(conditions.get(key)));
+			}
+		}
+		if (page != null && size != null) {
+			query.skip((page - 1) * size);
+			query.limit(size);
+		}
+		return mongoTemplate.find(query, Order.class);
 	}
 
 	

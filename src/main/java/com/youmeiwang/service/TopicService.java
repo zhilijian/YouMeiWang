@@ -84,8 +84,8 @@ public class TopicService {
 		return topicDao.getTopicAmount(condition1, value1, condition2, value2);
 	}
 	
-	public List<Topic> topicList() {
-		return topicDao.topicList();
+	public List<Topic> topicList(Map<String, Object> conditions, Integer page, Integer size) {
+		return topicDao.topicList(conditions, page, size);
 	}
 
 	public List<Topic> topicList(String condition1, String value1, String condition2, Integer value2, Integer page, Integer size) {

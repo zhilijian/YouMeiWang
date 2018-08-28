@@ -6,36 +6,30 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "youmei_order")
 public class Order {
 
-	//商户订单号
+	//商户订单号 outTradeNo
 	@Indexed
 	private String outTradeNo;
+	//交易流水号
+	private String transaction_id;
 	//发起人ID
 	private String userID;
 	//商品ID(作品ID)
 	private String productID;
-	//随机字符串
-//	private String nonce_str;
-	//签名
-//	private String sign;
 	//商品描述
 	private String body;
-	//标价币种
-//	private static final String fee_type = WXConfig.FEE_TYPE;
 	//标价金额
-	private Integer totalFee;
-	//终端IP
-//	private String spbill_create_ip;
+	private Double totalFee;
+	//支付金额
+	private Double cashFee;
 	//交易起始时间
 	private String startTime;
-	//
+	//交易终止时间
 	private String endTime;
-	//用户标识
-//	private String openid;
 	//支付方式 payType
 	private String payType;
 	//支付状态 payStatus
 	private String payStatus;
-	//
+	//附加信息
 	private String attach;
 	
 	public String getOutTradeNo() {
@@ -43,6 +37,12 @@ public class Order {
 	}
 	public void setOutTradeNo(String outTradeNo) {
 		this.outTradeNo = outTradeNo;
+	}
+	public String getTransaction_id() {
+		return transaction_id;
+	}
+	public void setTransaction_id(String transaction_id) {
+		this.transaction_id = transaction_id;
 	}
 	public String getUserID() {
 		return userID;
@@ -62,11 +62,17 @@ public class Order {
 	public void setBody(String body) {
 		this.body = body;
 	}
-	public Integer getTotalFee() {
+	public Double getTotalFee() {
 		return totalFee;
 	}
-	public void setTotalFee(Integer totalFee) {
+	public void setTotalFee(Double totalFee) {
 		this.totalFee = totalFee;
+	}
+	public Double getCashFee() {
+		return cashFee;
+	}
+	public void setCashFee(Double cashFee) {
+		this.cashFee = cashFee;
 	}
 	public String getStartTime() {
 		return startTime;

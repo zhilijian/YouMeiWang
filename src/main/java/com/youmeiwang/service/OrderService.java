@@ -2,6 +2,8 @@ package com.youmeiwang.service;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +23,7 @@ public class OrderService {
 	@Autowired
 	private OrderDao orderDao;
 	
-	public Order createOrder(String userID, String workID, Integer money, String payType) {
+	public Order createOrder(String userID, String workID, Double money, String payType) {
 		Order order = new Order();
 		order.setOutTradeNo(new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + userID + UUID.randomUUID().toString().substring(22, 32));
 		order.setUserID(userID);
@@ -37,7 +39,7 @@ public class OrderService {
 			order.setAttach("RECHARGE");
 		} else {
 			order.setBody("购买" + work.getWorkName());
-			order.setTotalFee(work.getPrice());
+			order.setTotalFee((double)work.getPrice());
 			order.setAttach(workID);
 		}
 		orderDao.addOrder(order);
@@ -58,5 +60,10 @@ public class OrderService {
 
 	public Order queryOrder(String condition, Object value) {
 		return orderDao.queryOrder(condition, value);
+	}
+	
+	public List<Order> orderList(Integer searchType, String condition, String value, 
+			Map<String, Object> conditions,Integer page, Integer size) {
+		return orderDao.orderList(searchType, condition, value, conditions, page, size);
 	}
 }

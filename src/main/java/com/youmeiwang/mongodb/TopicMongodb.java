@@ -1,6 +1,7 @@
 package com.youmeiwang.mongodb;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -94,8 +95,18 @@ public class TopicMongodb implements TopicDao{
 	}
 	
 	@Override
-	public List<Topic> topicList() {
-		return mongoTemplate.findAll(Topic.class);
+	public List<Topic> topicList(Map<String, Object> conditions, Integer page, Integer size) {
+		Query query = new Query();
+		if (conditions != null) {
+			for (String key : conditions.keySet()) {
+				query.addCriteria(Criteria.where(key).is(conditions.get(key)));
+			}
+		}
+		if (page != null && size != null) {
+			query.skip((page - 1) * size);
+			query.limit(size);
+		}
+		return mongoTemplate.find(query, Topic.class);
 	}
 
 	@Override

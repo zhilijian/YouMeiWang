@@ -86,14 +86,19 @@ public class TopicController {
 	}
 	
 	@GetMapping("/topiclist")
-	public CommonVO topicList(@RequestParam(name="page", required=true) Integer page,
+	public CommonVO topicList(@RequestParam(name="isRecommend", required=true) Boolean isRecommend,
+			@RequestParam(name="page", required=true) Integer page,
 			@RequestParam(name="size", required=true) Integer size) {
 		
 		if (page <= 0 || size <= 0) {
 			return new CommonVO(false, "参数输入不合理。", "请先核对后重新输入参数。");
 		}
 		try {
-			List<Topic> topicList = topicService.topicList();
+			Map<String,Object> conditions = new HashMap<String,Object>();
+			if (isRecommend) {
+				conditions.put("isRecommend", 1);
+			}
+			List<Topic> topicList = topicService.topicList(conditions, page, size);
 			Long topicAmount = topicService.getTopicAmount();
 			Long pageAmount = 0l;
 			if (topicAmount % size == 0) {
@@ -123,8 +128,10 @@ public class TopicController {
 			}
 			Map<String, Object> data = new HashMap<String, Object>();
 			data.put("topiclist", maplist);
-			data.put("topicAmount", topicAmount);
-			data.put("pageAmount", pageAmount);
+			if (!isRecommend) {
+				data.put("topicAmount", topicAmount);
+				data.put("pageAmount", pageAmount);
+			}
 			return new CommonVO(true, "返回专题列表成功！", data);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -132,8 +139,8 @@ public class TopicController {
 		}
 	}
 	
-	@PostMapping("/collectOrcancel")
-	public SimpleVO collectTopic(@RequestParam(name="userID", required=true) String userID,
+	@PostMapping("/collectorcancel")
+	public SimpleVO collectOrcancel(@RequestParam(name="userID", required=true) String userID,
 			@RequestParam(name="topicID", required=true) String topicID,
 			@RequestParam(name="isCollect", required=true) Boolean isCollect,
 			HttpSession session) {

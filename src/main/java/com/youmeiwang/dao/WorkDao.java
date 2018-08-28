@@ -18,6 +18,8 @@ public interface WorkDao {
 
 	public void updateWork(Work work);
 	
+	public void setWork(String condition, Object value1, String target, Object value2);
+	
 	public Work queryWork(String condition, Object value);
 	
 	public Long getAmount(String condition, String value);

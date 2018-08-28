@@ -11,10 +11,6 @@ public class ApplicationTests {
 
 	@Test
 	public void Test() {
-		
-		String str1 = "";
-		String[] str2 = str1.split(",");
-		System.out.println(str2[0]);
 	}
 	
 }
