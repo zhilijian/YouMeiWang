@@ -88,7 +88,8 @@ public class WeChatPayService {
 		parameters.put("nonce_str", UUID.randomUUID().toString().substring(0, 32));
 		parameters.put("body", order.getBody());
 		parameters.put("out_trade_no", order.getOutTradeNo());
-		parameters.put("total_fee", order.getTotalFee().toString());
+		Integer total_fee = (int) (order.getTotalFee() * 100);
+		parameters.put("total_fee", total_fee.toString());
 		parameters.put("spbill_create_ip", reqIP);
 		parameters.put("notify_url", WeChatConfig.NOTIFY_URL);
 		parameters.put("trade_type", WeChatConfig.TRADE_TYPE);

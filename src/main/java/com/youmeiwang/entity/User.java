@@ -1,6 +1,7 @@
 package com.youmeiwang.entity;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -30,10 +31,10 @@ public class User {
 	//游币数量 youbiAmount
 	private Long youbiAmount;
 	//余额 balance
-	private Long balance;
+	private Double balance;
 	//VIP类别 VIPKind
-	//0：大众用户	 1：个人VIP 2：企业VIP 3：原创VIP
-	private Integer[] vipKind;
+	//0：大众用户	 1：共享VIP 2：原创VIP 3：企业VIP
+	private Set<Integer> vipKind;
 	//会员种类 memberKind 0：普通用户 1：原创用户
 	private Integer memberKind;
 	//会员到期时间 memberExpirationTime
@@ -143,19 +144,19 @@ public class User {
 		this.youbiAmount = youbiAmount;
 	}
 
-	public Long getBalance() {
+	public Double getBalance() {
 		return balance;
 	}
 
-	public void setBalance(Long balance) {
+	public void setBalance(Double balance) {
 		this.balance = balance;
 	}
 
-	public Integer[] getVipKind() {
+	public Set<Integer> getVipKind() {
 		return vipKind;
 	}
 
-	public void setVipKind(Integer[] vipKind) {
+	public void setVipKind(Set<Integer> vipKind) {
 		this.vipKind = vipKind;
 	}
 

@@ -109,11 +109,11 @@ public class HomePageController {
 				}
 				workmap.put("workID", work.getWorkID());
 				workmap.put("workName", work.getWorkName());
-				workmap.put("pictures", work.getPictures());
+				workmap.put("pictures", work.getPictures().get(0));
 				workmap.put("primaryClassification", work.getYijifenlei());
 				workmap.put("downloadNum", work.getDownloadNum());
 				workmap.put("price", work.getPrice());
-				data.put("workShow" + (i+1), workmap);
+				data.put("workShow" + (i+1), workmap); 
 			}
 			return new CommonVO(true, "模块展示成功！", data);
 		} catch (Exception e) {

@@ -10,7 +10,7 @@ public class Order {
 	@Indexed
 	private String outTradeNo;
 	//交易流水号
-	private String transaction_id;
+	private String transactionId;
 	//发起人ID
 	private String userID;
 	//商品ID(作品ID)
@@ -38,11 +38,11 @@ public class Order {
 	public void setOutTradeNo(String outTradeNo) {
 		this.outTradeNo = outTradeNo;
 	}
-	public String getTransaction_id() {
-		return transaction_id;
+	public String getTransactionId() {
+		return transactionId;
 	}
-	public void setTransaction_id(String transaction_id) {
-		this.transaction_id = transaction_id;
+	public void setTransactionId(String transactionId) {
+		this.transactionId = transactionId;
 	}
 	public String getUserID() {
 		return userID;

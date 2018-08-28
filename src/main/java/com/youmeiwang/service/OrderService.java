@@ -28,8 +28,7 @@ public class OrderService {
 		order.setOutTradeNo(new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + userID + UUID.randomUUID().toString().substring(22, 32));
 		order.setUserID(userID);
 		order.setProductID(workID);
-		order.setTotalFee(money);
-		order.setStartTime(new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()));
+		order.setStartTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
 		order.setPayType(payType);
 		order.setPayStatus("NOTPAY");
 		Work work = workDao.queryWork("workID", workID);

@@ -1,5 +1,7 @@
 package com.youmeiwang.controller;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -45,7 +47,7 @@ public class AliPayController {
 	private AliPayService alipayService;
 	
 	@PostMapping("/createorder")
-	public CommonVO createOrder(String userID, String workID, Integer money, 
+	public CommonVO createOrder(String userID, String workID, Double money, 
 			HttpServletRequest request, HttpServletResponse httpResponse, HttpSession session) {
 		
 //		if (session.getAttribute(userID) == null) {
@@ -89,25 +91,27 @@ public class AliPayController {
 			}
 			String trade_state = responseMap.get("trade_status");
 			orderService.setOrder("outTradeNo", responseMap.get("out_trade_no"), "payStatus", trade_state);
+			orderService.setOrder("outTradeNo", responseMap.get("out_trade_no"), "transactionId", responseMap.get("trade_no"));
 			
 			Order order = orderService.queryOrder("outTradeNo", responseMap.get("out_trade_no"));
 			User user = userService.queryUser("userID", order.getUserID());
 			
 			if ("TRADE_SUCCESS".equals(trade_state)) {
 				if ("RECHARGE".equals(responseMap.get("body"))) {
-					long balance = user.getBalance()==null ? 0 : user.getBalance();
-					user.setBalance(balance + Double.valueOf(responseMap.get("total_amount")).longValue());
+					Double balance = user.getBalance()==null ? 0 : user.getBalance();
+					balance += Double.valueOf(responseMap.get("receipt_amount"));
+					userService.setUser("userID", order.getUserID(), "balance", balance);
 				} else {
 					List<String> worklist = ListUtil.addElement(user.getPurchaseWork(), responseMap.get("body"));
-					user.setPurchaseWork(worklist);
+					userService.setUser("userID", order.getUserID(), "purchaseWork", worklist);
 				}
-				userService.updateUser(user);
+				orderService.setOrder("outTradeNo", order.getOutTradeNo(), "cashFee", Double.valueOf(responseMap.get("receipt_amount")));
+				orderService.setOrder("outTradeNo", order.getOutTradeNo(), "endTime", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
 			}
-			orderService.setOrder("outTradeNo", responseMap.get("out_trade_no"), "endTime", responseMap.get("notify_time"));
 			return "success";
 		} catch (Exception e) {
 			e.printStackTrace();
-			return "fail";
+			return "fail"; 
 		}
 	}
 	
