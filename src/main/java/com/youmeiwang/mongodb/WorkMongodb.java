@@ -131,6 +131,36 @@ public class WorkMongodb implements WorkDao{
 	}
 	
 	@Override
+	public Long getAmount(List<Map<String, Object>> conditions) {
+		Query query = new Query();
+		if (conditions != null) {
+			for (Map<String, Object> map : conditions) {
+				if (map == null) {
+					continue;
+				}
+				
+				switch ((int)map.get("searchType")) {
+				case 1:
+					query.addCriteria(Criteria.where((String)map.get("condition")).is(map.get("value")));
+					break;
+				case 2:
+					query.addCriteria(Criteria.where((String)map.get("condition")).regex((String)map.get("value")));
+					break;
+				case 3:
+					query.addCriteria(Criteria.where((String)map.get("condition")).in(map.get("value")));
+					break;
+				case 4:
+					query.addCriteria(Criteria.where((String)map.get("condition")).is(map.get("value")).not());
+					break;
+				default:
+					break;
+				}
+			}
+		}
+		return mongoTemplate.count(query, Work.class);
+	}
+
+	@Override
 	public List<Work> workSortDESC(String condition1, Object value1, String condition2, Object value2, String condition3, Integer limit) {
 		Query query = new Query();
 		if (value1 != null) {
@@ -247,6 +277,11 @@ public class WorkMongodb implements WorkDao{
 				query.addCriteria(Criteria.where(condition).in(value));
 			}
 			break;
+		case 4:
+			if (value != null) {
+				query.addCriteria(Criteria.where(condition).is(value).not());
+			}
+			break;
 		default:
 			break;
 		}
@@ -262,4 +297,51 @@ public class WorkMongodb implements WorkDao{
 		return mongoTemplate.find(query, Work.class);
 	}
 
+	@Override
+	public List<Work> workList1(List<Map<String, Object>> conditions, Integer page, Integer size) {
+		Query query = new Query();
+		if (conditions != null) {
+			for (Map<String, Object> map : conditions) {
+				if (map == null) {
+					continue;
+				}
+				
+				switch ((int)map.get("searchType")) {
+				case 1:
+					query.addCriteria(Criteria.where((String)map.get("condition")).is(map.get("value")));
+					break;
+				case 2:
+					query.addCriteria(Criteria.where((String)map.get("condition")).regex((String)map.get("value")));
+					break;
+				case 3:
+					query.addCriteria(Criteria.where((String)map.get("condition")).in(map.get("value")));
+					break;
+				case 4:
+					query.addCriteria(Criteria.where((String)map.get("condition")).ne(map.get("value")));
+					break;
+				case 5:
+					query.addCriteria(Criteria.where((String)map.get("condition")).gte(map.get("value")));
+					break;
+				case 6:
+					query.addCriteria(Criteria.where((String)map.get("condition")).gt(map.get("value")));
+					break;
+				case 7:
+					query.addCriteria(Criteria.where((String)map.get("condition")).lte(map.get("value")));
+					break;
+				case 8:
+					query.addCriteria(Criteria.where((String)map.get("condition")).lt(map.get("value")));
+					break;
+				default:
+					break;
+				}
+			}
+		}
+		if (page != null && size != null) {
+			query.skip((page - 1) * size);
+			query.limit(size);
+		}
+		return mongoTemplate.find(query, Work.class);
+	}
+
+	
 }

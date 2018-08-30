@@ -81,6 +81,10 @@ public class WorkService {
 		return workDao.getAmount(condition1, value1, condition2, value2, condition3, value3);
 	}
 	
+	public Long getAmount(List<Map<String, Object>> conditions) {
+		return workDao.getAmount(conditions);
+	}
+	
 	public List<Work> workSortDESC(String condition1, Object value1, String condition2, Object value2, String condition3, Integer limit) {
 		return workDao.workSortDESC(condition1, value1, condition2, value2, condition3, limit);
 	}
@@ -121,5 +125,9 @@ public class WorkService {
 	
 	public List<Work> workList(Integer searchTpye, String condition, String value, Map<String, Object> conditions, Integer page, Integer size) {
 		return workDao.workList(searchTpye, condition, value, conditions, page, size);
+	}
+	
+	public List<Work> workList1(List<Map<String, Object>> conditions, Integer page, Integer size) {
+		return workDao.workList1(conditions, page, size);
 	}
 }

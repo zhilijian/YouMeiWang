@@ -20,7 +20,7 @@ public class Topic {
 	//是否推荐 isRecommend 0：否 1：是
 	private Integer isRecommend;
 	//创建日期 createDate
-	private String createTime;
+	private Long createTime;
 	//被浏览数目 browsed
 	private Long browsed;
 	//被收藏数目 collected
@@ -71,11 +71,11 @@ public class Topic {
 		this.isRecommend = isRecommend;
 	}
 
-	public String getCreateTime() {
+	public Long getCreateTime() {
 		return createTime;
 	}
 
-	public void setCreateTime(String createTime) {
+	public void setCreateTime(Long createTime) {
 		this.createTime = createTime;
 	}
 

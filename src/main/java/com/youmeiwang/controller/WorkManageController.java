@@ -20,8 +20,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.google.gson.Gson;
+import com.youmeiwang.entity.User;
 import com.youmeiwang.entity.Work;
 import com.youmeiwang.service.AdminService;
+import com.youmeiwang.service.UserService;
+import com.youmeiwang.service.VerifyService;
 import com.youmeiwang.service.WorkService;
 import com.youmeiwang.util.ContainUtil;
 import com.youmeiwang.vo.CommonVO;
@@ -33,10 +36,16 @@ import com.youmeiwang.vo.SimpleVO;
 public class WorkManageController {
 
 	@Autowired
+	private UserService userService;
+	
+	@Autowired
 	private WorkService workService;
 	
 	@Autowired
 	private AdminService adminService;
+	
+	@Autowired
+	private VerifyService verifyService;
 	
 	@PostMapping("/removework")
 	public SimpleVO removeWork(@RequestParam(name="adminID", required=true) String adminID, 
@@ -80,8 +89,8 @@ public class WorkManageController {
 		@RequestParam(name="price", required=true) Integer price,
 		@RequestParam(name="labels", required=true) String[] labels,
 		@RequestParam(name="remarks", required=false) String remarks,
-		@RequestParam(name="pictures", required=true) String pictures,
-		@RequestParam(name="files", required=true) String files,
+		@RequestParam(name="pictures", required=false) String pictures,
+		@RequestParam(name="files", required=false) String files,
 		@RequestParam(name="authority", required=true) Integer authority,
 		@RequestParam(name="isPass", required=false) Integer isPass,
 		@RequestParam(name="verifyMessage", required=false) String verifyMessage,
@@ -98,7 +107,12 @@ public class WorkManageController {
 		
 		try {
  			Work work = workService.queryWork("workID", workID);
-			work.setWorkName(workName);
+ 			User user = userService.queryUser("username", work.getAuthor());
+			if (user == null) {
+				return new SimpleVO(false, "该原创用户不存或已注销。");
+			}
+ 			
+ 			work.setWorkName(workName);
 			String[] primaryClassifications = primaryClassification.split(":");
 			work.setPrimaryClassification(Integer.valueOf(primaryClassifications[0]));
 			work.setYijifenlei(primaryClassifications[1]);
@@ -126,40 +140,46 @@ public class WorkManageController {
 			work.setPrice(price);
 			work.setLabels(Arrays.asList(labels));
 			work.setRemarks(remarks);
-			if (isPass != null && verifyMessage != null) {
+			if (isPass != null) {
 				if (isPass.equals(1)) {
 					work.setVerifyState(1);
+					verifyService.verifyAndPassWork(user.getUserID(), workID);
 				} else {
 					work.setVerifyState(2);
 					work.setVerifyMessage(verifyMessage);
+					verifyService.verifyNotPassWork(user.getUserID(), workID);
 				}
 			}
 			List<Map<String, Object>> picturelist = new ArrayList<Map<String, Object>>();
-			String[] picture = pictures.split(";");
-			for (String str : picture) {
-				if (str == null) {
-					continue;
+			if (pictures != null && !"".equals(pictures)) {
+				String[] picture = pictures.split(";");
+				for (String str : picture) {
+					if (str == null) {
+						continue;
+					}
+					@SuppressWarnings("unchecked")
+					Map<String, Object> map = new Gson().fromJson(str, Map.class);
+					picturelist.add(map);
 				}
-				@SuppressWarnings("unchecked")
-				Map<String, Object> map = new Gson().fromJson(str, Map.class);
-				picturelist.add(map);
+				work.setPictures(picturelist);
 			}
-			work.setPictures(picturelist);
 			List<Map<String, Object>> filelist = new ArrayList<Map<String, Object>>();
-			String[] file = files.split(";");
-			Long modelSize = 0l;
-			for (String str : file) {
-				if (str == null || str.equals("")) {
-					continue;
+			if (files != null && !"".equals(files)) {
+				String[] file = files.split(";");
+				Long modelSize = 0l;
+				for (String str : file) {
+					if (str == null || str.equals("")) {
+						continue;
+					}
+					@SuppressWarnings("unchecked")
+					Map<String, Object> map = new Gson().fromJson(str, Map.class);
+					filelist.add(map);
+					double d = (double) map.get("fileSize");
+					modelSize = modelSize + Math.round(d);
 				}
-				@SuppressWarnings("unchecked")
-				Map<String, Object> map = new Gson().fromJson(str, Map.class);
-				filelist.add(map);
-				double d = (double) map.get("fileSize");
-				modelSize = modelSize + Math.round(d);
+				work.setModelSize(modelSize);
+				work.setFiles(filelist);
 			}
-			work.setFiles(filelist);
-			work.setModelSize(modelSize);
 			workService.updateWork(work);
 			return new SimpleVO(true, "保存模型成功！");
 		} catch (Exception e) {
@@ -215,7 +235,7 @@ public class WorkManageController {
 	@GetMapping("/worklist")
 	public CommonVO workList(@RequestParam(name="adminID", required=true) String adminID, 
 							@RequestParam(name="condition", required=false) String condition,
-							@RequestParam(name="primaryClassification", required=true) Integer primaryClassification,				
+							@RequestParam(name="primaryClassification", required=false) Integer primaryClassification,				
 							@RequestParam(name="authority", required=true) Integer authority,				
 							@RequestParam(name="verifyState", required=false) Integer verifyState,				
 							@RequestParam(name="page", required=true) Integer page,
@@ -232,14 +252,41 @@ public class WorkManageController {
 		}
 		
 		try {
-			Set<Work> workset = new HashSet<Work>();
-			Map<String, Object> conditions = new HashMap<String, Object>();
-			conditions.put("primaryClassification", primaryClassification);
-			if (verifyState != null) {
-				conditions.put("verifyState", verifyState);
+			List<Map<String, Object>> conditions1 = new ArrayList<Map<String, Object>>();
+			List<Map<String, Object>> conditions2 = new ArrayList<Map<String, Object>>();
+			if (condition != null) {
+				Map<String, Object> searchCondition1 = new HashMap<String, Object>();
+				Map<String, Object> searchCondition2 = new HashMap<String, Object>();
+				searchCondition1.put("searchType", 2);
+				searchCondition1.put("condition", "workID");
+				searchCondition1.put("value", condition);
+				conditions1.add(searchCondition1);
+				searchCondition2.put("searchType", 2);
+				searchCondition2.put("condition", "author");
+				searchCondition2.put("value", condition);
+				conditions2.add(searchCondition2);
 			}
-			workset.addAll(workService.workList(2, "author", condition, conditions, null, null));
-			workset.addAll(workService.workList(2, "workID", condition, conditions, null, null));
+			if (primaryClassification != null) {
+				Map<String, Object> searchCondition = new HashMap<String, Object>();
+				searchCondition.put("searchType", 1);
+				searchCondition.put("condition", "primaryClassification");
+				searchCondition.put("value", primaryClassification);
+				conditions1.add(searchCondition);
+				conditions2.add(searchCondition);
+			}
+			if (verifyState != null) {
+				Map<String, Object> searchCondition = new HashMap<String, Object>();
+				searchCondition.put("searchType", 1);
+				searchCondition.put("condition", "verifyState");
+				searchCondition.put("value", verifyState);
+				conditions1.add(searchCondition);
+				conditions2.add(searchCondition);
+			}
+			
+			Set<Work> workset = new HashSet<Work>();
+			workset.addAll(workService.workList1(conditions1, null, null));
+			workset.addAll(workService.workList1(conditions2, null, null));
+
 			List<Work> worklist1 = new ArrayList<Work>(workset);
 			List<Work> worklist2 = new LinkedList<Work>();
 			int currIdx = (page > 1 ? (page-1)*size : 0);
@@ -273,13 +320,9 @@ public class WorkManageController {
 			
 			Map<String, Object> data = new HashMap<String, Object>();
 			data.put("works", maplist);
-			/*
-			 * 存放佣金比例   设计在订单 加static 
-			 * 判断是否查询原创作品 若是则加上此参数
-			 */
-	//		data.put(key, value)
 			data.put("workAmount", workAmount);
 			data.put("pageAmount", pageAmount);
+			data.put("commissionRate", null);
 			return new CommonVO(true, "查询模型成功！", data);
 		} catch (Exception e) {
 			e.printStackTrace();

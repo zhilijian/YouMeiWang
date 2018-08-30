@@ -18,4 +18,6 @@ public interface OrderDao {
 	public Order queryOrder(String condition, Object value);
 	
 	public List<Order> orderList(Integer searchType, String condition, String value, Map<String, Object> conditions, Integer page, Integer size);
+	
+	public List<Order> orderList(List<Map<String, Object>> conditions, Integer page, Integer size);
 }

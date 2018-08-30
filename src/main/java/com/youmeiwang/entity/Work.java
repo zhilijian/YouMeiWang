@@ -66,7 +66,7 @@ public class Work {
 	//审核信息
 	private String verifyMessage;
 	//上传时间
-	private String uploadTime;
+	private Long uploadTime;
 	//
 	private Boolean isDelete;
 	
@@ -226,10 +226,10 @@ public class Work {
 	public void setVerifyMessage(String verifyMessage) {
 		this.verifyMessage = verifyMessage;
 	}
-	public String getUploadTime() {
+	public Long getUploadTime() {
 		return uploadTime;
 	}
-	public void setUploadTime(String uploadTime) {
+	public void setUploadTime(Long uploadTime) {
 		this.uploadTime = uploadTime;
 	}
 	public Boolean getIsDelete() {

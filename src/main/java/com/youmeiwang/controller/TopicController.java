@@ -1,6 +1,8 @@
 package com.youmeiwang.controller;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -41,7 +43,8 @@ public class TopicController {
 	private TopicService topicService;
 	
 	@GetMapping("/topicdetail")
-	public CommonVO topicDetail(@RequestParam(name="topicID", required=true) String topicID,
+	public CommonVO topicDetail(@RequestParam(name="userID", required=true) String userID,
+			@RequestParam(name="topicID", required=true) String topicID,
 			@RequestParam(name="page", required=true) Integer page,
 			@RequestParam(name="size", required=true) Integer size) {
 		
@@ -79,7 +82,10 @@ public class TopicController {
 		data.put("describe", topic.getDescribe());
 		data.put("browsedNum", topic.getBrowsed());
 		data.put("collectedNum", topic.getCollected());
+		data.put("createTime", new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date(topic.getCreateTime())));
 		data.put("works", works);
+		User user = userService.queryUser("userID", userID);
+		data.put("isCollect", user.getCollectTopic().contains(topicID));
 		data.put("workAmount", workAmount);
 		data.put("pageAmount", pageAmount);
 		return new CommonVO(true, "查询专题成功！", data);
@@ -118,10 +124,11 @@ public class TopicController {
 					for (int i = 0; i < 3 && i < works.size(); i++) {
 						String workID = works.get(i);
 						Work work = workService.queryWork("workID", workID);
-						List<Map<String, Object>> pictures = work.getPictures();
-						if (pictures.get(0) != null) {
-							map.put("picturePath" + (i+1), pictures.get(0).get("filePath"));
+						String picture = null;
+						if (work.getPictures() != null && work.getPictures().size() > 0) {
+							picture = (String) work.getPictures().get(0).get("filePath");
 						}
+						map.put("picturePath" + (i+1), picture);
 					}
 				}
 				maplist.add(map);

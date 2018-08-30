@@ -10,7 +10,7 @@ public class Order {
 	@Indexed
 	private String outTradeNo;
 	//交易流水号
-	private String transactionId;
+	private String transactionID;
 	//发起人ID
 	private String userID;
 	//商品ID(作品ID)
@@ -22,9 +22,9 @@ public class Order {
 	//支付金额
 	private Double cashFee;
 	//交易起始时间
-	private String startTime;
+	private Long startTime;
 	//交易终止时间
-	private String endTime;
+	private Long endTime;
 	//支付方式 payType
 	private String payType;
 	//支付状态 payStatus
@@ -38,11 +38,11 @@ public class Order {
 	public void setOutTradeNo(String outTradeNo) {
 		this.outTradeNo = outTradeNo;
 	}
-	public String getTransactionId() {
-		return transactionId;
+	public String getTransactionID() {
+		return transactionID;
 	}
-	public void setTransactionId(String transactionId) {
-		this.transactionId = transactionId;
+	public void setTransactionId(String transactionID) {
+		this.transactionID = transactionID;
 	}
 	public String getUserID() {
 		return userID;
@@ -74,17 +74,20 @@ public class Order {
 	public void setCashFee(Double cashFee) {
 		this.cashFee = cashFee;
 	}
-	public String getStartTime() {
+	public Long getStartTime() {
 		return startTime;
 	}
-	public void setStartTime(String startTime) {
+	public void setStartTime(Long startTime) {
 		this.startTime = startTime;
 	}
-	public String getEndTime() {
+	public Long getEndTime() {
 		return endTime;
 	}
-	public void setEndTime(String endTime) {
+	public void setEndTime(Long endTime) {
 		this.endTime = endTime;
+	}
+	public void setTransactionID(String transactionID) {
+		this.transactionID = transactionID;
 	}
 	public String getPayType() {
 		return payType;

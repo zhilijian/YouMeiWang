@@ -35,6 +35,9 @@ public class User {
 	//VIP类别 VIPKind
 	//0：大众用户	 1：共享VIP 2：原创VIP 3：企业VIP
 	private Set<Integer> vipKind;
+	private Long shareVIPTime;
+	private Long originalVIPTime;
+	private Long companyVIPTime;
 	//会员种类 memberKind 0：普通用户 1：原创用户
 	private Integer memberKind;
 	//会员到期时间 memberExpirationTime
@@ -158,6 +161,31 @@ public class User {
 
 	public void setVipKind(Set<Integer> vipKind) {
 		this.vipKind = vipKind;
+	}
+
+
+	public Long getShareVIPTime() {
+		return shareVIPTime;
+	}
+
+	public void setShareVIPTime(Long shareVIPTime) {
+		this.shareVIPTime = shareVIPTime;
+	}
+
+	public Long getOriginalVIPTime() {
+		return originalVIPTime;
+	}
+
+	public void setOriginalVIPTime(Long originalVIPTime) {
+		this.originalVIPTime = originalVIPTime;
+	}
+
+	public Long getCompanyVIPTime() {
+		return companyVIPTime;
+	}
+
+	public void setCompanyVIPTime(Long companyVIPTime) {
+		this.companyVIPTime = companyVIPTime;
 	}
 
 	public Integer getMemberKind() {

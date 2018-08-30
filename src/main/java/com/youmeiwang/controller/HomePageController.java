@@ -109,7 +109,11 @@ public class HomePageController {
 				}
 				workmap.put("workID", work.getWorkID());
 				workmap.put("workName", work.getWorkName());
-				workmap.put("pictures", work.getPictures().get(0));
+				String picture = null;
+				if (work.getPictures() != null && work.getPictures().size() > 0) {
+					picture = (String) work.getPictures().get(0).get("filePath");
+				}
+				workmap.put("pictures", picture);
 				workmap.put("primaryClassification", work.getYijifenlei());
 				workmap.put("downloadNum", work.getDownloadNum());
 				workmap.put("price", work.getPrice());
@@ -126,7 +130,7 @@ public class HomePageController {
 	public SimpleVO editBanner(@RequestParam(name="adminID", required=true) String adminID, 
 			@RequestParam(name="bannerID", required=true) String bannerID,			
 			@RequestParam(name="bannerName", required=true) String bannerName,			
-			@RequestParam(name="picturePath", required=true) String picturePath,			
+			@RequestParam(name="picturePath", required=false) String picturePath,			
 			@RequestParam(name="associatedLink", required=true) String associatedLink,			
 			HttpSession session) {
 		
@@ -141,7 +145,9 @@ public class HomePageController {
 		try {
 			Banner banner = bannerService.queryBanner("bannerID", bannerID);
 			banner.setBannerName(bannerName);
-			banner.setPicturePath(picturePath);
+			if (picturePath != null) {
+				banner.setPicturePath(picturePath);
+			}
 			banner.setAssociatedLink(associatedLink);
 			banner.setPublishTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
 			bannerService.updateBanner(banner);

@@ -91,5 +91,51 @@ public class OrderMongodb implements OrderDao{
 		return mongoTemplate.find(query, Order.class);
 	}
 
+	@Override
+	public List<Order> orderList(List<Map<String, Object>> conditions, Integer page, Integer size) {
+		Query query = new Query();
+		if (conditions != null) {
+			for (Map<String, Object> map : conditions) {
+				if (map == null) {
+					continue;
+				}
+				
+				switch ((int)map.get("searchType")) {
+				case 1:
+					query.addCriteria(Criteria.where((String)map.get("condition")).is(map.get("value")));
+					break;
+				case 2:
+					query.addCriteria(Criteria.where((String)map.get("condition")).regex((String)map.get("value")));
+					break;
+				case 3:
+					query.addCriteria(Criteria.where((String)map.get("condition")).in(map.get("value")));
+					break;
+				case 4:
+					query.addCriteria(Criteria.where((String)map.get("condition")).ne(map.get("value")));
+					break;
+				case 5:
+					query.addCriteria(Criteria.where((String)map.get("condition")).gte(map.get("value")));
+					break;
+				case 6:
+					query.addCriteria(Criteria.where((String)map.get("condition")).gt(map.get("value")));
+					break;
+				case 7:
+					query.addCriteria(Criteria.where((String)map.get("condition")).lte(map.get("value")));
+					break;
+				case 8:
+					query.addCriteria(Criteria.where((String)map.get("condition")).lt(map.get("value")));
+					break;
+				default:
+					break;
+				}
+			}
+		}
+		if (page != null && size != null) {
+			query.skip((page - 1) * size);
+			query.limit(size);
+		}
+		return mongoTemplate.find(query, Order.class);
+	}
+
 	
 }

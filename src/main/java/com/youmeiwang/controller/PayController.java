@@ -1,6 +1,8 @@
 package com.youmeiwang.controller;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import javax.servlet.http.HttpSession;
@@ -8,6 +10,7 @@ import javax.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,8 +21,8 @@ import com.youmeiwang.entity.Work;
 import com.youmeiwang.service.PayService;
 import com.youmeiwang.service.UserService;
 import com.youmeiwang.service.WorkService;
-import com.youmeiwang.util.ContainUtil;
 import com.youmeiwang.util.ListUtil;
+import com.youmeiwang.util.SetUtil;
 import com.youmeiwang.vo.SimpleVO;
 
 @CrossOrigin
@@ -30,7 +33,7 @@ public class PayController {
 	@Autowired
 	private UserService userService;
 	
-	@Autowired
+	@Autowired 
 	private WorkService workService;
 	
 	@Autowired
@@ -95,9 +98,10 @@ public class PayController {
 		}
 	}
 	
-	@GetMapping("/purchasevip")
+	@PostMapping("/purchasevip")
 	public SimpleVO purchaseVIP(@RequestParam(name="userID", required=true) String userID,
 			@RequestParam(name="vipKind", required=true) Integer vipKind,
+			@RequestParam(name="fee", required=true) Integer fee,
 			@RequestParam(name="monthNum", required=true) Integer monthNum,
 			HttpSession session) {
 		
@@ -107,50 +111,74 @@ public class PayController {
 		
 		try {
 			User user = userService.queryUser("userID", userID);
+			Double balance = user.getBalance() - fee;
+			if (balance < 0) {
+				return new SimpleVO(false, "余额不足，请先充值。");
+			}
+			userService.setUser("userID", userID, "balance", balance);
+			
+			Calendar calendar = Calendar.getInstance();
 			switch (vipKind) {
 			case 1:
-				switch (monthNum) {
-				case 1:
-					user.getVipKind().add(1);
-					
-					break;
-				case 3:
-					user.getVipKind().add(3);
-					break;
-				case 12:
-					user.getVipKind().add(12);
-					break;
-
-				default:
-					break;
+				userService.setUser("userID", userID, "vipKind", SetUtil.addElement(user.getVipKind(), 1));
+				
+				Long shareVIPTime = 0l;
+				if (user.getShareVIPTime() == null || user.getShareVIPTime() < System.currentTimeMillis()) {
+					shareVIPTime = System.currentTimeMillis();
+				} else {
+					shareVIPTime = user.getShareVIPTime();
 				}
+				
+				calendar.setTime(new Date(shareVIPTime));
+				calendar.add(Calendar.MONDAY, monthNum);
+				userService.setUser("userID", userID, "shareVIPTime", calendar.getTimeInMillis());
 				break;
+			
 			case 2:
+				userService.setUser("userID", userID, "vipKind", SetUtil.addElement(user.getVipKind(), 2));
 				
+				Long originalVIPTime = 0l;
+				if (user.getOriginalVIPTime() == null || user.getOriginalVIPTime() < System.currentTimeMillis()) {
+					originalVIPTime = System.currentTimeMillis();
+				} else {
+					originalVIPTime = user.getOriginalVIPTime();
+				}
+				
+				calendar.setTime(new Date(originalVIPTime));
+				calendar.add(Calendar.MONDAY, monthNum);
+				userService.setUser("userID", userID, "originalVIPTime", calendar.getTimeInMillis());
 				break;
+			
 			case 3:
+				userService.setUser("userID", userID, "vipKind", SetUtil.addElement(user.getVipKind(), 3));
 				
+				Long companyVIPTime = 0l;
+				if (user.getCompanyVIPTime() == null || user.getCompanyVIPTime() < System.currentTimeMillis()) {
+					companyVIPTime = System.currentTimeMillis();
+				} else {
+					companyVIPTime = user.getCompanyVIPTime();
+				}
+				
+				calendar.setTime(new Date(companyVIPTime));
+				calendar.add(Calendar.MONDAY, monthNum);
+				userService.setUser("userID", userID, "companyVIPTime", calendar.getTimeInMillis());
 				break;
 
 			default:
 				break;
 			}
-			
-			
-			
+			payService.createTransaction(userID, null, (double)fee, 0, 5);
+			return new SimpleVO(true, "购买VIP成功！");
 		} catch (Exception e) {
-			// TODO: handle exception
+			e.printStackTrace();
+			return new SimpleVO(false, "出错信息：" + e.toString());
 		} 
-		
-		
-		
-		
-		
-		return null;
 	}
 	
 	@GetMapping("/exchange")
-	public SimpleVO exchange(String userID, Integer money) {
+	public SimpleVO exchange(@RequestParam(name="userID", required=true) String userID,
+			@RequestParam(name="money", required=true) Integer money,
+			HttpSession session) {
 		
 //		if (session.getAttribute(userID) == null) {
 //			return new SimpleVO(false, "请先确认登录后再操作。"); 

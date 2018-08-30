@@ -127,9 +127,10 @@ public class WorkController {
 			work.setDownloadNum(0l);
 			work.setCollectNum(0l);
 			work.setBrowseNum(0l);
-			work.setUploadTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+			work.setUploadTime(System.currentTimeMillis());
 			work.setIsDelete(false);
 			workService.addWork(work);
+			verifyService.addVerifyingWork(userID, workID);
 			
 			Map<String, Object> data = new HashMap<String, Object>();
 			data.put("userID", userID);
@@ -137,7 +138,6 @@ public class WorkController {
 			data.put("workID", workID);
 			data.put("workname", work.getWorkName());
 		
-			verifyService.addVerifyingWork(userID, workID);
 			return new CommonVO(true, "添加作品成功！", data);
 		} catch (Exception e) {
 			return new CommonVO(false, "添加作品失败。", "错误信息：" + e.getMessage());
@@ -189,7 +189,6 @@ public class WorkController {
 			HttpSession session) {
 		
 		try {
-			User user = userService.queryUser("userID", userID);
 			Work work = workService.queryWork("workID", workID);
 			if (work == null || work.getIsDelete() == true) {
 				return new CommonVO(false, "不存在此ID的作品或者该作品已被作者删除", "请查看其他作品。");
@@ -215,11 +214,32 @@ public class WorkController {
 			data.put("browseNum", work.getBrowseNum());
 			data.put("collectNum", work.getCollectNum());
 			data.put("downloadNum", work.getDownloadNum());
-			data.put("uploadTime", work.getUploadTime());
+			data.put("uploadTime", new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date(work.getUploadTime())));
+			data.put("modelSize", work.getModelSize());
 			if (userID != null) {
+				User user = userService.queryUser("userID", userID);
 				boolean flag = user.getCollectWork().contains(workID);
 				data.put("iscollected", flag);
 			}
+			Map<String, Object> conditions = new HashMap<String, Object>();
+			conditions.put("primaryClassification", work.getPrimaryClassification());
+			conditions.put("secondaryClassification", work.getSecondaryClassification());
+			conditions.put("isDelete", false);
+			List<Work> worklist = workService.workSortDESC("downloadNum", conditions, 8);
+			List<Map<String, Object>> maplist = new LinkedList<Map<String, Object>>();
+			for (Work relatedWork : worklist) {
+				Map<String, Object> relatedWorks = new HashMap<String, Object>();
+				relatedWorks.put("workID", relatedWork.getWorkID());
+				relatedWorks.put("workName", relatedWork.getWorkName());
+				String picture = null;
+				if (relatedWork.getPictures() != null) {
+					picture = (String) relatedWork.getPictures().get(0).get("filePath");
+				}
+				relatedWorks.put("picture", picture);
+				relatedWorks.put("price", relatedWork.getPrice());
+				maplist.add(relatedWorks);
+			}
+			data.put("maplist", maplist);
 			return new CommonVO(true, "查看作品成功！", data);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -230,10 +250,12 @@ public class WorkController {
 	@GetMapping("/worklist")
 	public CommonVO workList(@RequestParam(name="userID", required=true) String userID,
 			@RequestParam(name="workType", required=true) Integer workType,
+			@RequestParam(name="page", required=true) Integer page,
+			@RequestParam(name="size", required=true) Integer size,
 			HttpSession session) {
 		
 //		if (session.getAttribute(userID) == null) {
-//			return new CommonVO(false, "用户非法登录。", "请先登录后进行操作"); 
+//			return new CommonVO(false, "用户非法登录。", "请先登录后进行操作");
 //		}
 		
 		if (workType < 0 || workType > 4) {
@@ -242,33 +264,40 @@ public class WorkController {
 		
 		try {
 			User user = userService.queryUser("userID", userID);
-			List<String> workIDs = new ArrayList<String>();
+			List<String> workIDlist1 = new ArrayList<String>();
 			switch (workType) {
 			case 0:
-				workIDs = user.getVerifyingWork();
+				workIDlist1 = user.getVerifyingWork();
 				break;
 			case 1:
-				workIDs = user.getVerifiedWork();
+				workIDlist1 = user.getVerifiedWork();
 				break;
 			case 2:
-				workIDs = user.getNotPassWork();
+				workIDlist1 = user.getNotPassWork();
 				break;
 			case 3:
-				workIDs = user.getCollectWork();
+				workIDlist1 = user.getCollectWork();
 				break;
 			case 4:
-				workIDs = user.getDownWork();
+				workIDlist1 = user.getDownWork();
 				break;
 			default:
 				break;
 			}
 			
-			List<Map<String, Object>> data = new LinkedList<Map<String, Object>>();
-			if (workIDs ==null) {
+			if (workIDlist1 == null || workIDlist1.size() == 0) {
 				return new CommonVO(false, "该用户无此类作品。", "{}");
 			}
 			
-			for (String workID : workIDs) {
+			List<String> workIDlist2 = new LinkedList<String>();
+			int currIdx = (page > 1 ? (page-1)*size : 0);
+			for (int i = 0; i < size && i < workIDlist1.size()-currIdx; i++) {
+				String workID = workIDlist1.get(currIdx + i);
+				workIDlist2.add(workID);
+			}
+			
+			List<Map<String, Object>> maplist = new LinkedList<Map<String, Object>>();
+			for (String workID : workIDlist2) {
 				Map<String, Object> workmap = new HashMap<String, Object>();
 				Work work = workService.queryWork("workID", workID);
 				if (work == null) {
@@ -276,15 +305,29 @@ public class WorkController {
 				}
 				workmap.put("workID", workID);
 				workmap.put("workName", work.getWorkName());
-				workmap.put("pictures", work.getPictures().get(0));
-				workmap.put("secondaryClassification", work.getSecondaryClassification());
+				if (work.getPictures() != null && work.getPictures().size() > 0) {
+					workmap.put("pictures", work.getPictures().get(0));
+				}
+				workmap.put("secondaryClassification", work.getErjifenlei());
 				workmap.put("labels", work.getLabels());
 				workmap.put("modelSize", work.getModelSize());
 				workmap.put("uploadTime", work.getUploadTime());
 				workmap.put("downloadNum", work.getDownloadNum());
 				workmap.put("collectNum", work.getCollectNum());
-				data.add(workmap);
+				maplist.add(workmap);
 			}
+			
+			Long workAmount = (long) workIDlist1.size();
+			Long pageAmount = 0l;
+			if (workAmount % size == 0) {
+				pageAmount = workAmount / size;
+			} else {
+				pageAmount = workAmount / size + 1;
+			}
+			Map<String, Object> data = new HashMap<String, Object>();
+			data.put("worklist", maplist);
+			data.put("workAmount", workAmount);
+			data.put("pageAmount", pageAmount);
 			return new CommonVO(true, "作品展示成功！", data);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -292,35 +335,63 @@ public class WorkController {
 		}
 	}
 
-	@GetMapping("/worksearch")
-	public CommonVO workSearch(@RequestParam(name="condition", required=false) String condition,
-			@RequestParam(name="primaryClassification", required=false) Integer primaryClassification,
-			@RequestParam(name="secondaryClassification", required=false) Integer secondaryClassification,
-			@RequestParam(name="reclassify", required=false) Integer reclassify,
+	@GetMapping("/worksearch1")
+	public CommonVO workSearch1(@RequestParam(name="condition", required=false) String condition,
+			@RequestParam(name="workType", required=true) Integer workType,
 			@RequestParam(name="page", required=true) Integer page,
-			@RequestParam(name="size", required=true) Integer size,
-			HttpSession session) {
+			@RequestParam(name="size", required=true) Integer size) {
 		
 		try {
-			Map<String, Object> conditions = new HashMap<String, Object>();
-			if (primaryClassification != null) {
-				conditions.put("primaryClassification", primaryClassification);
+			List<Map<String, Object>> conditions1 = new ArrayList<Map<String, Object>>();
+			List<Map<String, Object>> conditions2 = new ArrayList<Map<String, Object>>();
+			List<Map<String, Object>> conditions3 = new ArrayList<Map<String, Object>>();
+			if (condition != null) {
+				Map<String, Object> searchCondition1 = new HashMap<String, Object>();
+				Map<String, Object> searchCondition2 = new HashMap<String, Object>();
+				Map<String, Object> searchCondition3 = new HashMap<String, Object>();
+				searchCondition1.put("searchType", 2);
+				searchCondition1.put("condition", "workID");
+				searchCondition1.put("value", condition);
+				conditions1.add(searchCondition1);
+				searchCondition2.put("searchType", 2);
+				searchCondition2.put("condition", "workName");
+				searchCondition2.put("value", condition);
+				conditions2.add(searchCondition2);
+				searchCondition3.put("searchType", 1);
+				searchCondition3.put("condition", "labels");
+				searchCondition3.put("value", condition);
+				conditions3.add(searchCondition3);
 			}
-			if (secondaryClassification != null) {
-				conditions.put("secondaryClassification", secondaryClassification);
-			}
-			if (reclassify != null) {
-				conditions.put("reclassify", reclassify);
+			if (workType != null) {
+				switch (workType) {
+				case 1:
+					Map<String, Object> searchCondition1 = new HashMap<String, Object>();
+					searchCondition1.put("searchType", 4);
+					searchCondition1.put("condition", "primaryClassification");
+					searchCondition1.put("value", 2);
+					conditions1.add(searchCondition1);
+					conditions2.add(searchCondition1);
+					conditions3.add(searchCondition1);
+					break;
+				case 2:
+					Map<String, Object> searchCondition2 = new HashMap<String, Object>();
+					searchCondition2.put("searchType", 1);
+					searchCondition2.put("condition", "primaryClassification");
+					searchCondition2.put("value", 2);
+					conditions1.add(searchCondition2);
+					conditions2.add(searchCondition2);
+					conditions3.add(searchCondition2);
+					break;
+				default:
+					break;
+				}
 			}
 			
 			Set<Work> workset = new HashSet<Work>();
-			if (condition == null) {
-				workset.addAll(workService.workList(condition, condition, page, size));
-			} else {
-				workset.addAll(workService.workList(2, "workID", condition, conditions, page, size));
-				workset.addAll(workService.workList(2, "workName", condition, conditions, page, size));
-				workset.addAll(workService.workList(1, "labels", condition, conditions, page, size));
-			}
+			workset.addAll(workService.workList1(conditions1, null, null));
+			workset.addAll(workService.workList1(conditions2, null, null));
+			workset.addAll(workService.workList1(conditions3, null, null));
+		
 			List<Work> worklist1 = new ArrayList<Work>(workset);
 			List<Work> worklist2 = new LinkedList<Work>();
 			int currIdx = (page > 1 ? (page-1)*size : 0);
@@ -337,10 +408,85 @@ public class WorkController {
 				workmap.put("price", work.getPrice());
 				workmap.put("lables", work.getLabels());
 				workmap.put("yijifenlei", work.getYijifenlei());
+				String picture = null;
+				if (work.getPictures() != null && work.getPictures().size() > 0) {
+					picture = (String) work.getPictures().get(0).get("filePath");
+				}
+				workmap.put("picture", picture);
+				workmap.put("downloadNum", work.getDownloadNum());
+				workmap.put("collectNum", work.getCollectNum());
 				maplist.add(workmap);
 			}
 			
 			Long workAmount = (long) worklist1.size();
+			Long pageAmount = 0l;
+			if (workAmount % size == 0) {
+				pageAmount = workAmount / size;
+			} else {
+				pageAmount = workAmount / size + 1;
+			}
+			Map<String, Object> data = new HashMap<String, Object>();
+			data.put("worklist", maplist);
+			data.put("workAmount", workAmount);
+			data.put("pageAmount", pageAmount);
+			return new CommonVO(true, "模型搜索成功！", data);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new CommonVO(false, "模型搜索失败。", "出错信息：" + e.toString());
+		}
+	}
+	
+	@GetMapping("/worksearch2")
+	public CommonVO workSearch2(@RequestParam(name="primaryClassification", required=false) Integer primaryClassification,
+			@RequestParam(name="secondaryClassification", required=false) Integer secondaryClassification,
+			@RequestParam(name="reclassify", required=false) Integer reclassify,
+			@RequestParam(name="page", required=true) Integer page,
+			@RequestParam(name="size", required=true) Integer size) {
+		
+		try {
+			List<Map<String, Object>> conditions = new ArrayList<Map<String, Object>>();
+			if (primaryClassification != null) {
+				Map<String, Object> searchCondition = new HashMap<String, Object>();
+				searchCondition.put("searchType", 1);
+				searchCondition.put("condition", "primaryClassification");
+				searchCondition.put("value", primaryClassification);
+				conditions.add(searchCondition);
+			}
+			if (secondaryClassification != null) {
+				Map<String, Object> searchCondition = new HashMap<String, Object>();
+				searchCondition.put("searchType", 1);
+				searchCondition.put("condition", "secondaryClassification");
+				searchCondition.put("value", secondaryClassification);
+				conditions.add(searchCondition);
+			}
+			if (reclassify != null) {
+				Map<String, Object> searchCondition = new HashMap<String, Object>();
+				searchCondition.put("searchType", 1);
+				searchCondition.put("condition", "reclassify");
+				searchCondition.put("value", reclassify);
+				conditions.add(searchCondition);
+			}
+			
+			List<Work> worklist = workService.workList1(conditions, page, size);
+			List<Map<String, Object>> maplist = new LinkedList<Map<String, Object>>();
+			for (Work work : worklist) {
+				Map<String, Object> workmap = new HashMap<String, Object>();
+				workmap.put("workID", work.getWorkID());
+				workmap.put("workName", work.getWorkName());
+				workmap.put("price", work.getPrice());
+				workmap.put("lables", work.getLabels());
+				workmap.put("yijifenlei", work.getYijifenlei());
+				String picture = null;
+				if (work.getPictures() != null && work.getPictures().size() > 0) {
+					picture = (String) work.getPictures().get(0).get("filePath");
+				}
+				workmap.put("picture", picture);
+				workmap.put("downloadNum", work.getDownloadNum());
+				workmap.put("collectNum", work.getCollectNum());
+				maplist.add(workmap);
+			}
+			
+			Long workAmount = workService.getAmount(conditions);
 			Long pageAmount = 0l;
 			if (workAmount % size == 0) {
 				pageAmount = workAmount / size;
@@ -373,8 +519,12 @@ public class WorkController {
 				workmap.put("workName", work.getWorkName());
 				workmap.put("price", work.getPrice());
 				workmap.put("downloadNum", work.getDownloadNum());
-				workmap.put("collectNum", work.getCollectNum());
-				workmap.put("picture", work.getPictures().get(0).get("filePath"));
+				workmap.put("collectNum", work.getCollectNum()); 
+				String picture = null;
+				if (work.getPictures() != null && work.getPictures().size() > 0) {
+					picture = (String) work.getPictures().get(0).get("filePath");
+				}
+				workmap.put("picture", picture);
 				data.add(workmap);
 			}
 			return new CommonVO(true, "查询模型成功！", data);

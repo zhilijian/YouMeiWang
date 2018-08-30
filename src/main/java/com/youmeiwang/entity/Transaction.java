@@ -12,7 +12,7 @@ public class Transaction {
 	private Double money;
 	/*
 	 * 原因 reason
-	 * 0 模型出售  1 模型购买  2余额充值  3余额兑换  4余额提现
+	 * 0 模型出售  1 模型购买  2 余额充值  3 余额兑换  4 余额提现 5 VIP购买
 	 */
 	private Integer reason;
 	private String operateTime;

@@ -30,6 +30,8 @@ public interface WorkDao {
 	
 	public Long getAmount(String condition1, Object value1, String condition2, Object value2, String condition3, Object value3);
 	
+	public Long getAmount(List<Map<String, Object>> conditions);
+	
 	public List<Work> workSortDESC(String condition1, Object value1, String condition2, Object value2, String condition3, Integer limit);
 
 	public List<Work> workSortDESC(String condition, Map<String, Object> conditions, Integer limit);
@@ -45,4 +47,7 @@ public interface WorkDao {
 	public List<Work> workList(String condition1, Object value1, String condition2, Object value2, String condition3, Object value3, Integer page, Integer size);
 	
 	public List<Work> workList(Integer searchType, String condition, String value, Map<String, Object> conditions, Integer page, Integer size);
+	
+	public List<Work> workList1(List<Map<String, Object>> conditions, Integer page, Integer size);
+	
 }

@@ -1,12 +1,9 @@
 package com.youmeiwang.controller;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
-import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -17,7 +14,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.youmeiwang.config.WeChatConfig;
 import com.youmeiwang.entity.Order;
 import com.youmeiwang.entity.User;
 import com.youmeiwang.service.OrderService;
@@ -66,14 +62,14 @@ public class WechatPayController {
 			String newSign = wechatPayService.createSign(resultMap);
 			if ("SUCCESS".equals(resultMap.get("return_code")) && newSign.equals(resultMap.get("sign"))) {
 				data.put("outTradeNo", order.getOutTradeNo());
-				data.put("appid", WeChatConfig.APPID);
-				data.put("mch_id", WeChatConfig.MCH_ID);
-				data.put("prepay_id", resultMap.get("prepay_id"));
-				data.put("package", "Sign=WXPay");
-				data.put("timestamp", String.valueOf(System.currentTimeMillis()));
-				data.put("nonce_str", UUID.randomUUID().toString().substring(0, 30));
+//				data.put("appid", WeChatConfig.APPID);
+//				data.put("mch_id", WeChatConfig.MCH_ID);
+//				data.put("prepay_id", resultMap.get("prepay_id"));
+//				data.put("package", "Sign=WXPay");
+//				data.put("timestamp", String.valueOf(System.currentTimeMillis()));
+//				data.put("nonce_str", UUID.randomUUID().toString().substring(0, 30));
 				data.put("code_url", resultMap.get("code_url"));
-				data.put("sign", wechatPayService.createSign(resultMap));
+//				data.put("sign", wechatPayService.createSign(resultMap));
 				return new CommonVO(true, "微信支付订单发送成功！", data);
 			} else {
 				data.put("returnMsg", resultMap.get("return_msg"));
@@ -105,7 +101,7 @@ public class WechatPayController {
 			
 			String trade_state = responseMap.get("trade_state");
 			orderService.setOrder("outTradeNo", responseMap.get("out_trade_no"), "payStatus", trade_state);
-			orderService.setOrder("outTradeNo", responseMap.get("out_trade_no"), "transactionId", responseMap.get("transaction_id"));
+			orderService.setOrder("outTradeNo", responseMap.get("out_trade_no"), "transactionID", responseMap.get("transaction_id"));
 			
 			Order order = orderService.queryOrder("outTradeNo", responseMap.get("out_trade_no"));
 			User user = userService.queryUser("userID", order.getUserID());
@@ -119,7 +115,7 @@ public class WechatPayController {
 					userService.setUser("userID", order.getUserID(), "purchaseWork", worklist);
 				}
 				orderService.setOrder("outTradeNo", order.getOutTradeNo(), "cashFee", Double.valueOf(responseMap.get("cash_fee"))/100);
-				orderService.setOrder("outTradeNo", order.getOutTradeNo(), "endTime", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+				orderService.setOrder("outTradeNo", order.getOutTradeNo(), "endTime", System.currentTimeMillis());
 			}
 			return "<xml><return_code><![CDATA[SUCCESS]]></return_code></xml>";
 		} catch (Exception e) {

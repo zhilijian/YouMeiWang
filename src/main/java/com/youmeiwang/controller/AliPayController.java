@@ -1,7 +1,5 @@
 package com.youmeiwang.controller;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -29,6 +27,7 @@ import com.youmeiwang.service.OrderService;
 import com.youmeiwang.service.UserService;
 import com.youmeiwang.util.ListUtil;
 import com.youmeiwang.vo.CommonVO;
+import com.youmeiwang.vo.SimpleVO;
 
 @RestController
 @RequestMapping("/alipay")
@@ -47,19 +46,19 @@ public class AliPayController {
 	private AliPayService alipayService;
 	
 	@PostMapping("/createorder")
-	public CommonVO createOrder(String userID, String workID, Double money, 
+	public SimpleVO createOrder(String userID, String workID, Double money, 
 			HttpServletRequest request, HttpServletResponse httpResponse, HttpSession session) {
 		
 //		if (session.getAttribute(userID) == null) {
-//			return new CommonVO(false, "用户尚未登录。"); 
+//			return new SimpleVO(false, "用户尚未登录。"); 
 //		}
 		
 		if (workID == null && money == null) {
-			return new CommonVO(false, "支付宝支付下单失败。", "商品和金额不能同时为空。");
+			return new SimpleVO(false, "商品和金额不能同时为空。");
 		}
 		
 		if (workID != null && money != null) {
-			return new CommonVO(false, "支付宝支付下单失败。", "只可以进行购买商品或充值得操作。");
+			return new SimpleVO(false, "只可以进行购买商品或充值得操作。");
 		}
 		try {
 			Order order = orderService.createOrder(userID, workID, money, "AliPay");
@@ -78,7 +77,7 @@ public class AliPayController {
 	        return null;
 	    } catch (Exception e) {
 	        e.printStackTrace();
-	        return new CommonVO(false, "支付宝支付下单失败。", "出错信息：" + e.toString());
+	        return new SimpleVO(false, "出错信息：" + e.toString());
 	    }
 	}
 	
@@ -90,13 +89,13 @@ public class AliPayController {
 				return "fail";
 			}
 			String trade_state = responseMap.get("trade_status");
-			orderService.setOrder("outTradeNo", responseMap.get("out_trade_no"), "payStatus", trade_state);
 			orderService.setOrder("outTradeNo", responseMap.get("out_trade_no"), "transactionId", responseMap.get("trade_no"));
 			
 			Order order = orderService.queryOrder("outTradeNo", responseMap.get("out_trade_no"));
 			User user = userService.queryUser("userID", order.getUserID());
 			
 			if ("TRADE_SUCCESS".equals(trade_state)) {
+				orderService.setOrder("outTradeNo", responseMap.get("out_trade_no"), "payStatus", "SUCCESS");
 				if ("RECHARGE".equals(responseMap.get("body"))) {
 					Double balance = user.getBalance()==null ? 0 : user.getBalance();
 					balance += Double.valueOf(responseMap.get("receipt_amount"));
@@ -106,7 +105,7 @@ public class AliPayController {
 					userService.setUser("userID", order.getUserID(), "purchaseWork", worklist);
 				}
 				orderService.setOrder("outTradeNo", order.getOutTradeNo(), "cashFee", Double.valueOf(responseMap.get("receipt_amount")));
-				orderService.setOrder("outTradeNo", order.getOutTradeNo(), "endTime", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+				orderService.setOrder("outTradeNo", order.getOutTradeNo(), "endTime", System.currentTimeMillis());
 			}
 			return "success";
 		} catch (Exception e) {

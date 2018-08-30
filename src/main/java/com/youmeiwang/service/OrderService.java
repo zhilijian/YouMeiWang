@@ -28,7 +28,7 @@ public class OrderService {
 		order.setOutTradeNo(new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + userID + UUID.randomUUID().toString().substring(22, 32));
 		order.setUserID(userID);
 		order.setProductID(workID);
-		order.setStartTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+		order.setStartTime(System.currentTimeMillis());
 		order.setPayType(payType);
 		order.setPayStatus("NOTPAY");
 		Work work = workDao.queryWork("workID", workID);
@@ -64,5 +64,9 @@ public class OrderService {
 	public List<Order> orderList(Integer searchType, String condition, String value, 
 			Map<String, Object> conditions,Integer page, Integer size) {
 		return orderDao.orderList(searchType, condition, value, conditions, page, size);
+	}
+	
+	public List<Order> orderList(List<Map<String, Object>> conditions, Integer page, Integer size) {
+		return orderDao.orderList(conditions, page, size);
 	}
 }

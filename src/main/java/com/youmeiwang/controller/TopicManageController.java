@@ -65,7 +65,6 @@ public class TopicManageController {
 		do {
 			topicID = RandomUtil.getRandomNumber(5);
 		} while (topicService.queryTopic("topicID", topicID) != null);
-		String createTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
 		List<String> works = Arrays.asList(workIDs);
 		
 		Topic topic = new Topic();
@@ -74,7 +73,7 @@ public class TopicManageController {
 		topic.setPicturePath(picturePath);
 		topic.setDescribe(describe);
 		topic.setIsRecommend(0);
-		topic.setCreateTime(createTime);
+		topic.setCreateTime(System.currentTimeMillis());
 		topic.setBrowsed(0l);
 		topic.setCollected(0l);
 		topic.setWorks(works);
@@ -267,8 +266,8 @@ public class TopicManageController {
 				map.put("describe", topic.getDescribe());
 				map.put("workNum", topic.getWorks().size());
 				map.put("isRecommend", topic.getIsRecommend());
-				map.put("createTime", topic.getCreateTime());
-				map.put("collected", topic.getCollected());
+				map.put("createTime", new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date(topic.getCreateTime())));
+				map.put("collected", topic.getCollected()); 
 				data.add(map);
 			}
 			Map<String, Object> extra = new HashMap <String, Object>();
