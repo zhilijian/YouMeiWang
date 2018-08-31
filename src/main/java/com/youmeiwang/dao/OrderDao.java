@@ -20,4 +20,6 @@ public interface OrderDao {
 	public List<Order> orderList(Integer searchType, String condition, String value, Map<String, Object> conditions, Integer page, Integer size);
 	
 	public List<Order> orderList(List<Map<String, Object>> conditions, Integer page, Integer size);
+	
+	public List<Order> orderList(String condition, String value, Integer payType, String payStatus, Long startTime, Long endTime, Integer page, Integer size);
 }

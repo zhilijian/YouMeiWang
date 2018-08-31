@@ -156,17 +156,6 @@ public class UserMongodb implements UserDao {
 		}
 		return mongoTemplate.count(query, User.class);
 	}
-
-	@Override
-	public List<User> userList(String condition, String value, Integer page, Integer size) {
-		Query query = new Query();
-		if (value != null) {
-			query.addCriteria(Criteria.where(condition).regex(value));
-		}
-		query.skip((page - 1) * size);
-		query.limit(size);
-		return mongoTemplate.find(query, User.class);
-	}
 	
 	@Override
 	public List<User> userList(String condition, Object value, Integer page, Integer size) {
@@ -180,22 +169,19 @@ public class UserMongodb implements UserDao {
 	}
 
 	@Override
-	public List<User> userList(String condition1, String value1, String condition2, Integer value2, 
-			String condition3, Integer value3, String condition4, Integer value4) {
+	public List<User> userList(String condition, String value, Integer VIPKind, Integer memberKind) {
 		Query query = new Query();
-		if (value1 != null) {
-			query.addCriteria(Criteria.where(condition1).regex(value1));
+		if (value != null) {
+			query.addCriteria(Criteria.where(condition).is(value));
 		}
-		if (value2 != null) {
-			query.addCriteria(Criteria.where(condition2).in(value2));
+		if (VIPKind != null) {
+			query.addCriteria(Criteria.where("VIPKind").is(VIPKind));
 		}
-		if (value3 != null) {
-			query.addCriteria(Criteria.where(condition3).is(value3));
-		}
-		if (value4 != null) {
-			query.addCriteria(Criteria.where(condition3).is(value4));
+		if (memberKind != null) {
+			query.addCriteria(Criteria.where("memberKind").is(memberKind));
 		}
 		return mongoTemplate.find(query, User.class);
 	}
+
 
 }

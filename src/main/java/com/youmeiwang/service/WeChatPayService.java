@@ -89,6 +89,7 @@ public class WeChatPayService {
 		parameters.put("body", order.getBody());
 		parameters.put("out_trade_no", order.getOutTradeNo());
 		Integer total_fee = (int) (order.getTotalFee() * 100);
+//		Integer total_fee = order.getTotalFee().intValue();
 		parameters.put("total_fee", total_fee.toString());
 		parameters.put("spbill_create_ip", reqIP);
 		parameters.put("notify_url", WeChatConfig.NOTIFY_URL);

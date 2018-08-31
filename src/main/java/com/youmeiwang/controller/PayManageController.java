@@ -20,9 +20,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.youmeiwang.entity.Order;
+import com.youmeiwang.entity.Purchase;
 import com.youmeiwang.service.AdminService;
 import com.youmeiwang.service.OrderService;
-import com.youmeiwang.service.TransactionService;
+import com.youmeiwang.service.PurchaseService;
 import com.youmeiwang.util.ContainUtil;
 import com.youmeiwang.vo.CommonVO;
 
@@ -38,7 +39,7 @@ public class PayManageController {
 	private OrderService orderService;
 	
 	@Autowired
-	private TransactionService transactionService;
+	private PurchaseService purchaseService;
 	
 	@PostMapping("/orderrecord")
 	public CommonVO orderRecord(@RequestParam(name="adminID", required=true) String adminID, 
@@ -61,76 +62,9 @@ public class PayManageController {
 		}
 		
 		try {
-			List<Map<String, Object>> conditions1 = new ArrayList<Map<String, Object>>();
-			List<Map<String, Object>> conditions2 = new ArrayList<Map<String, Object>>();
-			if (condition != null) {
-				Map<String, Object> searchCondition1 = new HashMap<String, Object>();
-				Map<String, Object> searchCondition2 = new HashMap<String, Object>();
-				searchCondition1.put("searchType", 2);
-				searchCondition1.put("condition", "outTradeNo");
-				searchCondition1.put("value", condition);
-				conditions1.add(searchCondition1);
-				searchCondition2.put("searchType", 2);
-				searchCondition2.put("condition", "userID");
-				searchCondition2.put("value", condition);
-				conditions2.add(searchCondition2);
-			}
-			if (payType != null) {
-				switch (payType) {
-				case 1:
-					Map<String, Object> searchCondition1 = new HashMap<String, Object>();
-					searchCondition1.put("searchType", 1);
-					searchCondition1.put("condition", "payType");
-					searchCondition1.put("value", "WeChatPay");
-					conditions1.add(searchCondition1);
-					conditions2.add(searchCondition1);
-					break;
-				case 2:
-					Map<String, Object> searchCondition2 = new HashMap<String, Object>();
-					searchCondition2.put("searchType", 1);
-					searchCondition2.put("condition", "payType");
-					searchCondition2.put("value", "AliPay");
-					conditions1.add(searchCondition2);
-					conditions2.add(searchCondition2);
-					break;
-				default:
-					break;
-				}
-			}
-			if (payStatus != null && !"".equals(payStatus)) {
-				Map<String, Object> searchCondition = new HashMap<String, Object>();
-				searchCondition.put("searchType", 1);
-				searchCondition.put("condition", "payStatus");
-				searchCondition.put("value", payStatus);
-				conditions1.add(searchCondition);
-				conditions2.add(searchCondition);
-			}
-			if (startTime != null) {
-				Map<String, Object> searchCondition = new HashMap<String, Object>();
-				searchCondition.put("searchType", 5);
-				searchCondition.put("condition", "startTime");
-				searchCondition.put("value", startTime);
-				conditions1.add(searchCondition);
-				conditions2.add(searchCondition);
-			}
-			if (endTime != null) {
-				Map<String, Object> searchCondition = new HashMap<String, Object>();
-				searchCondition.put("searchType", 7);
-				searchCondition.put("condition", "endTime");
-				searchCondition.put("value", endTime);
-				conditions1.add(searchCondition);
-				conditions2.add(searchCondition);
-			}
-			Map<String, Object> searchCondition2 = new HashMap<String, Object>();
-			searchCondition2.put("searchType", 4);
-			searchCondition2.put("condition", "endTime");
-			searchCondition2.put("value", null);
-			conditions1.add(searchCondition2);
-			conditions2.add(searchCondition2);
-			
 			Set<Order> orderset = new HashSet<Order>();
-			orderset.addAll(orderService.orderList(conditions1, null, null));
-			orderset.addAll(orderService.orderList(conditions2, null, null));
+			orderset.addAll(orderService.orderList("outTradeNo", condition, payType, payStatus, startTime, endTime, page, size));
+			orderset.addAll(orderService.orderList("userID", condition, payType, payStatus, startTime, endTime, page, size));
 			
 			List<Order> orderlist1 = new ArrayList<Order>(orderset);
 			List<Order> orderlist2 = new LinkedList<Order>();
@@ -177,11 +111,9 @@ public class PayManageController {
 	@PostMapping("/purchaserecord")
 	public CommonVO purchaseRecord(@RequestParam(name="adminID", required=true) String adminID, 
 			@RequestParam(name="userID", required=false) String userID,
-			@RequestParam(name="payType", required=false) String payType,
-			@RequestParam(name="payStatus", required=false) String payStatus,
-			@RequestParam(name="startTime", required=false) String startTime,
-			@RequestParam(name="endTime", required=false) String endTime,
-			@RequestParam(name="authority", required=true) Integer authority,				
+			@RequestParam(name="purchaseType", required=false) Integer purchaseType,
+			@RequestParam(name="startTime", required=false) Long startTime,
+			@RequestParam(name="endTime", required=false) Long endTime,
 			@RequestParam(name="page", required=true) Integer page,
 			@RequestParam(name="size", required=true) Integer size,
 			HttpSession session) {
@@ -191,27 +123,39 @@ public class PayManageController {
 //		}
 		
 		try {
-			List<Map<String, Object>> conditions = new ArrayList<Map<String, Object>>();
+			List<Purchase> purchaselist = purchaseService.purchaselist(userID, purchaseType, startTime, endTime, page, size);
+			List<Map<String, Object>> maplist = new LinkedList<Map<String, Object>>();
+			for (Purchase purchase : purchaselist) {
+				Map<String, Object> map = new HashMap<String, Object>();
+				map.put("purchaseID", purchase.getPurchaseID());
+				map.put("userID", purchase.getUserID());
+				map.put("purchaseType", purchase.getPurchaseType());
+				map.put("goodsName", purchase.getGoodsName());
+				map.put("payableAmount", purchase.getPayableAmount());
+				map.put("actualPayment", purchase.getActualPayment());
+				map.put("payableYoubi", purchase.getPayableYoubi());
+				map.put("actualPayYoubi", purchase.getActualPayYoubi());
+				map.put("payTime", new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date(purchase.getPayTime())));
+				maplist.add(map);
+			}
 			
+			Long purchaseAmount = purchaseService.getAmount(userID, purchaseType, startTime, endTime);
+			Long pageAmount = 0l;
+			if (purchaseAmount % size == 0) {
+				pageAmount = purchaseAmount / size;
+			} else {
+				pageAmount = purchaseAmount / size + 1;
+			}
 			
-			
-			
-//			List<Order> orderlist = orderService.
-			
-			
-//			Map<String, Object> purchaseRecord = new HashMap<String, Object>();
-			
-			
-			
-			
-			
+			Map<String, Object> data = new HashMap<String, Object>();
+			data.put("purchaseRecord", maplist);
+			data.put("purchaseAmount", purchaseAmount);
+			data.put("pageAmount", pageAmount);
+			return new CommonVO(true, "查询购买记录成功！", data);
 		} catch (Exception e) {
-			// TODO: handle exception
+			e.printStackTrace();
+			return new CommonVO(false, "查询购买记录失败。", "出错信息：" + e.toString());
 		}
-		
-		
-		
-		return null;
 	}
 	
 	

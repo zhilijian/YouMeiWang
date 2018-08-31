@@ -24,6 +24,7 @@ import com.youmeiwang.entity.Order;
 import com.youmeiwang.entity.User;
 import com.youmeiwang.service.AliPayService;
 import com.youmeiwang.service.OrderService;
+import com.youmeiwang.service.PurchaseService;
 import com.youmeiwang.service.UserService;
 import com.youmeiwang.util.ListUtil;
 import com.youmeiwang.vo.CommonVO;
@@ -44,6 +45,9 @@ public class AliPayController {
 	
 	@Autowired
 	private AliPayService alipayService;
+	
+	@Autowired
+	private PurchaseService purchaseService;
 	
 	@PostMapping("/createorder")
 	public SimpleVO createOrder(String userID, String workID, Double money, 
@@ -106,6 +110,7 @@ public class AliPayController {
 				}
 				orderService.setOrder("outTradeNo", order.getOutTradeNo(), "cashFee", Double.valueOf(responseMap.get("receipt_amount")));
 				orderService.setOrder("outTradeNo", order.getOutTradeNo(), "endTime", System.currentTimeMillis());
+				purchaseService.addPurchase(order.getUserID(), 2, order.getProductID(), Double.valueOf(responseMap.get("receipt_amount")), Double.valueOf(responseMap.get("receipt_amount")), null, null);
 			}
 			return "success";
 		} catch (Exception e) {

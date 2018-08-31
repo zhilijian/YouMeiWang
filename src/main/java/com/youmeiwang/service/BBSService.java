@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.youmeiwang.dao.BBSDao;
 import com.youmeiwang.entity.BBS;
+import com.youmeiwang.util.RandomUtil;
 
 @Service
 public class BBSService {
@@ -14,8 +15,25 @@ public class BBSService {
 	@Autowired
 	private BBSDao bbsDao;
 	
-	public void addBBS(BBS bbs) {
+	public BBS addBBS(String userID, String workID, Integer correctionType, String comment) {
+		BBS bbs = new BBS();
+		String bbsID = null;
+		do {
+			bbsID = RandomUtil.getRandomNumber(8);
+		} while (bbsDao.queryBBS("bbsID", bbsID) != null);
+		bbs.setBbsID(bbsID);
+		bbs.setUserID(userID);
+		bbs.setWorkID(workID);
+		bbs.setCorrectionType(correctionType);
+		bbs.setComment(comment);
+		if (workID == null) {
+			bbs.setType(0);
+		} else {
+			bbs.setType(1);
+		}
+		bbs.setPublishTime(System.currentTimeMillis());
 		bbsDao.addBBS(bbs);
+		return bbs;
 	}
 	
 	public void removeBBS(String condition, String value) {

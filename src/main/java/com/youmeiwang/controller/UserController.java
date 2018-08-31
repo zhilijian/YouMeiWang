@@ -28,7 +28,7 @@ public class UserController {
 	private UserService userService;
 	
 	@GetMapping("/adduser")
-	public CommonVO addUser(@RequestParam(name="username", required=true) String username,
+	public CommonVO register(@RequestParam(name="username", required=true) String username,
 							@RequestParam(name="code", required=true) String code,
 							HttpSession session) {
 		
@@ -103,6 +103,7 @@ public class UserController {
 			data.put("nickname", user.getNickname());
 			data.put("vipKind", user.getVipKind());
 			data.put("memberKind", user.getMemberKind());
+			data.put("applyForOriginal", user.getApplyForOriginal());
 			data.put("youbiAmount", user.getYoubiAmount());
 			data.put("balance", user.getBalance());
 			return new CommonVO(true, "用户登录成功！", data);

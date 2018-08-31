@@ -189,6 +189,7 @@ public class WorkController {
 			HttpSession session) {
 		
 		try {
+			User user = userService.queryUser("userID", userID);
 			Work work = workService.queryWork("workID", workID);
 			if (work == null || work.getIsDelete() == true) {
 				return new CommonVO(false, "不存在此ID的作品或者该作品已被作者删除", "请查看其他作品。");
@@ -216,10 +217,11 @@ public class WorkController {
 			data.put("downloadNum", work.getDownloadNum());
 			data.put("uploadTime", new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date(work.getUploadTime())));
 			data.put("modelSize", work.getModelSize());
-			if (userID != null) {
-				User user = userService.queryUser("userID", userID);
-				boolean flag = user.getCollectWork().contains(workID);
-				data.put("iscollected", flag);
+			if (user != null) {
+				boolean flag1 = user.getPurchaseWork().contains(workID);
+				boolean flag2 = user.getCollectWork().contains(workID);
+				data.put("isPurchase", flag1);
+				data.put("isCollected", flag2);
 			}
 			Map<String, Object> conditions = new HashMap<String, Object>();
 			conditions.put("primaryClassification", work.getPrimaryClassification());
@@ -237,6 +239,8 @@ public class WorkController {
 				}
 				relatedWorks.put("picture", picture);
 				relatedWorks.put("price", relatedWork.getPrice());
+				relatedWorks.put("downloadNum", relatedWork.getDownloadNum());
+				relatedWorks.put("collectNum", relatedWork.getCollectNum());
 				maplist.add(relatedWorks);
 			}
 			data.put("maplist", maplist);
@@ -564,7 +568,7 @@ public class WorkController {
 				collectWork2 = ListUtil.removeElement(collectWork1, workID);
 			}
 			userService.setUser("userID", userID, "collectWork", collectWork2);
-			return new SimpleVO(true, "收藏作品成功！");
+			return new SimpleVO(true, "收藏/取消作品成功！");
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new SimpleVO(false, "出错信息：" + e.toString()); 

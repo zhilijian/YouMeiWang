@@ -43,56 +43,84 @@ public class TopicController {
 	private TopicService topicService;
 	
 	@GetMapping("/topicdetail")
-	public CommonVO topicDetail(@RequestParam(name="userID", required=true) String userID,
+	public CommonVO topicDetail(@RequestParam(name="userID", required=false) String userID,
 			@RequestParam(name="topicID", required=true) String topicID,
 			@RequestParam(name="page", required=true) Integer page,
 			@RequestParam(name="size", required=true) Integer size) {
 		
-		Topic topic = topicService.queryTopic("topicID", topicID);
-		topicService.setTopic("topicID", topicID, "browsed", topic.getBrowsed() + 1);
-		List<String> worklist1 = topic.getWorks();
-		List<String> worklist2 = new LinkedList<String>();
-		int currIdx = (page > 1 ? (page-1)*size : 0);
-		for (int i = 0; i < size && i < worklist1.size()-currIdx; i++) {
-			String workID = worklist1.get(currIdx + i);
-			worklist2.add(workID);
+		try {
+			User user = userService.queryUser("userID", userID);
+			Topic topic = topicService.queryTopic("topicID", topicID);
+			topicService.setTopic("topicID", topicID, "browsed", topic.getBrowsed() + 1);
+			List<String> workIDs = topic.getWorks();
+			List<Work> worklist = new LinkedList<Work>();
+			for (String workID : workIDs) {
+				Work work = workService.queryWork("workID", workID);
+				if (work != null) {
+					worklist.add(work);
+				}
+			}
+			
+			List<String> worklist2 = new LinkedList<String>();
+			int currIdx = (page > 1 ? (page-1)*size : 0);
+			for (int i = 0; i < size && i < worklist1.size()-currIdx; i++) {
+				String workID = worklist1.get(currIdx + i);
+				worklist2.add(workID);
+			}
+			List<Map<String, Object>> works = new LinkedList<Map<String, Object>>();
+			for (String workID : worklist2) {
+				Map<String, Object> workmap = new HashMap<String, Object>();
+				Work work = workService.queryWork("workID", workID);
+				if (work == null) {
+					continue;
+				}
+				workmap.put("workID", workID);
+				workmap.put("workName", work.getWorkName());
+				workmap.put("yijifenlei", work.getYijifenlei());
+				workmap.put("price", work.getPrice());
+				String picture = null;
+				if (work.getPictures() != null && work.getPictures().size() > 0) {
+					picture = (String) work.getPictures().get(0).get("filePath");
+				}
+				workmap.put("picture", picture);
+				workmap.put("collectNum", work.getCollectNum());
+				workmap.put("downloadNum", work.getDownloadNum());
+				works.add(workmap);
+			}
+			
+			Long workAmount = (long) worklist1.size();
+			Long pageAmount = 0l;
+			if (workAmount % size == 0) {
+				pageAmount = workAmount / size;
+			} else {
+				pageAmount = workAmount / size + 1;
+			}
+			
+			Map<String, Object> data = new HashMap<String, Object>();
+			data.put("topicID", topicID);
+			data.put("topicName", topic.getTopicName());
+			data.put("picturePath", topic.getPicturePath());
+			data.put("describe", topic.getDescribe());
+			data.put("browsedNum", topic.getBrowsed());
+			data.put("collectedNum", topic.getCollected());
+			data.put("collectedNum", topic.getCollected());
+			data.put("createTime", new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date(topic.getCreateTime())));
+			data.put("works", works);
+			if (user != null) {
+				data.put("isCollect", user.getCollectTopic().contains(topicID));
+			}
+			data.put("workAmount", workAmount);
+			data.put("pageAmount", pageAmount);
+			return new CommonVO(true, "查询专题成功！", data);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new CommonVO(false,"查询专题失败。", "出错信息：" + e.toString());
 		}
-		List<Map<String, Object>> works = new LinkedList<Map<String, Object>>();
-		for (String workID : worklist2) {
-			Map<String, Object> workmap = new HashMap<String, Object>();
-			Work work = workService.queryWork("workID", workID);
-			workmap.put("workID", workID);
-			workmap.put("workName", work.getWorkName());
-			workmap.put("yijifenlei", work.getYijifenlei());
-			workmap.put("price", work.getPrice());
-			works.add(workmap);
-		}
-		Long workAmount = (long) worklist1.size();
-		Long pageAmount = 0l;
-		if (workAmount % size == 0) {
-			pageAmount = workAmount / size;
-		} else {
-			pageAmount = workAmount / size + 1;
-		}
-		
-		Map<String, Object> data = new HashMap<String, Object>();
-		data.put("topicID", topicID);
-		data.put("topicName", topic.getTopicName());
-		data.put("picturePath", topic.getPicturePath());
-		data.put("describe", topic.getDescribe());
-		data.put("browsedNum", topic.getBrowsed());
-		data.put("collectedNum", topic.getCollected());
-		data.put("createTime", new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date(topic.getCreateTime())));
-		data.put("works", works);
-		User user = userService.queryUser("userID", userID);
-		data.put("isCollect", user.getCollectTopic().contains(topicID));
-		data.put("workAmount", workAmount);
-		data.put("pageAmount", pageAmount);
-		return new CommonVO(true, "查询专题成功！", data);
 	}
 	
 	@GetMapping("/topiclist")
-	public CommonVO topicList(@RequestParam(name="isRecommend", required=true) Boolean isRecommend,
+	public CommonVO topicList(@RequestParam(name="userID", required=false) String userID,
+			@RequestParam(name="isRecommend", required=true) Boolean isRecommend,
 			@RequestParam(name="page", required=true) Integer page,
 			@RequestParam(name="size", required=true) Integer size) {
 		
@@ -100,25 +128,54 @@ public class TopicController {
 			return new CommonVO(false, "参数输入不合理。", "请先核对后重新输入参数。");
 		}
 		try {
+			User user = userService.queryUser("userID", userID);
+			List<Topic> topicList1 = new ArrayList<Topic>();
+			List<Topic> topicList2 = new ArrayList<Topic>();
+			
 			Map<String,Object> conditions = new HashMap<String,Object>();
 			if (isRecommend) {
 				conditions.put("isRecommend", 1);
 			}
-			List<Topic> topicList = topicService.topicList(conditions, page, size);
-			Long topicAmount = topicService.getTopicAmount();
+			
+			if (user == null) {
+				topicList1 = topicService.topicList(conditions, null, null);
+			} else {
+				if (user.getCollectTopic() == null || user.getCollectTopic().size() == 0) {
+					return new CommonVO(false, "该用户无收藏专题", "{}");
+				}
+				
+				for (String topicID : user.getCollectTopic()) {
+					Topic topic = topicService.queryTopic("topicID", topicID);
+					if (topic == null) {
+						continue;
+					}
+					topicList1.add(topic);
+				}
+			}
+			
+			int currIdx = (page > 1 ? (page-1)*size : 0);
+			for (int i = 0; i < size && i < topicList1.size()-currIdx; i++) {
+				Topic topic = topicList1.get(currIdx + i);
+				topicList2.add(topic);
+			}
+			
+			Long topicAmount = (long) topicList1.size();
 			Long pageAmount = 0l;
 			if (topicAmount % size == 0) {
 				pageAmount = topicAmount / size;
 			} else {
 				pageAmount = topicAmount / size + 1;
 			}
+			
 			List<Map<String, Object>> maplist = new LinkedList<Map<String, Object>>();
-			for (Topic topic : topicList) {
+			for (Topic topic : topicList2) {
 				Map<String, Object> map = new HashMap <String, Object>();
 				map.put("topicID", topic.getTopicID());
 				map.put("topicName", topic.getTopicName());
 				map.put("picturePath", topic.getPicturePath());
 				map.put("describe", topic.getDescribe());
+				map.put("collected", topic.getCollected());
+				map.put("browsed", topic.getBrowsed());
 				List<String> works = topic.getWorks();
 				if (works != null && works.size() > 0) {
 					for (int i = 0; i < 3 && i < works.size(); i++) {

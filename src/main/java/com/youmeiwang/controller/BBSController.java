@@ -18,7 +18,6 @@ import com.youmeiwang.entity.BBS;
 import com.youmeiwang.service.AdminService;
 import com.youmeiwang.service.BBSService;
 import com.youmeiwang.util.ContainUtil;
-import com.youmeiwang.util.RandomUtil;
 import com.youmeiwang.vo.CommonVO;
 import com.youmeiwang.vo.SimpleVO;
 
@@ -35,35 +34,20 @@ public class BBSController {
 	
 	@PostMapping("/addbbs")
 	public CommonVO addBBS(@RequestParam(name="userID", required=true) String userID,
-						@RequestParam(name="workID", required=false) String workID,
-						@RequestParam(name="correctionType", required=false) Integer correctionType,
-						@RequestParam(name="comment", required=true) String comment,
-						HttpSession session) {
+			@RequestParam(name="workID", required=false) String workID,
+			@RequestParam(name="correctionType", required=false) Integer correctionType,
+			@RequestParam(name="comment", required=true) String comment,
+			HttpSession session) {
 		
 //		if (session.getAttribute(userID) == null) {
 //			return new CommonVO(false, "用户非法登录。", "请先确认该用户是否登录。"); 
 //		}
 		
 		try {
-			BBS bbs = new BBS();
-			String bbsID = null;
-			do {
-				bbsID = RandomUtil.getRandomNumber(8);
-			} while (bbsService.queryBBS("bbsID", bbsID) != null);
-			bbs.setBbsID(bbsID);
-			bbs.setUserID(userID);
-			bbs.setWorkID(workID);
-			bbs.setCorrectionType(correctionType);
-			bbs.setComment(comment);
-			if (workID == null) {
-				bbs.setType(0);
-			} else {
-				bbs.setType(1);
-			}
-			bbsService.addBBS(bbs);
+			BBS bbs = bbsService.addBBS(userID, workID, correctionType, comment);
 			
 			Map<String, Object> data = new HashMap<String, Object>();
-			data.put("bbsID", bbsID);
+			data.put("bbsID", bbs.getBbsID());
 			data.put("userID", userID);
 			data.put("comment", comment);
 			data.put("type", bbs.getType());

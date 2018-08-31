@@ -20,6 +20,8 @@ public class BBS {
 	private String comment;
 	//类型 type：0：留言反馈 1：纠错提交
 	private Integer type;
+	//发表时间
+	private Long publishTime;
 	
 	public BBS() {
 	}
@@ -70,5 +72,13 @@ public class BBS {
 
 	public void setType(Integer type) {
 		this.type = type;
+	}
+
+	public Long getPublishTime() {
+		return publishTime;
+	}
+
+	public void setPublishTime(Long publishTime) {
+		this.publishTime = publishTime;
 	}
 }

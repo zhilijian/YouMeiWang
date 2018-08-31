@@ -137,5 +137,31 @@ public class OrderMongodb implements OrderDao{
 		return mongoTemplate.find(query, Order.class);
 	}
 
+	@Override
+	public List<Order> orderList(String condition, String value, Integer payType,
+			String payStatus, Long startTime, Long endTime, Integer page, Integer size) {
+		Query query = new Query();
+		if (value != null && !"".equals(value)) {
+			query.addCriteria(Criteria.where(condition).regex(value));
+		}
+		if (payType != null) {
+			query.addCriteria(Criteria.where("payType").is(payType));
+		}
+		if (payStatus != null && !"".equals(payStatus)) {
+			query.addCriteria(Criteria.where("payStatus").is(payStatus));
+		}
+		if (startTime != null) {
+			query.addCriteria(Criteria.where("endTime").gte(startTime));
+		}
+		if (endTime != null) {
+			query.addCriteria(Criteria.where("endTime").is(endTime));
+		}
+		if (page != null && size != null) {
+			query.skip((page - 1) * size);
+			query.limit(size);
+		}
+		return mongoTemplate.find(query, Order.class);
+	}
+
 	
 }

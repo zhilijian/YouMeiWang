@@ -19,6 +19,7 @@ import com.youmeiwang.config.CommonConfig;
 import com.youmeiwang.entity.User;
 import com.youmeiwang.entity.Work;
 import com.youmeiwang.service.PayService;
+import com.youmeiwang.service.PurchaseService;
 import com.youmeiwang.service.UserService;
 import com.youmeiwang.service.WorkService;
 import com.youmeiwang.util.ListUtil;
@@ -35,6 +36,9 @@ public class PayController {
 	
 	@Autowired 
 	private WorkService workService;
+	
+	@Autowired
+	private PurchaseService purchaseService;
 	
 	@Autowired
 	private PayService payService;
@@ -72,6 +76,7 @@ public class PayController {
 				}
 				userService.setUser("userID", userID, "balance", balance1);
 				userService.setUser("username", work.getAuthor(), "balance", balance2);
+				purchaseService.addPurchase(userID, 2, work.getWorkID(), (double)work.getPrice(), (double)work.getPrice(), null, null);
 				payService.createTransaction(userID, workID, null, 0, 1);
 				payService.createTransaction(user2.getUserID(), null, work.getPrice() * CommonConfig.commissionRate, 0, 0);
 			} else {
@@ -82,6 +87,7 @@ public class PayController {
 				}
 				userService.setUser("userID", userID, "youbiAmount", youbiAmount1);
 				userService.setUser("username", work.getAuthor(), "youbiAmount", youbiAmount2);
+				purchaseService.addPurchase(userID, 3, work.getWorkName(), null, null, work.getPrice(), work.getPrice());
 				payService.createTransaction(userID, workID, null, 1, 1);
 				payService.createTransaction(user2.getUserID(), null, (double)work.getPrice(), 1, 0);
 			}
@@ -132,6 +138,7 @@ public class PayController {
 				calendar.setTime(new Date(shareVIPTime));
 				calendar.add(Calendar.MONDAY, monthNum);
 				userService.setUser("userID", userID, "shareVIPTime", calendar.getTimeInMillis());
+				purchaseService.addPurchase(userID, 1, "共享VIP", (double)fee, (double)fee, null, null);
 				break;
 			
 			case 2:
@@ -147,6 +154,7 @@ public class PayController {
 				calendar.setTime(new Date(originalVIPTime));
 				calendar.add(Calendar.MONDAY, monthNum);
 				userService.setUser("userID", userID, "originalVIPTime", calendar.getTimeInMillis());
+				purchaseService.addPurchase(userID, 1, "原创VIP", (double)fee, (double)fee, null, null);
 				break;
 			
 			case 3:
@@ -162,6 +170,7 @@ public class PayController {
 				calendar.setTime(new Date(companyVIPTime));
 				calendar.add(Calendar.MONDAY, monthNum);
 				userService.setUser("userID", userID, "companyVIPTime", calendar.getTimeInMillis());
+				purchaseService.addPurchase(userID, 1, "企业VIP", (double)fee, (double)fee, null, null);
 				break;
 
 			default:
