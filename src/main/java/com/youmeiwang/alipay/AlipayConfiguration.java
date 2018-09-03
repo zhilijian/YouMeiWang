@@ -3,6 +3,8 @@ package com.youmeiwang.alipay;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
+import com.youmeiwang.config.AliPayConfig;
+
 
 @Configuration
 @EnableConfigurationProperties(AliPayConfig.class)

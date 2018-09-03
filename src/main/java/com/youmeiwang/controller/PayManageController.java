@@ -24,13 +24,16 @@ import com.youmeiwang.entity.CashApplication;
 import com.youmeiwang.entity.Order;
 import com.youmeiwang.entity.Purchase;
 import com.youmeiwang.entity.Transaction;
+import com.youmeiwang.entity.User;
 import com.youmeiwang.service.AdminService;
 import com.youmeiwang.service.BalanceRecordService;
 import com.youmeiwang.service.CashApplicationService;
 import com.youmeiwang.service.OrderService;
 import com.youmeiwang.service.PurchaseService;
 import com.youmeiwang.service.TransactionService;
+import com.youmeiwang.service.UserService;
 import com.youmeiwang.util.ContainUtil;
+import com.youmeiwang.util.ListUtil;
 import com.youmeiwang.vo.CommonVO;
 
 @CrossOrigin
@@ -38,6 +41,9 @@ import com.youmeiwang.vo.CommonVO;
 @RequestMapping("/paymanage")
 public class PayManageController {
 
+	@Autowired
+	private UserService userService;
+	
 	@Autowired
 	private AdminService adminService;
 	
@@ -71,7 +77,7 @@ public class PayManageController {
 //			return new CommonVO(false, "该用户尚未登录。", "请先确认是否登录成功。");
 //		}
 		
-		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getWorkManage(), 0);
+		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getRechargeManage(), 0);
 		if (!flag) {
 			return new CommonVO(false, "该用户无此权限。","请先申请查看管理员的权限。");
 		}
@@ -348,6 +354,53 @@ public class PayManageController {
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new CommonVO(false, "流水查询失败。", "出错信息：" + e.toString());
+		}
+	}
+	
+	@PostMapping("/supplement")
+	public CommonVO supplement(@RequestParam(name="adminID", required=true) String adminID, 
+			@RequestParam(name="outTradeNo", required=true) String outTradeNo,
+			HttpSession session) {
+		
+//		if (session.getAttribute(adminID) == null) {
+//			return new CommonVO(false, "该用户尚未登录。", "请先确认是否登录成功。");
+//		}
+		
+		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getRechargeManage(), 0);
+		if (!flag) {
+			return new CommonVO(false, "该用户无此权限。","请先申请查看管理员的权限。");
+		}
+		
+		try {
+			Order order = orderService.queryOrder("outTradeNo", outTradeNo);
+			User user = userService.queryUser("userID", order.getUserID());
+			
+			if (user == null || order == null) {
+				return new CommonVO(false, "补单失败。", "用户信息或订单信息错误。");
+			}
+			
+			if (!"FAIL".equals(order.getPayStatus())) {
+				return new CommonVO(false, "补单失败。", "该订单并未失败，无需补单。");
+			}
+			if ("RECHARGE".equals(order.getAttach())) {
+				Double balance = user.getBalance()==null ? 0 : user.getBalance();
+				balance += order.getTotalFee();
+				userService.setUser("userID", order.getUserID(), "balance", balance);
+				orderService.setOrder("outTradeNo", outTradeNo, "cashFee", order.getTotalFee());
+				orderService.setOrder("outTradeNo", outTradeNo, "endTime", System.currentTimeMillis());
+				purchaseService.addPurchase(order.getUserID(), 2, order.getProductID(), order.getTotalFee(), order.getCashFee(), null, null);
+			} else {
+				List<String> worklist = ListUtil.addElement(user.getPurchaseWork(), order.getProductID());
+				userService.setUser("userID", order.getUserID(), "purchaseWork", worklist);
+			}
+			orderService.setOrder("outTradeNo", outTradeNo, "payStatus", "SUPPLIED");
+			Map<String, Object> data = new HashMap<String, Object>();
+			data.put("outTradeNo", order.getOutTradeNo());
+			data.put("payStatus", order.getPayStatus());
+			return new CommonVO(true, "补单成功！", data);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new CommonVO(false, "补单失败。", "出错信息：" + e.toString());
 		}
 	}
 	

@@ -1,5 +1,7 @@
 package com.youmeiwang.controller;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -82,26 +84,28 @@ public class WechatPayController {
 	}
 	
 	@PostMapping("/wechatnotify")
-	public String wechatNotify(HttpServletRequest request) {
+	public String wechatNotify(HttpServletRequest request) throws MalformedURLException, IOException {
+		
+		SortedMap<String, String> resultMap = wechatPayService.receiveOrder(request);
+		if (resultMap == null || !"SUCCESS".equals(resultMap.get("return_code"))) {
+			return "<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[请求失败。]]></return_msg></xml>";
+		}
+		
+		String newSign = wechatPayService.createSign(resultMap);
+		if (!newSign.equals(resultMap.get("sign"))) {
+			return "<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[签名错误。]]></return_msg></xml>";
+		}
+		
+		SortedMap<String, String> responseMap = wechatPayService.queryOrder(resultMap.get("out_trade_no"));
+		if (responseMap == null || !"SUCCESS".equals(responseMap.get("result_code"))) {
+			return "<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[响应失败。]]></return_msg></xml>";
+		}
+			
+		String out_trade_no = responseMap.get("out_trade_no");	
+		
 		try {
-			SortedMap<String, String> resultMap = wechatPayService.receiveOrder(request);
-			if (resultMap == null || !"SUCCESS".equals(resultMap.get("return_code"))) {
-				return "<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[请求失败。]]></return_msg></xml>";
-			}
-			
-			String newSign = wechatPayService.createSign(resultMap);
-			if (!newSign.equals(resultMap.get("sign"))) {
-				return "<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[签名错误。]]></return_msg></xml>";
-			}
-			
-			SortedMap<String, String> responseMap = wechatPayService.queryOrder(resultMap.get("out_trade_no"));
-			if (responseMap == null || !"SUCCESS".equals(responseMap.get("result_code"))) {
-				return "<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[响应失败。]]></return_msg></xml>";
-			}
-			
 			String trade_state = responseMap.get("trade_state");
-			orderService.setOrder("outTradeNo", responseMap.get("out_trade_no"), "payStatus", trade_state);
-			orderService.setOrder("outTradeNo", responseMap.get("out_trade_no"), "transactionID", responseMap.get("transaction_id"));
+			orderService.setOrder("outTradeNo", out_trade_no, "transactionID", responseMap.get("transaction_id"));
 			
 			Order order = orderService.queryOrder("outTradeNo", responseMap.get("out_trade_no"));
 			User user = userService.queryUser("userID", order.getUserID());
@@ -114,6 +118,7 @@ public class WechatPayController {
 					List<String> worklist = ListUtil.addElement(user.getPurchaseWork(), responseMap.get("attach"));
 					userService.setUser("userID", order.getUserID(), "purchaseWork", worklist);
 				}
+				orderService.setOrder("outTradeNo", out_trade_no, "payStatus", trade_state);
 				orderService.setOrder("outTradeNo", order.getOutTradeNo(), "cashFee", Double.valueOf(responseMap.get("cash_fee"))/100);
 				orderService.setOrder("outTradeNo", order.getOutTradeNo(), "endTime", System.currentTimeMillis());
 				purchaseService.addPurchase(order.getUserID(), 2, order.getProductID(), Double.valueOf(responseMap.get("total_fee"))/100, Double.valueOf(responseMap.get("cash_fee"))/100, null, null);
@@ -121,6 +126,7 @@ public class WechatPayController {
 			return "<xml><return_code><![CDATA[SUCCESS]]></return_code></xml>";
 		} catch (Exception e) {
 			e.printStackTrace();
+			orderService.setOrder("outTradeNo", out_trade_no, "payStatus", "FAIL");
 			return "<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[" + e.toString() +"]]></return_msg></xml>";
 		}
 	}

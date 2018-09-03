@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Service;
 
 import com.alipay.api.domain.AlipayTradePagePayModel;
-import com.youmeiwang.alipay.AliPayConfig;
+import com.youmeiwang.config.AliPayConfig;
 import com.youmeiwang.entity.Order;
 import com.youmeiwang.util.VerifyUtil;
 

@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,7 +20,7 @@ import com.alipay.api.request.AlipayTradePagePayRequest;
 import com.alipay.api.request.AlipayTradeQueryRequest;
 import com.alipay.api.response.AlipayTradeCloseResponse;
 import com.alipay.api.response.AlipayTradeQueryResponse;
-import com.youmeiwang.alipay.AliPayConfig;
+import com.youmeiwang.config.AliPayConfig;
 import com.youmeiwang.entity.Order;
 import com.youmeiwang.entity.User;
 import com.youmeiwang.service.AliPayService;
@@ -30,6 +31,7 @@ import com.youmeiwang.util.ListUtil;
 import com.youmeiwang.vo.CommonVO;
 import com.youmeiwang.vo.SimpleVO;
 
+@CrossOrigin
 @RestController
 @RequestMapping("/alipay")
 public class AliPayController {
@@ -87,19 +89,21 @@ public class AliPayController {
 	
 	@PostMapping("/alipaynotify")
 	public String alipayNotify(HttpServletRequest request) {
+		Map<String, String> responseMap = alipayService.receiveOrder(request);
+		if (responseMap == null) { 
+			return "fail";
+		}
+
+		String out_trade_no = responseMap.get("out_trade_no");
+		
 		try {
-			Map<String, String> responseMap = alipayService.receiveOrder(request);
-			if (responseMap == null) { 
-				return "fail";
-			}
 			String trade_state = responseMap.get("trade_status");
-			orderService.setOrder("outTradeNo", responseMap.get("out_trade_no"), "transactionId", responseMap.get("trade_no"));
+			orderService.setOrder("outTradeNo", out_trade_no, "transactionID", responseMap.get("trade_no"));
 			
-			Order order = orderService.queryOrder("outTradeNo", responseMap.get("out_trade_no"));
+			Order order = orderService.queryOrder("outTradeNo", out_trade_no);
 			User user = userService.queryUser("userID", order.getUserID());
 			
 			if ("TRADE_SUCCESS".equals(trade_state)) {
-				orderService.setOrder("outTradeNo", responseMap.get("out_trade_no"), "payStatus", "SUCCESS");
 				if ("RECHARGE".equals(responseMap.get("body"))) {
 					Double balance = user.getBalance()==null ? 0 : user.getBalance();
 					balance += Double.valueOf(responseMap.get("receipt_amount"));
@@ -108,12 +112,14 @@ public class AliPayController {
 					List<String> worklist = ListUtil.addElement(user.getPurchaseWork(), responseMap.get("body"));
 					userService.setUser("userID", order.getUserID(), "purchaseWork", worklist);
 				}
+				orderService.setOrder("outTradeNo", out_trade_no, "payStatus", "SUCCESS");
 				orderService.setOrder("outTradeNo", order.getOutTradeNo(), "cashFee", Double.valueOf(responseMap.get("receipt_amount")));
 				orderService.setOrder("outTradeNo", order.getOutTradeNo(), "endTime", System.currentTimeMillis());
 				purchaseService.addPurchase(order.getUserID(), 2, order.getProductID(), Double.valueOf(responseMap.get("receipt_amount")), Double.valueOf(responseMap.get("receipt_amount")), null, null);
 			}
 			return "success";
 		} catch (Exception e) {
+			orderService.setOrder("outTradeNo", out_trade_no, "payStatus", "FAIL");
 			e.printStackTrace();
 			return "fail"; 
 		}

@@ -38,7 +38,8 @@ public class OrderService {
 			order.setAttach("RECHARGE");
 		} else {
 			order.setBody("购买" + work.getWorkName());
-			order.setTotalFee((double)work.getPrice());
+//			order.setTotalFee((double)work.getPrice());
+			order.setTotalFee(0.01);
 			order.setAttach(workID);
 		}
 		orderDao.addOrder(order);

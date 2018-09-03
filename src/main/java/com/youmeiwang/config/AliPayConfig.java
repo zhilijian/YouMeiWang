@@ -1,4 +1,4 @@
-package com.youmeiwang.alipay;
+package com.youmeiwang.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;

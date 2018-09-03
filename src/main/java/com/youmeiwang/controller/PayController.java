@@ -16,9 +16,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.youmeiwang.config.CommonConfig;
+import com.youmeiwang.entity.Order;
 import com.youmeiwang.entity.User;
 import com.youmeiwang.entity.Work;
 import com.youmeiwang.service.BalanceRecordService;
+import com.youmeiwang.service.OrderService;
 import com.youmeiwang.service.PurchaseService;
 import com.youmeiwang.service.TransactionService;
 import com.youmeiwang.service.UserService;
@@ -37,6 +39,9 @@ public class PayController {
 	
 	@Autowired 
 	private WorkService workService;
+	
+	@Autowired
+	private OrderService orderService;
 	
 	@Autowired
 	private PurchaseService purchaseService;
@@ -217,6 +222,23 @@ public class PayController {
 		}
 	}
 	
-	
+	@GetMapping("/issucceed")
+	public SimpleVO isSucceed(@RequestParam(name="outTradeNo", required=true) String outTradeNo) {
+		
+		try {
+			Order order = orderService.queryOrder("outTradeNo", outTradeNo);
+			if (order == null) {
+				return new SimpleVO(false, "该订单不存在。");
+			}
+			if ("SUCCESS".equals(order.getPayStatus()) || "FAIL".equals(order.getPayStatus())) {
+				return new SimpleVO(true, "该订单已支付支付成功！");
+			} else {
+				return new SimpleVO(false, "该订单尚未支付。");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new SimpleVO(false, "出错信息：" + e.toString()); 
+		}
+	}
 	
 }
