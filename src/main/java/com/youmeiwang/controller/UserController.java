@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.youmeiwang.entity.User;
 import com.youmeiwang.service.UserService;
-import com.youmeiwang.util.RandomUtil;
 import com.youmeiwang.vo.CommonVO;
 import com.youmeiwang.vo.SimpleVO;
 
@@ -42,17 +41,10 @@ public class UserController {
 		}
 		
 		try {
-			User user = new User();
-			String userID;
-			do {
-				userID = RandomUtil.getRandomNumber(8);
-			} while (userService.queryUser("userID", userID) != null);
-			user.setUserID(userID);
-			user.setUsername(username);
-			userService.addUser(user);
+			User user = userService.addUser(username);
 			
 			Map<String, Object> data = new HashMap<String, Object>();
-			data.put("userID", userID);
+			data.put("userID", user.getUserID());
 			data.put("username", username);
 			return new CommonVO(true, "新用户注册成功！", data);
 		} catch (Exception e) {
@@ -131,7 +123,7 @@ public class UserController {
 	}
 	
 	@PostMapping("/edituser")
-	public SimpleVO editUser(@RequestParam(name="userID", required=true) String userID,
+	public CommonVO editUser(@RequestParam(name="userID", required=true) String userID,
 			@RequestParam(name="username", required=false) String username,
 			@RequestParam(name="nickname", required=false) String nickname,
 			@RequestParam(name="portrait", required=false) String portrait,
@@ -160,7 +152,7 @@ public class UserController {
 			}
 			if (isApplyOriginalAuthor) {
 				if (fullname == null || phone == null || alipay == null) {
-					return new SimpleVO(false, "信息填写不完整。"); 
+					return new CommonVO(false, "信息填写不完整。", "请确认信息填写完成再申请。"); 
 				}
 				user.setFullname(fullname);
 				user.setPhone(phone);
@@ -170,10 +162,33 @@ public class UserController {
 				user.setApplyForOriginal(1);
 			}
 			userService.updateUser(user);
-			return new SimpleVO(true, "信息保存成功。"); 
+			Map<String, Object> data = new HashMap<String, Object>();
+			data.put("userID", userID);
+			if (nickname != null) {
+				data.put("nickname", nickname);
+			}
+			if (portrait != null) {
+				data.put("portrait", portrait);
+			}
+			if (nickname != null) {
+				data.put("nickname", nickname);
+			}
+			if (fullname != null) {
+				data.put("fullname", fullname);
+			}
+			if (phone != null) {
+				data.put("phone", phone);
+			}
+			if (alipay != null) {
+				data.put("alipay", alipay);
+			}
+			if (isApplyOriginalAuthor) {
+				data.put("applyForOriginal", user.getApplyForOriginal());
+			}
+			return new CommonVO(true, "信息保存成功！", data); 
 		} catch (Exception e) {
 			e.printStackTrace();
-			return new SimpleVO(false, "出错信息：" + e.toString());
+			return new CommonVO(false, "信息保存失败。", "出错信息：" + e.toString());
 		}
 	}
 }

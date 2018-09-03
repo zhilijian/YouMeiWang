@@ -9,13 +9,15 @@ public class Transaction {
 	@Indexed
 	private String transactionID;
 	private String userID;
+	private String username;
+	private Integer memberKind;
 	private Double money;
 	/*
 	 * 原因 reason
 	 * 0 模型出售  1 模型购买  2 余额充值  3 余额兑换  4 余额提现 5 VIP购买
 	 */
 	private Integer reason;
-	private String operateTime;
+	private Long operateTime;
 	/*
 	 * 币种 currency
 	 * 0：余额（人民币） 1：游币
@@ -41,6 +43,22 @@ public class Transaction {
 		this.userID = userID;
 	}
 
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+	public Integer getMemberKind() {
+		return memberKind;
+	}
+
+	public void setMemberKind(Integer memberKind) {
+		this.memberKind = memberKind;
+	}
+
 	public Double getMoney() {
 		return money;
 	}
@@ -57,11 +75,11 @@ public class Transaction {
 		this.reason = reason;
 	}
 
-	public String getOperateTime() {
+	public Long getOperateTime() {
 		return operateTime;
 	}
 
-	public void setOperateTime(String operateTime) {
+	public void setOperateTime(Long operateTime) {
 		this.operateTime = operateTime;
 	}
 

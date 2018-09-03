@@ -169,16 +169,28 @@ public class UserMongodb implements UserDao {
 	}
 
 	@Override
-	public List<User> userList(String condition, String value, Integer VIPKind, Integer memberKind) {
+	public List<User> userList2(String condition, String value, Integer VIPKind, Integer memberKind) {
 		Query query = new Query();
-		if (value != null) {
+		if (value != null && !"".equals(value)) {
 			query.addCriteria(Criteria.where(condition).is(value));
 		}
 		if (VIPKind != null) {
-			query.addCriteria(Criteria.where("VIPKind").is(VIPKind));
+			query.addCriteria(Criteria.where("vipKind").is(VIPKind));
 		}
 		if (memberKind != null) {
 			query.addCriteria(Criteria.where("memberKind").is(memberKind));
+		}
+		return mongoTemplate.find(query, User.class);
+	}
+
+	@Override
+	public List<User> userlist(String condition1, Object value1, String condition2, String value2) {
+		Query query = new Query();
+		if (value1 != null) {
+			query.addCriteria(Criteria.where(condition1).is(value1));
+		}
+		if (value2 != null && !"".equals(value2)) {
+			query.addCriteria(Criteria.where(condition2).regex(value2));
 		}
 		return mongoTemplate.find(query, User.class);
 	}

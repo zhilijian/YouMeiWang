@@ -1,12 +1,16 @@
 package com.youmeiwang.service;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.youmeiwang.dao.UserDao;
 import com.youmeiwang.entity.User;
+import com.youmeiwang.util.RandomUtil;
 
 @Service
 public class UserService {
@@ -14,8 +18,31 @@ public class UserService {
 	@Autowired
 	private UserDao userDao;
 
-	public void addUser(User user) {
+	public User addUser(String username) {
+		User user = new User();
+		String userID;
+		do {
+			userID = RandomUtil.getRandomNumber(8);
+		} while (userDao.queryUser("userID", userID) != null);
+		user.setUserID(userID);
+		user.setUsername(username);
+		user.setNickname("游侠");
+		user.setYoubiAmount(0l);
+		user.setBalance(0.0);
+		Set<Integer> vipKind = new HashSet<Integer>();
+		vipKind.add(0);
+		user.setVipKind(vipKind);
+		user.setMemberKind(0);
+		user.setVerifyingWork(new ArrayList<String>());
+		user.setVerifiedWork(new ArrayList<String>());
+		user.setNotPassWork(new ArrayList<String>());
+		user.setCollectWork(new ArrayList<String>());
+		user.setCollectTopic(new ArrayList<String>());
+		user.setDownWork(new ArrayList<String>());
+		user.setPurchaseWork(new ArrayList<String>());
+		user.setApplyForOriginal(0);
 		userDao.addUser(user);
+		return user;
 	}
 	
 	public void removeUser(String condition, String value) {
@@ -60,8 +87,11 @@ public class UserService {
 		return userDao.userList(condition, value, page, size);
 	}
 	
-	public List<User> userlist(String condition, String value, Integer VIPKind, Integer memberKind) {
-		return userDao.userList(condition, value, VIPKind, memberKind);
+	public List<User> userlist2(String condition, String value, Integer VIPKind, Integer memberKind) {
+		return userDao.userList2(condition, value, VIPKind, memberKind);
 	}
 	
+	public List<User> userlist(String condition1, Object value1, String condition2, String value2) {
+		return userDao.userlist(condition1, value1, condition2, value2);
+	}
 }

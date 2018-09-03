@@ -31,4 +31,6 @@ public interface TransactionDao {
 	public List<Transaction> transactionList(Integer searchType, String condition, Object value, Integer page, Integer size);
 	
 	public List<Transaction> transactionList(Integer searchType, String condition, Object value, Map<String, Object> conditions, Integer page, Integer size);
+	
+	public List<Transaction> transactionlist(String condition, Integer currency, Integer reason, Long startTime, Long endTime);
 }

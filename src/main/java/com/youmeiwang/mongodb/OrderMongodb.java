@@ -145,17 +145,29 @@ public class OrderMongodb implements OrderDao{
 			query.addCriteria(Criteria.where(condition).regex(value));
 		}
 		if (payType != null) {
-			query.addCriteria(Criteria.where("payType").is(payType));
+			switch (payType) {
+			case 1:
+				query.addCriteria(Criteria.where("payType").is("WeChatPay"));
+				break;
+			case 2:
+				query.addCriteria(Criteria.where("payType").is("AliPay"));
+				break;
+			default:
+				break;
+			}
 		}
 		if (payStatus != null && !"".equals(payStatus)) {
 			query.addCriteria(Criteria.where("payStatus").is(payStatus));
 		}
+		Criteria criteria = Criteria.where("endTime");
 		if (startTime != null) {
-			query.addCriteria(Criteria.where("endTime").gte(startTime));
+			criteria = criteria.gte(startTime);
 		}
 		if (endTime != null) {
-			query.addCriteria(Criteria.where("endTime").is(endTime));
+			criteria = criteria.lte(endTime);
 		}
+		criteria = criteria.ne(null);
+		query.addCriteria(criteria);
 		if (page != null && size != null) {
 			query.skip((page - 1) * size);
 			query.limit(size);

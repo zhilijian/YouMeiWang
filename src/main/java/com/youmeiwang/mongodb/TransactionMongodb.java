@@ -196,4 +196,31 @@ public class TransactionMongodb implements TransactionDao{
 		}
 		return mongoTemplate.find(query, Transaction.class);
 	}
+
+	@Override
+	public List<Transaction> transactionlist(String condition, Integer currency, Integer reason, Long startTime, Long endTime) {
+		Query query = new Query();
+		if (condition != null && !"".equals(condition)) {
+			Criteria criteria1 = Criteria.where("userID").regex(condition);
+			Criteria criteria2 = Criteria.where("username").regex(condition);
+			query.addCriteria(new Criteria().orOperator(criteria1, criteria2));
+		}
+		if (currency != null) {
+			query.addCriteria(Criteria.where("currency").is(currency));
+		}
+		if (reason != null) {
+			query.addCriteria(Criteria.where("reason").is(reason));
+		}
+		if (startTime != null || endTime != null) {
+			Criteria criteria = Criteria.where("operateTime");
+			if (startTime != null) {
+				criteria = criteria.gte(startTime);
+			}
+			if (endTime != null) {
+				criteria = criteria.lte(endTime);
+			}
+			query.addCriteria(criteria);
+		}
+		return mongoTemplate.find(query, Transaction.class);
+	}
 }

@@ -53,28 +53,25 @@ public class TopicController {
 			Topic topic = topicService.queryTopic("topicID", topicID);
 			topicService.setTopic("topicID", topicID, "browsed", topic.getBrowsed() + 1);
 			List<String> workIDs = topic.getWorks();
-			List<Work> worklist = new LinkedList<Work>();
+			List<Work> worklist1 = new LinkedList<Work>();
 			for (String workID : workIDs) {
 				Work work = workService.queryWork("workID", workID);
 				if (work != null) {
-					worklist.add(work);
+					worklist1.add(work);
 				}
 			}
 			
-			List<String> worklist2 = new LinkedList<String>();
+			List<Work> worklist2 = new LinkedList<Work>();
 			int currIdx = (page > 1 ? (page-1)*size : 0);
 			for (int i = 0; i < size && i < worklist1.size()-currIdx; i++) {
-				String workID = worklist1.get(currIdx + i);
-				worklist2.add(workID);
+				Work work = worklist1.get(currIdx + i);
+				worklist2.add(work);
 			}
+			
 			List<Map<String, Object>> works = new LinkedList<Map<String, Object>>();
-			for (String workID : worklist2) {
+			for (Work work : worklist2) {
 				Map<String, Object> workmap = new HashMap<String, Object>();
-				Work work = workService.queryWork("workID", workID);
-				if (work == null) {
-					continue;
-				}
-				workmap.put("workID", workID);
+				workmap.put("workID", work.getWorkID());
 				workmap.put("workName", work.getWorkName());
 				workmap.put("yijifenlei", work.getYijifenlei());
 				workmap.put("price", work.getPrice());

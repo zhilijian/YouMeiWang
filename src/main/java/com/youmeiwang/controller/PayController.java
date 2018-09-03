@@ -18,8 +18,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.youmeiwang.config.CommonConfig;
 import com.youmeiwang.entity.User;
 import com.youmeiwang.entity.Work;
-import com.youmeiwang.service.PayService;
+import com.youmeiwang.service.BalanceRecordService;
 import com.youmeiwang.service.PurchaseService;
+import com.youmeiwang.service.TransactionService;
 import com.youmeiwang.service.UserService;
 import com.youmeiwang.service.WorkService;
 import com.youmeiwang.util.ListUtil;
@@ -41,7 +42,10 @@ public class PayController {
 	private PurchaseService purchaseService;
 	
 	@Autowired
-	private PayService payService;
+	private TransactionService transactionService;
+	
+	@Autowired
+	private BalanceRecordService balanceRecordService;
 	
 	@GetMapping("/purchasework")
 	public SimpleVO purchaseWork(@RequestParam(name="userID", required=true) String userID,
@@ -65,20 +69,21 @@ public class PayController {
 			}
 			if (work.getPrimaryClassification() == 1) {
 				Double balance1 = user1.getBalance() - work.getPrice();
+				if (balance1 < 0) {
+					return new SimpleVO(false, "余额不足，请先充值。");
+				}
 				Double balance2 = 0.0;
 				if (user1.getVipKind().contains(2)) {
 					balance2 = user2.getBalance() + work.getPrice() * CommonConfig.commissionRate;
 				} else {
 					balance2 = user2.getBalance() + work.getPrice();
 				}
-				if (balance1 < 0) {
-					return new SimpleVO(false, "余额不足，请先充值。");
-				}
 				userService.setUser("userID", userID, "balance", balance1);
 				userService.setUser("username", work.getAuthor(), "balance", balance2);
 				purchaseService.addPurchase(userID, 2, work.getWorkID(), (double)work.getPrice(), (double)work.getPrice(), null, null);
-				payService.createTransaction(userID, workID, null, 0, 1);
-				payService.createTransaction(user2.getUserID(), null, work.getPrice() * CommonConfig.commissionRate, 0, 0);
+				transactionService.addTransaction(userID, workID, null, 0, 1);
+				transactionService.addTransaction(user2.getUserID(), null, work.getPrice() * CommonConfig.commissionRate, 0, 0);
+				balanceRecordService.addBalanceRecord(userID, (double)work.getPrice(), 2);
 			} else {
 				Long youbiAmount1 = user1.getYoubiAmount() - work.getPrice();
 				Long youbiAmount2 = user2.getYoubiAmount() + work.getPrice();
@@ -88,8 +93,8 @@ public class PayController {
 				userService.setUser("userID", userID, "youbiAmount", youbiAmount1);
 				userService.setUser("username", work.getAuthor(), "youbiAmount", youbiAmount2);
 				purchaseService.addPurchase(userID, 3, work.getWorkName(), null, null, work.getPrice(), work.getPrice());
-				payService.createTransaction(userID, workID, null, 1, 1);
-				payService.createTransaction(user2.getUserID(), null, (double)work.getPrice(), 1, 0);
+				transactionService.addTransaction(userID, workID, null, 1, 1);
+				transactionService.addTransaction(user2.getUserID(), null, (double)work.getPrice(), 1, 0);
 			}
 			List<String> purchaseWork1 = new ArrayList<String>();
 			if (user1.getPurchaseWork() != null) {
@@ -176,7 +181,8 @@ public class PayController {
 			default:
 				break;
 			}
-			payService.createTransaction(userID, null, (double)fee, 0, 5);
+			transactionService.addTransaction(userID, null, (double)fee, 0, 5);
+			balanceRecordService.addBalanceRecord(userID, (double)fee, 2);
 			return new SimpleVO(true, "购买VIP成功！");
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -194,7 +200,7 @@ public class PayController {
 //		}
 		
 		try {
-			payService.createTransaction(userID, null, (double)money, 0, 3);
+			transactionService.addTransaction(userID, null, (double)money, 0, 3);
 			User user = userService.queryUser("userID", userID);
 			Double balance = user.getBalance() - money;
 			Long youbiAmount = user.getYoubiAmount() + money * 10;
@@ -203,6 +209,7 @@ public class PayController {
 			}
 			userService.setUser("userID", userID, "balance", balance);
 			userService.setUser("userID", userID, "youbiAmount", youbiAmount);
+			balanceRecordService.addBalanceRecord(userID, (double)money, 1);
 			return new SimpleVO(true, "余额兑换游币成功。"); 
 		} catch (Exception e) {
 			e.printStackTrace();

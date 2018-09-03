@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.youmeiwang.entity.Order;
@@ -41,7 +42,9 @@ public class WechatPayController {
 	private WeChatPayService wechatPayService;
 	
 	@PostMapping("/createorder")
-	public CommonVO createOrder(String userID, String workID, Double money, 
+	public CommonVO createOrder(@RequestParam(name="userID", required=true) String userID,
+			@RequestParam(name="workID", required=false) String workID,
+			@RequestParam(name="money", required=false) Double money,
 			HttpServletRequest request, HttpSession session) {
 		
 //		if (session.getAttribute(userID) == null) {
