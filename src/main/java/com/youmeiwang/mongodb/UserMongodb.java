@@ -169,10 +169,13 @@ public class UserMongodb implements UserDao {
 	}
 
 	@Override
-	public List<User> userList2(String condition, String value, Integer VIPKind, Integer memberKind) {
+	public List<User> userList(String condition, Integer VIPKind, Integer memberKind) {
 		Query query = new Query();
-		if (value != null && !"".equals(value)) {
-			query.addCriteria(Criteria.where(condition).is(value));
+		if (condition != null && !"".equals(condition)) {
+			Criteria criteria1 = Criteria.where("userID").regex(condition);
+			Criteria criteria2 = Criteria.where("username").regex(condition);
+			Criteria criteria3 = Criteria.where("nickname").regex(condition);
+			query.addCriteria(new Criteria().orOperator(criteria1, criteria2, criteria3));
 		}
 		if (VIPKind != null) {
 			query.addCriteria(Criteria.where("vipKind").is(VIPKind));

@@ -87,8 +87,8 @@ public class UserService {
 		return userDao.userList(condition, value, page, size);
 	}
 	
-	public List<User> userlist2(String condition, String value, Integer VIPKind, Integer memberKind) {
-		return userDao.userList2(condition, value, VIPKind, memberKind);
+	public List<User> userlist(String condition, Integer VIPKind, Integer memberKind) {
+		return userDao.userList(condition, VIPKind, memberKind);
 	}
 	
 	public List<User> userlist(String condition1, Object value1, String condition2, String value2) {

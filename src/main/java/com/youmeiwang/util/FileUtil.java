@@ -25,8 +25,6 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
-import com.youmeiwang.config.CommonConfig;
-
 public class FileUtil {
 	
 	public static void downFile(String filename, String path, HttpServletResponse response, HttpServletRequest request, ResourceLoader resourceLoader) {
@@ -69,7 +67,7 @@ public class FileUtil {
 		}
 	}
 	
-	public static Map<String, Object> upload(String userID, MultipartFile file) throws IllegalStateException, IOException {
+	public static Map<String, Object> upload(String userID, MultipartFile file, String fileUrl) throws IllegalStateException, IOException {
 
 		// 获取文件名
         String oldFileName = file.getOriginalFilename();
@@ -80,7 +78,7 @@ public class FileUtil {
         String suffixName = oldFileName.substring(oldFileName.lastIndexOf("."));
         String newFileName = prefixName + suffixName;
         // 文件上传后的路径
-        String filePath = CommonConfig.FilePathUrl + userID + "//";
+        String filePath = fileUrl + userID + "//";
         
         File destination = new File(filePath + newFileName);
         
@@ -93,8 +91,7 @@ public class FileUtil {
         
         Map<String, Object> data = new HashMap<String, Object>();
         data.put("fileName", oldFileName);
-        String str = destination.getAbsolutePath().substring(3).replace("\\", "//");
-    	data.put("filePath", CommonConfig.DownloadPathUrl + str);
+    	data.put("filePath", destination.getAbsolutePath());
     	data.put("fileSize", destination.length());
     	data.put("pattern", suffixName);
     	return data;
@@ -147,14 +144,14 @@ public class FileUtil {
         }
 	}
 	
-	public static Map<String, Object> batchUpload(String userID, MultipartHttpServletRequest request) throws IOException {
+	public static Map<String, Object> batchUpload(String userID, String fileUrl, MultipartHttpServletRequest request) throws IOException {
 		
 		List<MultipartFile> files = request.getFiles("file");
         Map<String, Object> data = new HashMap<String, Object>();
         String fileName = null;
         for (MultipartFile file : files) {
         	fileName = file.getOriginalFilename().substring(0, file.getOriginalFilename().lastIndexOf("."));
-        	Map<String, Object> map = upload(userID, file);
+        	Map<String, Object> map = upload(userID, file, fileUrl);
         	data.put(fileName, map);
         }
         return data;

@@ -54,9 +54,9 @@ public class WorkManageController {
 							@RequestParam(name="authority", required=true) Integer authority,
 							HttpSession session) {
 		
-//		if (session.getAttribute(adminID) == null) {
-//			return new CommonVO(false, "该用户尚未登录。", "请先确认是否登录成功。");
-//		}
+		if (session.getAttribute(adminID) == null) {
+			return new SimpleVO(false, "该管理员尚未登录。");
+		}
 		
 		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getWorkManage(), authority);
 		if (!flag) {
@@ -96,9 +96,9 @@ public class WorkManageController {
 		@RequestParam(name="verifyMessage", required=false) String verifyMessage,
 		HttpSession session) {
 		
-//		if (session.getAttribute(adminID) == null) {
-//			return new SimpleVO(false, "该用户尚未登录。");
-//		}
+		if (session.getAttribute(adminID) == null) {
+			return new SimpleVO(false, "该用户尚未登录。");
+		}
 		
 		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getWorkManage(), authority);
 		if (!flag) {
@@ -194,9 +194,9 @@ public class WorkManageController {
 							@RequestParam(name="authority", required=true) Integer authority,				
 							HttpSession session) {
 		
-//		if (session.getAttribute(adminID) == null) {
-//			return new CommonVO(false, "该用户尚未登录。", "请先确认是否登录成功。");
-//		}
+		if (session.getAttribute(adminID) == null) {
+			return new CommonVO(false, "该用户尚未登录。", "请先确认是否登录成功。");
+		}
 		
 		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getWorkManage(), authority);
 		if (!flag) {
@@ -242,9 +242,9 @@ public class WorkManageController {
 							@RequestParam(name="size", required=true) Integer size,
 							HttpSession session) {
 		
-//		if (session.getAttribute(adminID) == null) {
-//			return new CommonVO(false, "该用户尚未登录。", "请先确认是否登录成功。");
-//		}
+		if (session.getAttribute(adminID) == null) {
+			return new CommonVO(false, "该用户尚未登录。", "请先确认是否登录成功。");
+		}
 		
 		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getWorkManage(), authority);
 		if (!flag) {

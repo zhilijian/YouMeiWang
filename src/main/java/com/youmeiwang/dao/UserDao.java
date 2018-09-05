@@ -30,7 +30,7 @@ public interface UserDao {
 	
 	public List<User> userList(String condition, Object value, Integer page, Integer size);
 	
-	public List<User> userList2(String condition, String value, Integer VIPKind, Integer memberKind);
+	public List<User> userList(String condition, Integer VIPKind, Integer memberKind);
 	
 	public List<User> userlist(String condition1, Object value1, String condition2, String value2);
 }

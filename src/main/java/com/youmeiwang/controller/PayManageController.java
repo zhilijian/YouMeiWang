@@ -372,6 +372,7 @@ public class PayManageController {
 		}
 		
 		try {
+			
 			Order order = orderService.queryOrder("outTradeNo", outTradeNo);
 			User user = userService.queryUser("userID", order.getUserID());
 			
@@ -393,6 +394,7 @@ public class PayManageController {
 				List<String> worklist = ListUtil.addElement(user.getPurchaseWork(), order.getProductID());
 				userService.setUser("userID", order.getUserID(), "purchaseWork", worklist);
 			}
+			order.setPayStatus("SUPPLIED");
 			orderService.setOrder("outTradeNo", outTradeNo, "payStatus", "SUPPLIED");
 			Map<String, Object> data = new HashMap<String, Object>();
 			data.put("outTradeNo", order.getOutTradeNo());
@@ -400,6 +402,7 @@ public class PayManageController {
 			return new CommonVO(true, "补单成功！", data);
 		} catch (Exception e) {
 			e.printStackTrace();
+			orderService.setOrder("outTradeNo", outTradeNo, "payStatus", "FAIL");
 			return new CommonVO(false, "补单失败。", "出错信息：" + e.toString());
 		}
 	}

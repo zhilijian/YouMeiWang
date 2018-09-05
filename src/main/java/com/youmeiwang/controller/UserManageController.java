@@ -49,9 +49,9 @@ public class UserManageController {
 			@RequestParam(name="size", required=true) Integer size,
 			HttpSession session) {
 		
-//		if (session.getAttribute(adminID) == null) {
-//			return new CommonVO(false, "管理员尚未登录。", "请先确认是否登录成功。");
-//		}
+		if (session.getAttribute(adminID) == null) {
+			return new CommonVO(false, "管理员尚未登录。", "请先确认是否登录成功。");
+		}
 		
 		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getUserManage(), 0);
 		if (!flag) {
@@ -64,9 +64,7 @@ public class UserManageController {
 		
 		try {
 			Set<User> userset = new HashSet<User>();
-			userset.addAll(userService.userlist2("userID", condition, VIPKind, memberKind));
-			userset.addAll(userService.userlist2("phone", condition, VIPKind, memberKind));
-			userset.addAll(userService.userlist2("nickname", condition, VIPKind, memberKind));
+			userset.addAll(userService.userlist(condition, VIPKind, memberKind));
 			
 			List<User> userlist1 = new ArrayList<User>(userset);
 			List<User> userlist2 = new LinkedList<User>();
@@ -111,9 +109,10 @@ public class UserManageController {
 							@RequestParam(name="userID", required=true) String userID,
 							HttpSession session) {
 		
-//		if (session.getAttribute(adminID) == null) {
-//			return new CommonVO(false, "管理员尚未登录。", "请先确认是否登录成功。");
-//		}
+		if (session.getAttribute(adminID) == null) {
+			return new CommonVO(false, "管理员尚未登录。", "请先确认是否登录成功。");
+		}
+		
 		try {
 			User user = userService.queryUser("userID", userID);
 			if (user == null) {
@@ -145,9 +144,9 @@ public class UserManageController {
 								@RequestParam(name="userIDs", required=true) String[] userIDs,
 								HttpSession session) {
 		
-//		if (session.getAttribute(adminID) == null) {
-//			return new SimpleVO(false, "该用户尚未登录。");
-//		}
+		if (session.getAttribute(adminID) == null) {
+			return new SimpleVO(false, "该用户尚未登录。");
+		}
 		
 		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getHomepageModule(), 1);
 		if (!flag) {
@@ -170,9 +169,9 @@ public class UserManageController {
 			@RequestParam(name = "dismissalMsg", required = false) String dismissalMsg, 
 			HttpSession session) {
 
-//		if (session.getAttribute(adminID) == null) {
-//			return new CommonVO(false, "管理员尚未登录。", "请先确认是否登录成功。");
-//		}
+		if (session.getAttribute(adminID) == null) {
+			return new CommonVO(false, "管理员尚未登录。", "请先确认是否登录成功。");
+		}
 
 		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getUserManage(), 1);
 		if (!flag) {
@@ -213,9 +212,9 @@ public class UserManageController {
 			@RequestParam(name="size", required=true) Integer size,
 			HttpSession session) {
 		
-//		if (session.getAttribute(adminID) == null) {
-//			return new CommonVO(false, "管理员尚未登录。", "请先确认是否登录成功。");
-//		}
+		if (session.getAttribute(adminID) == null) {
+			return new CommonVO(false, "管理员尚未登录。", "请先确认是否登录成功。");
+		}
 
 		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getUserManage(), 1);
 		if (!flag) {
@@ -268,5 +267,4 @@ public class UserManageController {
 			return new CommonVO(false, "查询原创作者失败。", "出错信息：" + e.getMessage());
 		}
 	}
-	
 }

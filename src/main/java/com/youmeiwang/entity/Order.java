@@ -27,7 +27,10 @@ public class Order {
 	private Long endTime;
 	//支付方式 payType
 	private String payType;
-	//支付状态 payStatus
+	/*
+	 * 支付状态 payStatus
+	 * NOTPAY：未支付 SUCCESS：支付成功 FAIL：支付失败 SUPPLIED：已补单
+	 */
 	private String payStatus;
 	//附加信息
 	private String attach;

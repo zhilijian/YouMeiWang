@@ -1,9 +1,11 @@
 package com.youmeiwang.controller;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -295,4 +297,77 @@ public class HomePageController {
 			return new SimpleVO(false, "出错信息：" + e.toString());
 		}
 	}
+	
+	@GetMapping("/getbanner")
+	public CommonVO getBanner(@RequestParam(name="type", required=true) Integer type) {
+		
+		try {
+			List<Banner> bannerlist = new ArrayList<Banner>();
+			switch (type) {
+			case 1:
+				bannerlist = bannerService.queryBanner("bannerID", "01","02","03","04","05");
+				break;
+			case 2:
+				bannerlist.add(bannerService.queryBanner("bannerID", "06"));
+				break;
+			case 3:
+				bannerlist.add(bannerService.queryBanner("bannerID", "07"));
+				break;
+			case 4:
+				bannerlist.add(bannerService.queryBanner("bannerID", "08"));
+				break;
+
+			default:
+				break;
+			}
+			
+			List<Map<String, Object>> data = new LinkedList<Map<String, Object>>();
+			for (Banner banner : bannerlist) {
+				Map<String, Object> bannermap = new HashMap<String, Object>();
+				bannermap.put("bannerID", banner.getBannerID());
+				bannermap.put("bannerName", banner.getBannerName());
+				bannermap.put("picturePath", banner.getPicturePath());
+				bannermap.put("associatedLink", banner.getAssociatedLink());
+				bannermap.put("publishTime", banner.getPublishTime());
+				data.add(bannermap);
+			}
+			return new CommonVO(true, "查询Banner展示栏成功！", data);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new CommonVO(false, "查询Banner展示栏失败。", "出错信息：" + e.toString());
+		}
+	}
+	
+	@GetMapping("/getrecommend")
+	public CommonVO getRecommend(@RequestParam(name="bannerID", required=true) String bannerID) {
+		try {
+			Banner banner = bannerService.queryBanner("bannerID", bannerID);
+			List<Map<String, Object>> worklist = new LinkedList<Map<String, Object>>();
+			for (String workID : banner.getWorkShow()) {
+				Map<String, Object> workmap = new HashMap<String, Object>();
+				Work work = workService.queryWork("workID", workID);
+				workmap.put("workID", work.getWorkID());
+				workmap.put("workName", work.getWorkName());
+				workmap.put("price", work.getPrice());
+				workmap.put("downloadNum", work.getDownloadNum());
+				workmap.put("collectNum", work.getCollectNum()); 
+				workmap.put("yijifenlei", work.getYijifenlei()); 
+				String picture = null;
+				if (work.getPictures() != null && work.getPictures().size() > 0) {
+					picture = (String) work.getPictures().get(0).get("filePath");
+				}
+				workmap.put("picture", picture);
+				worklist.add(workmap);
+			}
+			Map<String, Object> data = new HashMap<String, Object>();
+			data.put("hotword", banner.getHotWord());
+			data.put("worklist", worklist);
+			return new CommonVO(true, "获取推荐作品成功！", data);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new CommonVO(false, "获取推荐作品失败。", "出错信息：" + e.toString());
+		}
+	}
+	
+	
 }

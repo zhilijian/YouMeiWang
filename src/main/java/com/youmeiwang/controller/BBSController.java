@@ -67,9 +67,9 @@ public class BBSController {
 							@RequestParam(name="bbsID", required=true) String bbsID,
 							HttpSession session) {
 		
-//		if (session.getAttribute(adminID) == null) {
-//			return new SimpleVO(false, "管理员尚未登录。");
-//		}
+		if (session.getAttribute(adminID) == null) {
+			return new SimpleVO(false, "管理员尚未登录。");
+		}
 		
 		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getUserManage(), 2);
 		if (!flag) {
@@ -90,9 +90,9 @@ public class BBSController {
 							@RequestParam(name="bbsIDs", required=true) String[] bbsIDs,
 							HttpSession session) {
 		
-//		if (session.getAttribute(adminID) == null) {
-//			return new SimpleVO(false, "管理员尚未登录。");
-//		}
+		if (session.getAttribute(adminID) == null) {
+			return new SimpleVO(false, "管理员尚未登录。");
+		}
 		
 		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getUserManage(), 2);
 		if (!flag) {
@@ -116,9 +116,9 @@ public class BBSController {
 						@RequestParam(name="comment", required=true) String comment,
 						HttpSession session) {
 		
-//		if (session.getAttribute(userID) == null) {
-//			return new CommonVO(false, "用户非法登录。", "请先确认该用户是否登录。"); 
-//		}
+		if (session.getAttribute(userID) == null) {
+			return new CommonVO(false, "用户非法登录。", "请先确认该用户是否登录。"); 
+		}
 		
 		try {
 			BBS bbs = bbsService.queryBBS("bbsID", bbsID);
@@ -147,9 +147,9 @@ public class BBSController {
 			@RequestParam(name="bbsID", required=true) String bbsID,
 			HttpSession session) {
 		
-//		if (session.getAttribute(userID) == null) {
-//			return new CommonVO(false, "用户非法登录。", "请先确认该用户是否登录。"); 
-//		}
+		if (session.getAttribute(userID) == null) {
+			return new CommonVO(false, "用户非法登录。", "请先确认该用户是否登录。"); 
+		}
 		
 		try {
 			BBS bbs = bbsService.queryBBS("bbsID", bbsID);
@@ -176,9 +176,9 @@ public class BBSController {
 							@RequestParam(name="size", required=true) Integer size,
 							HttpSession session) {
 		
-//		if (session.getAttribute(userID) == null) {
-//			return new CommonVO(false, "用户非法登录。", "请先确认该用户是否登录。"); 
-//		}
+		if (session.getAttribute(userID) == null) {
+			return new CommonVO(false, "用户非法登录。", "请先确认该用户是否登录。"); 
+		}
 		
 		if (page <= 0 || size <= 0) {
 			return new CommonVO(false, "参数输入不合理。","请先核对是否正确输入参数。");
@@ -213,9 +213,9 @@ public class BBSController {
 							@RequestParam(name="size", required=true) Integer size,
 							HttpSession session) {
 		
-//		if (session.getAttribute(adminID) == null) {
-//			return new SimpleVO(false, "管理员尚未登录。", "请先确认该管理员是否登录。");
-//		}
+		if (session.getAttribute(adminID) == null) {
+			return new CommonVO(false, "管理员尚未登录。", "请先确认该管理员是否登录。");
+		}
 		
 		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getUserManage(), 2);
 		if (!flag) {
