@@ -20,9 +20,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.youmeiwang.entity.Banner;
+import com.youmeiwang.entity.FileInfo;
 import com.youmeiwang.entity.Work;
 import com.youmeiwang.service.AdminService;
 import com.youmeiwang.service.BannerService;
+import com.youmeiwang.service.FileService;
 import com.youmeiwang.service.WorkService;
 import com.youmeiwang.util.ContainUtil;
 import com.youmeiwang.vo.CommonVO;
@@ -41,6 +43,9 @@ public class HomePageController {
 	
 	@Autowired
 	private BannerService bannerService;
+	
+	@Autowired
+	private FileService fileService;
 	
 	@GetMapping("/bannerlist")
 	public CommonVO bannerList(@RequestParam(name="adminID", required=true) String adminID, 
@@ -113,7 +118,7 @@ public class HomePageController {
 				workmap.put("workName", work.getWorkName());
 				String picture = null;
 				if (work.getPictures() != null && work.getPictures().size() > 0) {
-					picture = (String) work.getPictures().get(0).get("filePath");
+					picture = getFilePath(work.getPictures().get(0));
 				}
 				workmap.put("pictures", picture);
 				workmap.put("primaryClassification", work.getYijifenlei());
@@ -354,7 +359,7 @@ public class HomePageController {
 				workmap.put("yijifenlei", work.getYijifenlei()); 
 				String picture = null;
 				if (work.getPictures() != null && work.getPictures().size() > 0) {
-					picture = (String) work.getPictures().get(0).get("filePath");
+					picture = getFilePath(work.getPictures().get(0));
 				}
 				workmap.put("picture", picture);
 				worklist.add(workmap);
@@ -369,5 +374,8 @@ public class HomePageController {
 		}
 	}
 	
-	
+	private String getFilePath(String fileID) {
+		FileInfo fileInfo = fileService.queryFile("fileID", fileID);
+		return fileInfo.getFilePath();
+	}
 }

@@ -1,7 +1,6 @@
 package com.youmeiwang.entity;
 
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -50,9 +49,9 @@ public class Work {
 	//topic 专题
 	private String topicName;
 	//picturePath 预览图 
-	private List<Map<String, Object>> pictures;
+	private List<String> pictures;
 	//filePath 文件存储路径
-	private List<Map<String, Object>> files;
+	private List<String> files;
 	//downloadNum 被下载次数
 	private Long downloadNum;
 	//被收藏次数 collectNum
@@ -178,16 +177,16 @@ public class Work {
 	public void setTopicName(String topicName) {
 		this.topicName = topicName;
 	}
-	public List<Map<String, Object>> getPictures() {
+	public List<String> getPictures() {
 		return pictures;
 	}
-	public void setPictures(List<Map<String, Object>> pictures) {
+	public void setPictures(List<String> pictures) {
 		this.pictures = pictures;
 	}
-	public List<Map<String, Object>> getFiles() {
+	public List<String> getFiles() {
 		return files;
 	}
-	public void setFiles(List<Map<String, Object>> files) {
+	public void setFiles(List<String> files) {
 		this.files = files;
 	}
 	public Long getDownloadNum() {

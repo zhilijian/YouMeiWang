@@ -130,4 +130,12 @@ public class WorkService {
 	public List<Work> workList1(List<Map<String, Object>> conditions, Integer page, Integer size) {
 		return workDao.workList1(conditions, page, size);
 	}
+	
+	public List<Work> worklist(Integer modelType, String condition, Integer pattern, Integer sortType){
+		return workDao.worklist(modelType, condition, pattern, sortType);
+	}
+	
+	public List<Work> worklist(Integer primaryClassification, Integer secondaryClassification, Integer reclassify, Integer pattern, Integer sortType){
+		return workDao.worklist(primaryClassification, secondaryClassification, reclassify, pattern, sortType);
+	}
 }

@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.youmeiwang.entity.User;
 import com.youmeiwang.service.AdminService;
+import com.youmeiwang.service.NewsService;
 import com.youmeiwang.service.UserService;
 import com.youmeiwang.util.ContainUtil;
 import com.youmeiwang.vo.CommonVO;
@@ -33,11 +34,11 @@ public class UserManageController {
 	@Autowired
 	private UserService userService;
 	
-//	@Autowired
-//	private WorkService workService;
-	
 	@Autowired
 	private AdminService adminService;
+	
+	@Autowired
+	private NewsService newsService;
 	
 	@PostMapping("/usersearch")
 	public CommonVO userSearch(@RequestParam(name="adminID", required=true) String adminID,
@@ -183,13 +184,19 @@ public class UserManageController {
 			if (user == null) {
 				return new CommonVO(false, "该用户不存在或已销户", "请审核其他用户。");
 			}
-			
+			String username = user.getUsername();
 			if (isPass) {
 				userService.setUser("userID", userID, "applyForOriginal", 2);
 				userService.setUser("userID", userID, "memberKind", 1);
+				String title = "申请原创作者审核通过！";
+				String content = "恭喜你，您提交的原创作者申请经游模网审核通过啦！";
+				newsService.addNews(username, title, content, 1);
 			} else {
 				userService.setUser("userID", userID, "applyForOriginal", 3);
 				userService.setUser("userID", userID, "dismissalMsg", dismissalMsg);
+				String title = "申请原创作者审核未通过。";
+				String content = "很抱歉，您提交的原创作者申请经游模网审核并未通过。您可查看驳回信息，或直接咨询我们客服人员。";
+				newsService.addNews(username, title, content, 1);
 			}
 
 			Map<String, Object> data = new HashMap<String, Object>();

@@ -41,7 +41,7 @@ public class BBSMongodb implements BBSDao{
 	public void updateBBS(BBS bbs) {
 		Query query = new Query(Criteria.where("bbsID").is(bbs.getBbsID()));
 		Update update = new Update();
-		update.set("userID", bbs.getUserID());
+		update.set("username", bbs.getUsername());
 		update.set("workID", bbs.getWorkID());
 		update.set("correctionType", bbs.getCorrectionType());
 		update.set("comment", bbs.getComment());

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.youmeiwang.entity.User;
+import com.youmeiwang.service.NewsService;
 import com.youmeiwang.service.UserService;
 import com.youmeiwang.vo.CommonVO;
 import com.youmeiwang.vo.SimpleVO;
@@ -25,6 +26,9 @@ public class UserController {
 
 	@Autowired
 	private UserService userService;
+	
+	@Autowired
+	private NewsService newsService;
 	
 	@GetMapping("/adduser")
 	public CommonVO register(@RequestParam(name="username", required=true) String username,
@@ -42,6 +46,9 @@ public class UserController {
 		
 		try {
 			User user = userService.addUser(username);
+			String title = "新用户注册成功！";
+			String content = "亲爱的" + username+ "，欢迎来到奇妙的游模网。";
+			newsService.addNews(username, title, content, 1);
 			
 			Map<String, Object> data = new HashMap<String, Object>();
 			data.put("userID", user.getUserID());
@@ -93,6 +100,7 @@ public class UserController {
 			data.put("userID", userID);
 			data.put("username", user.getUsername());
 			data.put("nickname", user.getNickname());
+			data.put("portrait", user.getPortrait());
 			data.put("vipKind", user.getVipKind());
 			data.put("memberKind", user.getMemberKind());
 			data.put("applyForOriginal", user.getApplyForOriginal());
@@ -151,7 +159,7 @@ public class UserController {
 				user.setPortrait(portrait);
 			}
 			if (isApplyOriginalAuthor) {
-				if (fullname == null || phone == null || alipay == null) {
+				if (fullname == null || phone == null || alipay == null || qq == null || email ==null) {
 					return new CommonVO(false, "信息填写不完整。", "请确认信息填写完成再申请。"); 
 				}
 				user.setFullname(fullname);
@@ -178,6 +186,12 @@ public class UserController {
 			}
 			if (phone != null) {
 				data.put("phone", phone);
+			}
+			if (qq != null) {
+				data.put("qq", qq);
+			}
+			if (email != null) {
+				data.put("email", email);
 			}
 			if (alipay != null) {
 				data.put("alipay", alipay);

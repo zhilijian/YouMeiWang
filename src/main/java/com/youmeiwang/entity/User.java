@@ -1,7 +1,6 @@
 package com.youmeiwang.entity;
 
 import java.util.List;
-import java.util.Set;
 
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -34,7 +33,7 @@ public class User {
 	private Double balance;
 	//VIP类别 VIPKind
 	//0：大众用户	 1：共享VIP 2：原创VIP 3：企业VIP
-	private Set<Integer> vipKind;
+	private List<Integer> vipKind;
 	private Long shareVIPTime;
 	private Long originalVIPTime;
 	private Long companyVIPTime;
@@ -70,216 +69,162 @@ public class User {
 	public String getUserID() {
 		return userID;
 	}
-
 	public void setUserID(String userID) {
 		this.userID = userID;
 	}
-
 	public String getUsername() {
 		return username;
 	}
-
 	public void setUsername(String username) {
 		this.username = username;
 	}
-
 	public String getNickname() {
 		return nickname;
 	}
-
 	public void setNickname(String nickname) {
 		this.nickname = nickname;
 	}
-
 	public String getFullname() {
 		return fullname;
 	}
-
 	public void setFullname(String fullname) {
 		this.fullname = fullname;
 	}
-
 	public String getPhone() {
 		return phone;
 	}
-
 	public void setPhone(String phone) {
 		this.phone = phone;
 	}
-	
 	public String getPortrait() {
 		return portrait;
 	}
-
 	public void setPortrait(String portrait) {
 		this.portrait = portrait;
 	}
-
 	public String getAlipay() {
 		return alipay;
 	}
-
 	public void setAlipay(String alipay) {
 		this.alipay = alipay;
 	}
-
 	public String getQq() {
 		return qq;
 	}
-
 	public void setQq(String qq) {
 		this.qq = qq;
 	}
-
 	public String getEmail() {
 		return email;
 	}
-
 	public void setEmail(String email) {
 		this.email = email;
 	}
-
 	public Long getYoubiAmount() {
 		return youbiAmount;
 	}
-
 	public void setYoubiAmount(Long youbiAmount) {
 		this.youbiAmount = youbiAmount;
 	}
-
 	public Double getBalance() {
 		return balance;
 	}
-
 	public void setBalance(Double balance) {
 		this.balance = balance;
 	}
-
-	public Set<Integer> getVipKind() {
+	public List<Integer> getVipKind() {
 		return vipKind;
 	}
-
-	public void setVipKind(Set<Integer> vipKind) {
+	public void setVipKind(List<Integer> vipKind) {
 		this.vipKind = vipKind;
 	}
-
-
 	public Long getShareVIPTime() {
 		return shareVIPTime;
 	}
-
 	public void setShareVIPTime(Long shareVIPTime) {
 		this.shareVIPTime = shareVIPTime;
 	}
-
 	public Long getOriginalVIPTime() {
 		return originalVIPTime;
 	}
-
 	public void setOriginalVIPTime(Long originalVIPTime) {
 		this.originalVIPTime = originalVIPTime;
 	}
-
 	public Long getCompanyVIPTime() {
 		return companyVIPTime;
 	}
-
 	public void setCompanyVIPTime(Long companyVIPTime) {
 		this.companyVIPTime = companyVIPTime;
 	}
-
 	public Integer getMemberKind() {
 		return memberKind;
 	}
-
 	public void setMemberKind(Integer memberKind) {
 		this.memberKind = memberKind;
 	}
-
 	public String getMemberExpirationTime() {
 		return memberExpirationTime;
 	}
-
 	public void setMemberExpirationTime(String memberExpirationTime) {
 		this.memberExpirationTime = memberExpirationTime;
 	}
-
 	public List<String> getVerifyingWork() {
 		return verifyingWork;
 	}
-
 	public void setVerifyingWork(List<String> verifyingWork) {
 		this.verifyingWork = verifyingWork;
 	}
-
 	public List<String> getVerifiedWork() {
 		return verifiedWork;
 	}
-
 	public void setVerifiedWork(List<String> verifiedWork) {
 		this.verifiedWork = verifiedWork;
 	}
-
 	public List<String> getNotPassWork() {
 		return notPassWork;
 	}
-
 	public void setNotPassWork(List<String> notPassWork) {
 		this.notPassWork = notPassWork;
 	}
-
 	public List<String> getCollectWork() {
 		return collectWork;
 	}
-
 	public void setCollectWork(List<String> collectWork) {
 		this.collectWork = collectWork;
 	}
-
 	public List<String> getCollectTopic() {
 		return collectTopic;
 	}
-
 	public void setCollectTopic(List<String> collectTopic) {
 		this.collectTopic = collectTopic;
 	}
-
 	public List<String> getDownWork() {
 		return downWork;
 	}
-
 	public void setDownWork(List<String> downWork) {
 		this.downWork = downWork;
 	}
-
 	public List<String> getPurchaseWork() {
 		return purchaseWork;
 	}
-
 	public void setPurchaseWork(List<String> purchaseWork) {
 		this.purchaseWork = purchaseWork;
 	}
-
 	public Integer getApplyForOriginal() {
 		return applyForOriginal;
 	}
-
 	public void setApplyForOriginal(Integer applyForOriginal) {
 		this.applyForOriginal = applyForOriginal;
 	}
-
 	public String getVerifyMessage() {
 		return verifyMessage;
 	}
-
 	public void setVerifyMessage(String verifyMessage) {
 		this.verifyMessage = verifyMessage;
 	}
-
 	public String getCommissionRate() {
 		return commissionRate;
 	}
-
 	public void setCommissionRate(String commissionRate) {
 		this.commissionRate = commissionRate;
 	}
@@ -308,6 +253,4 @@ public class User {
 			return false;
 		return true;
 	}
-	
-	
 }

@@ -19,10 +19,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.google.gson.Gson;
+import com.youmeiwang.entity.FileInfo;
 import com.youmeiwang.entity.User;
 import com.youmeiwang.entity.Work;
 import com.youmeiwang.service.AdminService;
+import com.youmeiwang.service.FileService;
+import com.youmeiwang.service.NewsService;
 import com.youmeiwang.service.UserService;
 import com.youmeiwang.service.VerifyService;
 import com.youmeiwang.service.WorkService;
@@ -46,6 +48,12 @@ public class WorkManageController {
 	
 	@Autowired
 	private VerifyService verifyService;
+	
+	@Autowired
+	private FileService fileService;
+	
+	@Autowired
+	private NewsService newsService;
 	
 	@PostMapping("/removework")
 	public SimpleVO removeWork(@RequestParam(name="adminID", required=true) String adminID, 
@@ -89,8 +97,8 @@ public class WorkManageController {
 		@RequestParam(name="price", required=true) Integer price,
 		@RequestParam(name="labels", required=true) String[] labels,
 		@RequestParam(name="remarks", required=false) String remarks,
-		@RequestParam(name="pictures", required=false) String pictures,
-		@RequestParam(name="files", required=false) String files,
+		@RequestParam(name="pictures", required=false) String[] pictures,
+		@RequestParam(name="files", required=false) String[] files,
 		@RequestParam(name="authority", required=true) Integer authority,
 		@RequestParam(name="isPass", required=false) Integer isPass,
 		@RequestParam(name="verifyMessage", required=false) String verifyMessage,
@@ -144,41 +152,35 @@ public class WorkManageController {
 				if (isPass.equals(1)) {
 					work.setVerifyState(1);
 					verifyService.verifyAndPassWork(user.getUserID(), workID);
+					String title = "作品审核通过！";
+					String content = "恭喜你，您上传的作品经游模网审核通过啦！";
+					newsService.addNews(work.getAuthor(), title, content, 1);
 				} else {
 					work.setVerifyState(2);
 					work.setVerifyMessage(verifyMessage);
 					verifyService.verifyNotPassWork(user.getUserID(), workID);
+					String title = "作品审核未通过。";
+					String content = "很遗憾，您上传的作品不符合游模网的规则条件。不要气馁，您还可以继续提交申请哦！";
+					newsService.addNews(work.getAuthor(), title, content, 1);
 				}
 			}
-			List<Map<String, Object>> picturelist = new ArrayList<Map<String, Object>>();
-			if (pictures != null && !"".equals(pictures)) {
-				String[] picture = pictures.split(";");
-				for (String str : picture) {
-					if (str == null) {
-						continue;
-					}
-					@SuppressWarnings("unchecked")
-					Map<String, Object> map = new Gson().fromJson(str, Map.class);
-					picturelist.add(map);
-				}
+			if (pictures != null && pictures.length > 0) {
+				List<String> picturelist = Arrays.asList(pictures);
 				work.setPictures(picturelist);
 			}
-			List<Map<String, Object>> filelist = new ArrayList<Map<String, Object>>();
-			if (files != null && !"".equals(files)) {
-				String[] file = files.split(";");
+			if (files != null && files.length > 0) {
+				List<String> filelist = Arrays.asList(files);
 				Long modelSize = 0l;
-				for (String str : file) {
-					if (str == null || str.equals("")) {
+				for (String fileID : filelist) {
+					FileInfo fileInfo = fileService.queryFile("fileID", fileID);
+					if (fileInfo == null) {
 						continue;
 					}
-					@SuppressWarnings("unchecked")
-					Map<String, Object> map = new Gson().fromJson(str, Map.class);
-					filelist.add(map);
-					double d = (double) map.get("fileSize");
-					modelSize = modelSize + Math.round(d);
+					modelSize += fileInfo.getFileSize();
+					fileService.setFile("fileID", fileID, "workID", workID);
 				}
-				work.setModelSize(modelSize);
 				work.setFiles(filelist);
+				work.setModelSize(modelSize);
 			}
 			workService.updateWork(work);
 			return new SimpleVO(true, "保存模型成功！");
@@ -194,9 +196,9 @@ public class WorkManageController {
 							@RequestParam(name="authority", required=true) Integer authority,				
 							HttpSession session) {
 		
-		if (session.getAttribute(adminID) == null) {
-			return new CommonVO(false, "该用户尚未登录。", "请先确认是否登录成功。");
-		}
+//		if (session.getAttribute(adminID) == null) {
+//			return new CommonVO(false, "该用户尚未登录。", "请先确认是否登录成功。");
+//		}
 		
 		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getWorkManage(), authority);
 		if (!flag) {
@@ -223,8 +225,24 @@ public class WorkManageController {
 			data.put("price", work.getPrice());
 			data.put("labels", work.getLabels());
 			data.put("remarks", work.getRemarks());
-			data.put("pictures", work.getPictures());
-			data.put("files", work.getFiles());
+			List<String> picturelist = new LinkedList<String>();
+			for (String fileID : work.getPictures()) {
+				String filePath = getFilePath(fileID);
+				if (filePath == null) {
+					continue;
+				}
+				picturelist.add(filePath);
+			}
+			data.put("pictures", picturelist);
+			List<Map<String, Object>> filelist = new LinkedList<Map<String, Object>>();
+			for (String fileID : work.getFiles()) {
+				Map<String, Object> filemap = getFileMap(fileID);
+				if (filemap == null) {
+					continue;
+				}
+				filelist.add(filemap);
+			}
+			data.put("files", filelist);
 			return new CommonVO(true, "查看模型详情成功！", data);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -328,5 +346,24 @@ public class WorkManageController {
 			e.printStackTrace();
 			return new CommonVO(false, "查询模型失败。", "出错信息：" + e.toString());
 		}
+	}
+	
+	private String getFilePath(String fileID) {
+		FileInfo fileInfo = fileService.queryFile("fileID", fileID);
+		if (fileInfo == null) {
+			return null;
+		}
+		return fileInfo.getFilePath();
+	}
+	
+	private Map<String, Object> getFileMap(String fileID) {
+		FileInfo fileInfo = fileService.queryFile("fileID", fileID);
+		if (fileInfo == null) {
+			return null;
+		}
+		Map<String, Object> filemap = new HashMap<String, Object>();
+		filemap.put("fileID", fileInfo.getFileID());
+		filemap.put("fileName", fileInfo.getFileName());
+		return filemap;
 	}
 }

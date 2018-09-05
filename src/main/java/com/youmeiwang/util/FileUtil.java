@@ -13,7 +13,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.servlet.ServletOutputStream;
@@ -23,7 +22,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 public class FileUtil {
 	
@@ -97,16 +95,14 @@ public class FileUtil {
     	return data;
 	}
 	
-	public static void download(String userID, String filePath, HttpServletRequest request, HttpServletResponse response) throws UnsupportedEncodingException {
+	public static void download(String userID, String fileName, String filePath, HttpServletRequest request, HttpServletResponse response) throws UnsupportedEncodingException {
 		
 		File file = new File(filePath);
-		String prefixName = generatePrefix();
-		String suffixName = filePath.substring(filePath.lastIndexOf("."));
 		response.setContentType("application/force-download");// 设置强制下载不打开
 		response.addHeader("Cache-Control", "no-cache, no-store, must-revalidate");
 		response.addHeader("charset", "utf-8");
 		response.addHeader("Pragma", "no-cache");
-		String encodeName = URLEncoder.encode(prefixName + suffixName, StandardCharsets.UTF_8.toString());
+		String encodeName = URLEncoder.encode(fileName, StandardCharsets.UTF_8.toString());
 		response.setHeader("Content-Disposition",
 				"attachment; filename=\"" + encodeName + "\"; filename*=utf-8''" + encodeName);
         
@@ -142,19 +138,6 @@ public class FileUtil {
             }
             System.gc();
         }
-	}
-	
-	public static Map<String, Object> batchUpload(String userID, String fileUrl, MultipartHttpServletRequest request) throws IOException {
-		
-		List<MultipartFile> files = request.getFiles("file");
-        Map<String, Object> data = new HashMap<String, Object>();
-        String fileName = null;
-        for (MultipartFile file : files) {
-        	fileName = file.getOriginalFilename().substring(0, file.getOriginalFilename().lastIndexOf("."));
-        	Map<String, Object> map = upload(userID, file, fileUrl);
-        	data.put(fileName, map);
-        }
-        return data;
 	}
 	
 	public static String generatePrefix() {

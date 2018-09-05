@@ -20,13 +20,13 @@ import com.youmeiwang.entity.Order;
 import com.youmeiwang.entity.User;
 import com.youmeiwang.entity.Work;
 import com.youmeiwang.service.BalanceRecordService;
+import com.youmeiwang.service.NewsService;
 import com.youmeiwang.service.OrderService;
 import com.youmeiwang.service.PurchaseService;
 import com.youmeiwang.service.TransactionService;
 import com.youmeiwang.service.UserService;
 import com.youmeiwang.service.WorkService;
 import com.youmeiwang.util.ListUtil;
-import com.youmeiwang.util.SetUtil;
 import com.youmeiwang.vo.SimpleVO;
 
 @CrossOrigin
@@ -51,6 +51,9 @@ public class PayController {
 	
 	@Autowired
 	private BalanceRecordService balanceRecordService;
+	
+	@Autowired
+	private NewsService newsService;
 	
 	@GetMapping("/purchasework")
 	public SimpleVO purchaseWork(@RequestParam(name="userID", required=true) String userID,
@@ -136,7 +139,7 @@ public class PayController {
 			Calendar calendar = Calendar.getInstance();
 			switch (vipKind) {
 			case 1:
-				userService.setUser("userID", userID, "vipKind", SetUtil.addElement(user.getVipKind(), 1));
+				userService.setUser("userID", userID, "vipKind", ListUtil.addElement(user.getVipKind(), 1));
 				
 				Long shareVIPTime = 0l;
 				if (user.getShareVIPTime() == null || user.getShareVIPTime() < System.currentTimeMillis()) {
@@ -152,7 +155,7 @@ public class PayController {
 				break;
 			
 			case 2:
-				userService.setUser("userID", userID, "vipKind", SetUtil.addElement(user.getVipKind(), 2));
+				userService.setUser("userID", userID, "vipKind", ListUtil.addElement(user.getVipKind(), 2));
 				
 				Long originalVIPTime = 0l;
 				if (user.getOriginalVIPTime() == null || user.getOriginalVIPTime() < System.currentTimeMillis()) {
@@ -168,7 +171,7 @@ public class PayController {
 				break;
 			
 			case 3:
-				userService.setUser("userID", userID, "vipKind", SetUtil.addElement(user.getVipKind(), 3));
+				userService.setUser("userID", userID, "vipKind", ListUtil.addElement(user.getVipKind(), 3));
 				
 				Long companyVIPTime = 0l;
 				if (user.getCompanyVIPTime() == null || user.getCompanyVIPTime() < System.currentTimeMillis()) {

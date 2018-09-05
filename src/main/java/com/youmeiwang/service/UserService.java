@@ -1,14 +1,14 @@
 package com.youmeiwang.service;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.youmeiwang.dao.FileDao;
 import com.youmeiwang.dao.UserDao;
+import com.youmeiwang.entity.FileInfo;
 import com.youmeiwang.entity.User;
 import com.youmeiwang.util.RandomUtil;
 
@@ -17,6 +17,9 @@ public class UserService {
 
 	@Autowired
 	private UserDao userDao;
+	
+	@Autowired
+	private FileDao fileDao;
 
 	public User addUser(String username) {
 		User user = new User();
@@ -29,9 +32,11 @@ public class UserService {
 		user.setNickname("游侠");
 		user.setYoubiAmount(0l);
 		user.setBalance(0.0);
-		Set<Integer> vipKind = new HashSet<Integer>();
+		List<Integer> vipKind = new ArrayList<Integer>();
 		vipKind.add(0);
 		user.setVipKind(vipKind);
+		FileInfo fileInfo = fileDao.queryFile("fileID", "000000000001");
+		user.setPortrait(fileInfo.getFilePath());
 		user.setMemberKind(0);
 		user.setVerifyingWork(new ArrayList<String>());
 		user.setVerifiedWork(new ArrayList<String>());

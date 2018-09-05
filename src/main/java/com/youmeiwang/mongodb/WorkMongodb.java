@@ -343,5 +343,79 @@ public class WorkMongodb implements WorkDao{
 		return mongoTemplate.find(query, Work.class);
 	}
 
-	
+	@Override
+	public List<Work> worklist(Integer modelType, String condition, Integer pattern, Integer sortType) {
+		Query query = new Query();
+		if (condition != null && !"".equals(condition)) {
+			Criteria criteria1 = Criteria.where("workID").regex(condition);
+			Criteria criteria2 = Criteria.where("workName").regex(condition);
+			Criteria criteria3 = Criteria.where("labels").regex(condition);
+			query.addCriteria(new Criteria().orOperator(criteria1, criteria2, criteria3));
+		}
+		if (modelType != null) {
+			switch (modelType) {
+			case 1:
+				query.addCriteria(Criteria.where("primaryClassification").ne(2));
+				break;
+			case 2:
+				query.addCriteria(Criteria.where("primaryClassification").is(2));
+				break;
+			default:
+				break;
+			}
+		}
+		if (pattern != null) {
+			query.addCriteria(Criteria.where("pattern").is(pattern));
+		}
+		if (sortType != null) {
+			switch (sortType) {
+			case 1:
+				query.with(new Sort(new Order(Sort.Direction.DESC, "uploadTime")));
+				break;
+			case 2:
+				query.with(new Sort(new Order(Sort.Direction.DESC, "downloadNum")));
+				break;
+			case 3:
+				query.with(new Sort(new Order(Sort.Direction.DESC, "collectNum")));
+				break;
+			default:
+				break;
+			}
+		}
+		return mongoTemplate.find(query, Work.class);
+	}
+
+	@Override
+	public List<Work> worklist(Integer primaryClassification, Integer secondaryClassification, 
+			Integer reclassify,Integer pattern, Integer sortType) {
+		Query query = new Query();
+		if (primaryClassification != null) {
+			query.addCriteria(Criteria.where("primaryClassification").is(primaryClassification));
+		}
+		if (secondaryClassification != null) {
+			query.addCriteria(Criteria.where("secondaryClassification").is(secondaryClassification));
+		}
+		if (reclassify != null) {
+			query.addCriteria(Criteria.where("reclassify").is(reclassify));
+		}
+		if (pattern != null) {
+			query.addCriteria(Criteria.where("pattern").is(pattern));
+		}
+		if (sortType != null) {
+			switch (sortType) {
+			case 1:
+				query.with(new Sort(new Order(Sort.Direction.DESC, "uploadTime")));
+				break;
+			case 2:
+				query.with(new Sort(new Order(Sort.Direction.DESC, "downloadNum")));
+				break;
+			case 3:
+				query.with(new Sort(new Order(Sort.Direction.DESC, "collectNum")));
+				break;
+			default:
+				break;
+			}
+		}
+		return mongoTemplate.find(query, Work.class);
+	}
 }

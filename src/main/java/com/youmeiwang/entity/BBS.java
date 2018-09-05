@@ -10,7 +10,7 @@ public class BBS {
 	@Indexed
 	private String bbsID;
 	//用户ID userID
-	private String userID;
+	private String username;
 	//作品ID workID
 	private String workID;
 	//纠错类型 correctionType
@@ -34,12 +34,12 @@ public class BBS {
 		this.bbsID = bbsID;
 	}
 
-	public String getUserID() {
-		return userID;
+	public String getUsername() {
+		return username;
 	}
 
-	public void setUserID(String userID) {
-		this.userID = userID;
+	public void setUsername(String username) {
+		this.username = username;
 	}
 
 	public String getWorkID() {
