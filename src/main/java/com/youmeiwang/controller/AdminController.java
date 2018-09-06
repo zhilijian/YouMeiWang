@@ -33,8 +33,13 @@ public class AdminController {
 	
 	@PostMapping("/login")
 	public CommonVO login(@RequestParam(name="adminname", required=true) String adminname, 
-						@RequestParam(name="password", required=true) String password, 
+						@RequestParam(name="password", required=true) String password1, 
 						HttpSession session) {
+		Admin admin = adminService.queryAdmin("adminname", adminname);
+		String password = admin.getPassword();
+		
+		
+		
 		Map<String, Object> data = new HashMap<String, Object>();
 		Admin admin = adminService.queryAdmin("adminname", adminname, "password", password);
 		if (admin != null) {

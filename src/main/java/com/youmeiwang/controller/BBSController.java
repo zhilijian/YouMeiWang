@@ -58,7 +58,7 @@ public class BBSController {
 			BBS bbs = bbsService.addBBS(username, workID, correctionType, comment);
 			String title = "信息纠错提交成功！";
 			String content = "感谢您的信息反馈，我们后台管理人员已接受并将尽快处理您的纠错信息！";
-			newsService.addNews(username, title, content, 1);
+			newsService.addNews(userID, title, content, 1);
 			Map<String, Object> data = new HashMap<String, Object>();
 			data.put("bbsID", bbs.getBbsID());
 			data.put("userID", userID);

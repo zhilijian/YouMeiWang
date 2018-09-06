@@ -65,7 +65,7 @@ public class UserManageController {
 		
 		try {
 			Set<User> userset = new HashSet<User>();
-			userset.addAll(userService.userlist(condition, VIPKind, memberKind));
+			userset.addAll(userService.userlist(condition, VIPKind, memberKind, applyForOriginal));
 			
 			List<User> userlist1 = new ArrayList<User>(userset);
 			List<User> userlist2 = new LinkedList<User>();
@@ -209,69 +209,6 @@ public class UserManageController {
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new CommonVO(false, "审核原创作者失败。", "出错信息：" +  e.getMessage());
-		}
-	}
-	
-	@GetMapping("/originalauthorlist")
-	public CommonVO originalAuthorList(@RequestParam(name = "adminID", required = true) String adminID,
-			@RequestParam(name="condition", required=false) String condition,						
-			@RequestParam(name="page", required=true) Integer page,
-			@RequestParam(name="size", required=true) Integer size,
-			HttpSession session) {
-		
-		if (session.getAttribute(adminID) == null) {
-			return new CommonVO(false, "管理员尚未登录。", "请先确认是否登录成功。");
-		}
-
-		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getUserManage(), 1);
-		if (!flag) {
-			return new CommonVO(false, "该用户无此权限。", "请先核对该管理员是否有此权限。");
-		}
-		
-		if (page <= 0 || size <= 0) {
-			return new CommonVO(false, "参数输入不合理。","请先核对是否正确输入参数。");
-		}
-		
-		try {
-			Set<User> userset = new HashSet<User>();
-			userset.addAll(userService.userlist("memberKind", 0, "userID", condition));
-			userset.addAll(userService.userlist("memberKind", 0, "username", condition));
-			userset.addAll(userService.userlist("memberKind", 0, "nickname", condition));
-			
-			List<User> userlist1 = new ArrayList<User>(userset);
-			List<User> userlist2 = new LinkedList<User>();
-			int currIdx = (page > 1 ? (page-1)*size : 0);		
-			for (int i = 0; i < size && i < userlist1.size()-currIdx; i++) {
-				User user = userlist1.get(currIdx + i);
-				userlist2.add(user);
-			}
-					
-			List<Map<String, Object>> users = new LinkedList<Map<String, Object>>();
-			for (User user : userlist2) {
-				Map<String, Object> usermap = new HashMap<String, Object>();
-				usermap.put("userID", user.getUserID());
-				usermap.put("username", user.getUsername());
-				usermap.put("nickname", user.getNickname());
-				usermap.put("vipKind", user.getVipKind());
-				usermap.put("youbiAmount", user.getYoubiAmount());
-				usermap.put("balance", user.getBalance());
-				users.add(usermap);
-			}
-			Long userAmount = (long) userset.size();
-			Long pageAmount = 0l;
-			if (userAmount % size == 0) {
-				pageAmount = userAmount / size;
-			} else {
-				pageAmount = userAmount / size + 1;
-			}
-			Map<String, Object> data = new HashMap<String, Object>();
-			data.put("userlist", users);
-			data.put("userAmount", userAmount);
-			data.put("pageAmount", pageAmount);
-			return new CommonVO(true, "查询原创作者成功！", data);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return new CommonVO(false, "查询原创作者失败。", "出错信息：" + e.getMessage());
 		}
 	}
 }

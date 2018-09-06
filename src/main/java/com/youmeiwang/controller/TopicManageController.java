@@ -162,8 +162,12 @@ public class TopicManageController {
 		
 		Topic topic = topicService.queryTopic("topicID", topicID);
 		topic.setTopicName(topicName);
-		topic.setPicturePath(picturePath);
-		topic.setDescribe(describe);
+		if (picturePath != null && !"".equals(picturePath.trim())) {
+			topic.setPicturePath(picturePath);
+		}
+		if (describe != null && !"".equals(describe.trim())) {
+			topic.setDescribe(describe);
+		}
 		topic.setWorks(works);
 		try {
 			topicService.updateTopic(topic);

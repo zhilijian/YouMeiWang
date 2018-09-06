@@ -1,6 +1,8 @@
 package com.youmeiwang.util;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -13,7 +15,10 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
@@ -22,6 +27,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.youmeiwang.entity.FileInfo;
 
 public class FileUtil {
 	
@@ -95,7 +102,7 @@ public class FileUtil {
     	return data;
 	}
 	
-	public static void download(String userID, String fileName, String filePath, HttpServletRequest request, HttpServletResponse response) throws UnsupportedEncodingException {
+	public static void download(String fileName, String filePath, HttpServletResponse response) throws UnsupportedEncodingException {
 		
 		File file = new File(filePath);
 		response.setContentType("application/force-download");// 设置强制下载不打开
@@ -138,6 +145,63 @@ public class FileUtil {
             }
             System.gc();
         }
+	}
+	
+	public static void downloadZIP(String zipName, List<FileInfo> filelist, HttpServletResponse response)
+			throws UnsupportedEncodingException {
+
+		response.setContentType("application/force-download");// 设置强制下载不打开
+		response.addHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+		response.addHeader("charset", "utf-8");
+		response.addHeader("Pragma", "no-cache");
+		String encodeName = URLEncoder.encode(zipName, StandardCharsets.UTF_8.toString());
+		response.setHeader("Content-Disposition",
+				"attachment; filename=\"" + encodeName + "\"; filename*=utf-8''" + encodeName);
+
+		ZipOutputStream zipos = null;
+		DataOutputStream os = null;
+		try {
+			zipos = new ZipOutputStream(new BufferedOutputStream(response.getOutputStream()));
+			zipos.setMethod(ZipOutputStream.DEFLATED);// 设置压缩方法
+
+			for (int i = 0; i < filelist.size(); i++) {
+				String filePath = filelist.get(i).getFilePath();
+				String fileName = filelist.get(i).getFileName();
+				File file = new File(filePath);
+
+				// 添加ZipEntry，并ZipEntry中写入文件流
+				// 这里，加上i是防止要下载的文件有重名的导致下载失败
+				zipos.putNextEntry(new ZipEntry(i + "." + fileName));
+				os = new DataOutputStream(zipos);
+				InputStream is = new FileInputStream(file);
+				byte[] b = new byte[100];
+				int length = 0;
+				while ((length = is.read(b)) != -1) {
+					os.write(b, 0, length);
+				}
+				is.close();
+				zipos.closeEntry();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			if (os != null) {
+				try {
+					os.flush();
+					os.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			if (zipos != null) {
+				try {
+					zipos.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			System.gc();
+		}
 	}
 	
 	public static String generatePrefix() {

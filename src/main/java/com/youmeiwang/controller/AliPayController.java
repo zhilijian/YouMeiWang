@@ -8,10 +8,12 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.alipay.api.AlipayClient;
 import com.alipay.api.domain.AlipayTradePagePayModel;
@@ -32,7 +34,7 @@ import com.youmeiwang.vo.CommonVO;
 import com.youmeiwang.vo.SimpleVO;
 
 @CrossOrigin
-@RestController
+@Controller
 @RequestMapping("/alipay")
 public class AliPayController {
 
@@ -52,6 +54,7 @@ public class AliPayController {
 	private PurchaseService purchaseService;
 	
 	@PostMapping("/createorder")
+	@ResponseBody
 	public SimpleVO createOrder(String userID, String workID, Double money, 
 			HttpServletRequest request, HttpServletResponse httpResponse, HttpSession session) {
 		
@@ -125,7 +128,30 @@ public class AliPayController {
 		}
 	}
 	
+	@GetMapping("/alipayreturn")
+	public String alipayReturn(HttpServletRequest request) {
+		Map<String, String> responseMap = alipayService.receiveOrder(request);
+		if (responseMap == null) { 
+			return "fail";
+		}
+
+		try {
+			String outTradeNo = responseMap.get("out_trade_no");
+			Order order = orderService.queryOrder("outTradeNo", outTradeNo);
+			String workID = order.getProductID();
+			if (workID != null) {
+				return "redirect:http://www.linshaocong.cn:8019/#/Details?workID=" + workID;
+			} else {
+				return "redirect:http://www.linshaocong.cn:8019/#/PersonalInformation";
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			return "fail"; 
+		}
+	}
+	
 	@PostMapping("/closeorder")
+	@ResponseBody
 	public CommonVO closeOrder(String userID,  String out_trade_no,
 			HttpSession session) {
 		
@@ -150,6 +176,7 @@ public class AliPayController {
 	}
 	
 	@PostMapping("/queryorder")
+	@ResponseBody
 	public CommonVO queryOrder(String userID,  String out_trade_no,
 			HttpSession session) {
 		

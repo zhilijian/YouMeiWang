@@ -169,7 +169,7 @@ public class UserMongodb implements UserDao {
 	}
 
 	@Override
-	public List<User> userList(String condition, Integer VIPKind, Integer memberKind) {
+	public List<User> userList(String condition, Integer VIPKind, Integer memberKind, Integer applyForOriginal) {
 		Query query = new Query();
 		if (condition != null && !"".equals(condition)) {
 			Criteria criteria1 = Criteria.where("userID").regex(condition);
@@ -182,6 +182,9 @@ public class UserMongodb implements UserDao {
 		}
 		if (memberKind != null) {
 			query.addCriteria(Criteria.where("memberKind").is(memberKind));
+		}
+		if (applyForOriginal != null) {
+			query.addCriteria(Criteria.where("applyForOriginal").is(applyForOriginal));
 		}
 		return mongoTemplate.find(query, User.class);
 	}

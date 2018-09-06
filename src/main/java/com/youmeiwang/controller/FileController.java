@@ -1,12 +1,13 @@
 package com.youmeiwang.controller;
 
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.catalina.servlet4preview.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,10 +20,13 @@ import org.springframework.web.multipart.MultipartFile;
 import com.youmeiwang.entity.Config;
 import com.youmeiwang.entity.FileInfo;
 import com.youmeiwang.entity.User;
+import com.youmeiwang.entity.Work;
 import com.youmeiwang.service.ConfigService;
 import com.youmeiwang.service.FileService;
 import com.youmeiwang.service.UserService;
+import com.youmeiwang.service.WorkService;
 import com.youmeiwang.util.FileUtil;
+import com.youmeiwang.util.ListUtil;
 import com.youmeiwang.vo.CommonVO;
 import com.youmeiwang.vo.SimpleVO;
 
@@ -33,6 +37,9 @@ public class FileController {
 	
 	@Autowired
 	private UserService userService;
+	
+	@Autowired
+	private WorkService workService;
 	
 	@Autowired
 	private ConfigService configService;
@@ -105,26 +112,86 @@ public class FileController {
 	@GetMapping(value = "download")
 	public SimpleVO download(@RequestParam(name="userID", required=false) String userID,
 			@RequestParam(name="adminID", required=false) String adminID,
+			@RequestParam(name="workID", required=true) String workID,
 			@RequestParam(name="fileID", required=true) String fileID,
-			HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+			HttpServletResponse response, HttpSession session) {
 		
-//		if (session.getAttribute(userID) == null && session.getAttribute(userID) == null) {
+//		if (session.getAttribute(userID) == null && session.getAttribute(adminID) == null) {
 //			return new SimpleVO(false, "该用户尚未登录。");
 //		}
 		
 		try {
 			User user = userService.queryUser("userID", userID);
+			Work work = workService.queryWork("workID", workID);
+			if (work == null || work.getIsDelete()) {
+				return new SimpleVO(false, "该作品并不存在或已被删除。");
+			}
+			
 			FileInfo fileInfo = fileService.queryFile("fileID", fileID);
 			if (user != null) {
-				String workID = fileInfo.getWorkID();
 				boolean isPurchase = user.getPurchaseWork().contains(workID);
-				if (!isPurchase && !user.getUsername().equals(fileInfo.getAuthor())) {
+				boolean isAuthor = user.getUsername().equals(fileInfo.getAuthor());
+				if (!isPurchase && !isAuthor) {
 					return new SimpleVO(false, "该用户尚未购买此作品。");
 				}
+				List<String> worklist = ListUtil.addElement(user.getDownWork(), workID);
+				userService.setUser("userID", userID, "downWork", worklist);
 			}
+			
 			String fileName = fileInfo.getFileName();
 			String filePath = fileInfo.getFilePath();
-			FileUtil.download(userID, fileName, filePath, request, response);
+			FileUtil.download(fileName, filePath, response);
+			long downloadNum = work.getDownloadNum() + 1;
+			
+			workService.setWork("workID", workID, "downloadNum", downloadNum);
+			return new SimpleVO(true, "文件下载成功！");
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new SimpleVO(false, "出错信息：" + e.toString());
+		}
+	}
+	
+	@GetMapping(value = "downloadZIP")
+	public SimpleVO downloadZIP(@RequestParam(name="userID", required=false) String userID,
+			@RequestParam(name="adminID", required=false) String adminID,
+			@RequestParam(name="workID", required=true) String workID,
+			@RequestParam(name="fileIDs", required=true) String[] fileIDs,
+			HttpServletResponse response, HttpSession session) {
+		
+//		if (session.getAttribute(userID) == null && session.getAttribute(adminID) == null) {
+//			return new SimpleVO(false, "该用户尚未登录。");
+//		}
+		
+		try {
+			User user = userService.queryUser("userID", userID);
+			Work work = workService.queryWork("workID", workID);
+			if (work == null || work.getIsDelete()) {
+				return new SimpleVO(false, "该作品并不存在或已被删除。");
+			}
+			
+			List<FileInfo> filelist = new LinkedList<FileInfo>();
+			for (int i = 0; i < fileIDs.length; i++) {
+				FileInfo fileInfo = fileService.queryFile("fileID", fileIDs[i]);
+				if (fileInfo != null) {
+					filelist.add(fileInfo);
+				}
+			}
+			if (user != null) {
+				String username = user.getUsername();
+				boolean isPurchase = user.getPurchaseWork().contains(workID);
+				boolean isAuthor = true;
+				for (FileInfo fileInfo : filelist) {
+					if (!fileInfo.getAuthor().equals(username)) {
+						isAuthor = false;
+					}
+				}
+				if (!isPurchase && !isAuthor) {
+					return new SimpleVO(false, "该用户并非作者且尚未购买此作品。");
+				}
+			}
+			FileUtil.downloadZIP(work.getWorkName() + ".zip", filelist, response);
+			long downloadNum = work.getDownloadNum() + 1;
+			workService.setWork("workID", workID, "downloadNum", downloadNum);
 			return new SimpleVO(true, "文件下载成功！");
 		} catch (Exception e) {
 			e.printStackTrace();
