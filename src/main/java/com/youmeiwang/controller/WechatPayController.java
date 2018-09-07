@@ -86,7 +86,7 @@ public class WechatPayController {
 	@PostMapping("/wechatnotify")
 	public String wechatNotify(HttpServletRequest request) throws MalformedURLException, IOException {
 		
-		SortedMap<String, String> resultMap = wechatPayService.receiveOrder(request);
+		SortedMap<String, String> resultMap = wechatPayService.receiveInfo(request);
 		if (resultMap == null || !"SUCCESS".equals(resultMap.get("return_code"))) {
 			return "<xml><return_code><![CDATA[FAIL]]></return_code><return_msg><![CDATA[请求失败。]]></return_msg></xml>";
 		}

@@ -13,7 +13,9 @@ public class ListUtil {
 		if (list1 != null) {
 			list2 = list1;
 		}
-		list2.add(element);
+		if (!list2.contains(element)) {
+			list2.add(element);
+		}
 		return list2;
 	}
 	

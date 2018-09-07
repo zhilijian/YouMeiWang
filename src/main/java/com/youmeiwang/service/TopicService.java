@@ -84,6 +84,10 @@ public class TopicService {
 		return topicDao.getTopicAmount(condition1, value1, condition2, value2);
 	}
 	
+	public List<Topic> topiclist(boolean isRecommend) {
+		return topicDao.topiclist(isRecommend);
+	}
+	
 	public List<Topic> topicList(Map<String, Object> conditions, Integer page, Integer size) {
 		return topicDao.topicList(conditions, page, size);
 	}

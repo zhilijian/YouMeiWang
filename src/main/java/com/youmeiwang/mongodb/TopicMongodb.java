@@ -95,6 +95,15 @@ public class TopicMongodb implements TopicDao{
 	}
 	
 	@Override
+	public List<Topic> topiclist(boolean isRecommend) {
+		Query query = new Query();
+		if (isRecommend) {
+			query.addCriteria(Criteria.where("isRecommend").is(1));
+		}
+		return mongoTemplate.find(query, Topic.class);
+	}
+
+	@Override
 	public List<Topic> topicList(Map<String, Object> conditions, Integer page, Integer size) {
 		Query query = new Query();
 		if (conditions != null) {

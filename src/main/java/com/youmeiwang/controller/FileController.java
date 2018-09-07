@@ -188,6 +188,8 @@ public class FileController {
 				if (!isPurchase && !isAuthor) {
 					return new SimpleVO(false, "该用户并非作者且尚未购买此作品。");
 				}
+				List<String> worklist = ListUtil.addElement(user.getDownWork(), workID);
+				userService.setUser("userID", userID, "downWork", worklist);
 			}
 			FileUtil.downloadZIP(work.getWorkName() + ".zip", filelist, response);
 			long downloadNum = work.getDownloadNum() + 1;

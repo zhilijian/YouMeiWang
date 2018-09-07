@@ -146,6 +146,15 @@
 			<artifactId>dom4j</artifactId>
 			<version>1.6.1</version><!--$NO-MVN-MAN-VER$-->
 		</dependency>
+
+		<dependency>
+		    <groupId>org.eclipse.jetty</groupId>
+		    <artifactId>jetty-client</artifactId>
+		    <version>9.4.12.v20180830</version><!--$NO-MVN-MAN-VER$-->
+		</dependency>
+
+				
+				
 	</dependencies>
 
 	<build>

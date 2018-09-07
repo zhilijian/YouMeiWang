@@ -91,6 +91,7 @@ public class AliPayController {
 	}
 	
 	@PostMapping("/alipaynotify")
+	@ResponseBody
 	public String alipayNotify(HttpServletRequest request) {
 		Map<String, String> responseMap = alipayService.receiveOrder(request);
 		if (responseMap == null) { 

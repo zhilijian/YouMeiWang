@@ -46,9 +46,10 @@ public class UserController {
 		
 		try {
 			User user = userService.addUser(username);
+			String userID = user.getUserID();
 			String title = "新用户注册成功！";
 			String content = "亲爱的" + username+ "，欢迎来到奇妙的游模网。";
-			newsService.addNews(username, title, content, 1);
+			newsService.addNews(userID, title, content, 1);
 			
 			Map<String, Object> data = new HashMap<String, Object>();
 			data.put("userID", user.getUserID());

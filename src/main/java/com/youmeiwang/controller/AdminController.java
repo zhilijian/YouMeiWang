@@ -33,17 +33,18 @@ public class AdminController {
 	
 	@PostMapping("/login")
 	public CommonVO login(@RequestParam(name="adminname", required=true) String adminname, 
-						@RequestParam(name="password", required=true) String password1, 
+						@RequestParam(name="password", required=true) String password, 
 						HttpSession session) {
-		Admin admin = adminService.queryAdmin("adminname", adminname);
-		String password = admin.getPassword();
-		
-		
-		
-		Map<String, Object> data = new HashMap<String, Object>();
 		Admin admin = adminService.queryAdmin("adminname", adminname, "password", password);
-		if (admin != null) {
-			session.setAttribute(admin.getAdminID(), admin.getAdminID());
+		if (admin == null) {
+			return new CommonVO(false, "该管理员不存在。", "{}");
+		}
+		
+		try {
+			String adminID = admin.getAdminID();
+			session.setAttribute(adminID, adminID);
+			
+			Map<String, Object> data = new HashMap<String, Object>();
 			data.put("adminID", admin.getAdminID());
 			data.put("adminname", adminname);
 			data.put("position", admin.getPosition());
@@ -53,8 +54,9 @@ public class AdminController {
 			data.put("rechargeManage", admin.getRechargeManage());
 			data.put("roleAuthority", admin.getRoleAuthority());
 			return new CommonVO(true, "用户登录成功！", data);
-		} else {
-			return new CommonVO(false, "用户登录失败。", "请先注册后登录。");
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new CommonVO(false, "用户登录失败。", "出错信息：" + e.toString());
 		}
 	}
 	

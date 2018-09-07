@@ -4,8 +4,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -16,8 +14,6 @@ import com.aliyun.mns.common.ServiceException;
 @Service
 public class WeChatAuthServiceImpl extends DefaultAuthServiceImpl implements WeChatAuthService{
 
-	private Logger logger = LoggerFactory.getLogger(WeChatAuthServiceImpl.class);
-	
 	//请求此地址即跳转到二维码登录界面
     private static final String AUTHORIZATION_URL =
             "https://open.weixin.qq.com/connect/qrconnect?appid=%s&redirect_uri=%s&response_type=code&scope=%s&state=%s#wechat_redirect";
@@ -32,11 +28,11 @@ public class WeChatAuthServiceImpl extends DefaultAuthServiceImpl implements WeC
     private static final String USER_INFO_URL =
             "https://api.weixin.qq.com/sns/userinfo?access_token=%s&openid=%s&lang=zh_CN";
 
-    private static final String APP_ID="wx53612b7eca676a47";
-    private static final String APP_SECRET="6bc8dc618540f4f19b531b8b1e363a8f";
+    private static final String APP_ID="wxaee65e127c361d51";
+    private static final String APP_SECRET="c88cc6b110238ed69c58e4d6842fd817";
     private static final String SCOPE = "snsapi_login";
 
-    private String callbackUrl = "http://anbangtech.com/getAuthorizeURL"; //回调域名
+    private String callbackUrl = "http://www.linshaocong.cn"; //回调域名
     
     @Override
     public String getAuthorizationUrl() throws UnsupportedEncodingException {
@@ -53,7 +49,6 @@ public class WeChatAuthServiceImpl extends DefaultAuthServiceImpl implements WeC
         URI uri = builder.build().encode().toUri();
 
         String resp = getRestTemplate().getForObject(uri, String.class);
-        logger.error("getAccessToken resp = "+resp);
         if(resp.contains("openid")){
             JSONObject jsonObject = JSONObject.parseObject(resp);
             String access_token = jsonObject.getString("access_token");
@@ -83,7 +78,6 @@ public class WeChatAuthServiceImpl extends DefaultAuthServiceImpl implements WeC
         URI uri = builder.build().encode().toUri();
 
         String resp = getRestTemplate().getForObject(uri, String.class);
-        logger.error("getUserInfo resp = "+resp);
         if(resp.contains("errcode")){
             throw new ServiceException("获取用户信息错误，msg = ",resp);
         }else{

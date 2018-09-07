@@ -29,7 +29,7 @@ public class UserService {
 		} while (userDao.queryUser("userID", userID) != null);
 		user.setUserID(userID);
 		user.setUsername(username);
-		user.setNickname("游侠");
+		user.setNickname("游模网_游客");
 		user.setYoubiAmount(0l);
 		user.setBalance(0.0);
 		List<Integer> vipKind = new ArrayList<Integer>();

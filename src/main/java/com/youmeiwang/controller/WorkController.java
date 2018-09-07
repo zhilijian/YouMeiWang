@@ -171,7 +171,7 @@ public class WorkController {
 				break;
 			}
 			workService.setWork("workID", workID, "isDelete", true);
-			return new SimpleVO(true, "删除作品成功。"); 
+			return new SimpleVO(true, "删除作品成功!"); 
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new SimpleVO(false, "出错信息：" + e.toString());
@@ -333,6 +333,7 @@ public class WorkController {
 				workmap.put("uploadTime", new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date(work.getUploadTime())));
 				workmap.put("downloadNum", work.getDownloadNum());
 				workmap.put("collectNum", work.getCollectNum());
+				workmap.put("workType", workType);
 				maplist.add(workmap);
 			}
 			
@@ -354,61 +355,10 @@ public class WorkController {
 		}
 	}
 
-	@PostMapping("/worksearch1")
-	public CommonVO workSearch1(@RequestParam(name="modelType", required=false) Integer modelType,
+	@PostMapping("/worksearch")
+	public CommonVO workSearch(@RequestParam(name="modelType", required=false) Integer modelType,
 			@RequestParam(name="condition", required=false) String condition,
-			@RequestParam(name="pattern", required=false) Integer pattern,
-			@RequestParam(name="sortType", required=false) Integer sortType,
-			@RequestParam(name="page", required=true) Integer page,
-			@RequestParam(name="size", required=true) Integer size) {
-		
-		try {
-			List<Work> worklist1 = workService.worklist(modelType, condition, pattern, sortType);;
-			List<Work> worklist2 = new LinkedList<Work>();
-			int currIdx = (page > 1 ? (page-1)*size : 0);
-			for (int i = 0; i < size && i < worklist1.size()-currIdx; i++) {
-				Work work = worklist1.get(currIdx + i);
-				worklist2.add(work);
-			}
-			
-			List<Map<String, Object>> maplist = new LinkedList<Map<String, Object>>();
-			for (Work work : worklist2) {
-				Map<String, Object> workmap = new HashMap<String, Object>();
-				workmap.put("workID", work.getWorkID());
-				workmap.put("workName", work.getWorkName());
-				workmap.put("price", work.getPrice());
-				workmap.put("lables", work.getLabels());
-				workmap.put("yijifenlei", work.getYijifenlei());
-				String picture = null;
-				if (work.getPictures() != null && work.getPictures().size() > 0) {
-					picture = getFilePath(work.getPictures().get(0));
-				}
-				workmap.put("picture", picture);
-				workmap.put("downloadNum", work.getDownloadNum());
-				workmap.put("collectNum", work.getCollectNum());
-				maplist.add(workmap);
-			}
-			
-			Long workAmount = (long) worklist1.size();
-			Long pageAmount = 0l;
-			if (workAmount % size == 0) {
-				pageAmount = workAmount / size;
-			} else {
-				pageAmount = workAmount / size + 1;
-			}
-			Map<String, Object> data = new HashMap<String, Object>();
-			data.put("worklist", maplist);
-			data.put("workAmount", workAmount);
-			data.put("pageAmount", pageAmount);
-			return new CommonVO(true, "模型搜索成功！", data);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return new CommonVO(false, "模型搜索失败。", "出错信息：" + e.toString());
-		}
-	}
-	
-	@PostMapping("/worksearch2")
-	public CommonVO workSearch2(@RequestParam(name="primaryClassification", required=false) Integer primaryClassification,
+			@RequestParam(name="primaryClassification", required=false) Integer primaryClassification,
 			@RequestParam(name="secondaryClassification", required=false) Integer secondaryClassification,
 			@RequestParam(name="reclassify", required=false) Integer reclassify,
 			@RequestParam(name="pattern", required=false) Integer pattern,
@@ -417,7 +367,7 @@ public class WorkController {
 			@RequestParam(name="size", required=true) Integer size) {
 		
 		try {
-			List<Work> worklist1 = workService.worklist(primaryClassification, secondaryClassification, reclassify, pattern, sortType);
+			List<Work> worklist1 = workService.worklist(modelType, condition, primaryClassification, secondaryClassification, reclassify, pattern, sortType);
 			List<Work> worklist2 = new LinkedList<Work>();
 			int currIdx = (page > 1 ? (page-1)*size : 0);
 			for (int i = 0; i < size && i < worklist1.size()-currIdx; i++) {
@@ -437,7 +387,6 @@ public class WorkController {
 				if (work.getPictures() != null && work.getPictures().size() > 0) {
 					picture = getFilePath(work.getPictures().get(0));
 				}
-				workmap.put("picture", picture);
 				workmap.put("picture", picture);
 				workmap.put("downloadNum", work.getDownloadNum());
 				workmap.put("collectNum", work.getCollectNum());
@@ -503,25 +452,27 @@ public class WorkController {
 //		}
 		
 		try {
-			User user = userService.queryUser("userID", userID);
-			List<String> collectWork1 = new ArrayList<String>();
-			List<String> collectWork2 = new ArrayList<String>();
+ 			User user = userService.queryUser("userID", userID);
+			Work work = workService.queryWork("workID", workID);
+			Long collectNum = work.getCollectNum();
+			List<String> collectWork = new ArrayList<String>();
 			if (user.getCollectWork() != null) {
-				collectWork1 = user.getCollectWork();
+				collectWork = user.getCollectWork();
 			}
 			
 			if (collectOrCancel) {
-				if (collectWork1.contains(workID)) {
-					return new SimpleVO(false, "该作品已被收藏。"); 
+				if (collectWork.contains(workID)) {
+					return new SimpleVO(true, "该作品已被收藏。");
 				}
-				collectWork2 = ListUtil.addElement(collectWork1, workID);
+				userService.setUser("userID", userID, "collectWork", ListUtil.addElement(collectWork, workID));
+				workService.setWork("workID", workID, "collectNum", collectNum + 1);
 			} else {
-				if (!collectWork1.contains(workID)) {
-					return new SimpleVO(false, "该作品尚未被收藏。"); 
+				if (!collectWork.contains(workID)) {
+					return new SimpleVO(true, "该作品尚未被收藏。"); 
 				} 
-				collectWork2 = ListUtil.removeElement(collectWork1, workID);
+				userService.setUser("userID", userID, "collectWork", ListUtil.removeElement(collectWork, workID));
+				workService.setWork("workID", workID, "collectNum", collectNum - 1);
 			}
-			userService.setUser("userID", userID, "collectWork", collectWork2);
 			return new SimpleVO(true, "收藏/取消作品成功！");
 		} catch (Exception e) {
 			e.printStackTrace();

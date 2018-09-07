@@ -344,7 +344,7 @@ public class WorkMongodb implements WorkDao{
 	}
 
 	@Override
-	public List<Work> worklist(Integer modelType, String condition, Integer pattern, Integer sortType) {
+	public List<Work> worklist(Integer modelType, String condition, Integer primaryClassification, Integer secondaryClassification, Integer reclassify, Integer pattern, Integer sortType) {
 		Query query = new Query();
 		if (condition != null && !"".equals(condition)) {
 			Criteria criteria1 = Criteria.where("workID").regex(condition);
@@ -364,31 +364,6 @@ public class WorkMongodb implements WorkDao{
 				break;
 			}
 		}
-		if (pattern != null) {
-			query.addCriteria(Criteria.where("pattern").is(pattern));
-		}
-		if (sortType != null) {
-			switch (sortType) {
-			case 1:
-				query.with(new Sort(new Order(Sort.Direction.DESC, "uploadTime")));
-				break;
-			case 2:
-				query.with(new Sort(new Order(Sort.Direction.DESC, "downloadNum")));
-				break;
-			case 3:
-				query.with(new Sort(new Order(Sort.Direction.DESC, "collectNum")));
-				break;
-			default:
-				break;
-			}
-		}
-		return mongoTemplate.find(query, Work.class);
-	}
-
-	@Override
-	public List<Work> worklist(Integer primaryClassification, Integer secondaryClassification, 
-			Integer reclassify,Integer pattern, Integer sortType) {
-		Query query = new Query();
 		if (primaryClassification != null) {
 			query.addCriteria(Criteria.where("primaryClassification").is(primaryClassification));
 		}
@@ -416,6 +391,7 @@ public class WorkMongodb implements WorkDao{
 				break;
 			}
 		}
+		query.addCriteria(Criteria.where("verifyState").is(1));
 		return mongoTemplate.find(query, Work.class);
 	}
 }

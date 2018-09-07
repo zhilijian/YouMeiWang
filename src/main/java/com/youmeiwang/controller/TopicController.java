@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.youmeiwang.entity.FileInfo;
 import com.youmeiwang.entity.Topic;
 import com.youmeiwang.entity.User;
 import com.youmeiwang.entity.Work;
@@ -57,15 +56,18 @@ public class TopicController {
 			User user = userService.queryUser("userID", userID);
 			Topic topic = topicService.queryTopic("topicID", topicID);
 			topicService.setTopic("topicID", topicID, "browsed", topic.getBrowsed() + 1);
-			List<String> workIDs = topic.getWorks();
+			
+			List<String> workIDs1 = topic.getWorks();
+			List<String> workIDs2 = new LinkedList<String>();
 			List<Work> worklist1 = new LinkedList<Work>();
-			for (String workID : workIDs) {
+			for (String workID : workIDs1) {
 				Work work = workService.queryWork("workID", workID);
 				if (work != null) {
+					workIDs2.add(workID);
 					worklist1.add(work);
 				}
 			}
-			
+			topicService.setTopic("topicID", topicID, "works", workIDs2);
 			List<Work> worklist2 = new LinkedList<Work>();
 			int currIdx = (page > 1 ? (page-1)*size : 0);
 			for (int i = 0; i < size && i < worklist1.size()-currIdx; i++) {
@@ -80,11 +82,11 @@ public class TopicController {
 				workmap.put("workName", work.getWorkName());
 				workmap.put("yijifenlei", work.getYijifenlei());
 				workmap.put("price", work.getPrice());
-				String picture = null;
+				String picturePath = null;
 				if (work.getPictures() != null && work.getPictures().size() > 0) {
-					picture = getFilePath(work.getPictures().get(0));
+					picturePath = fileService.getFilePath(work.getPictures().get(0));
 				}
-				workmap.put("picture", picture);
+				workmap.put("picture", picturePath);
 				workmap.put("collectNum", work.getCollectNum());
 				workmap.put("downloadNum", work.getDownloadNum());
 				works.add(workmap);
@@ -113,55 +115,53 @@ public class TopicController {
 			}
 			data.put("workAmount", workAmount);
 			data.put("pageAmount", pageAmount);
-			return new CommonVO(true, "查询专题成功！", data);
+			return new CommonVO(true, "查询专题详情成功！", data);
 		} catch (Exception e) {
 			e.printStackTrace();
-			return new CommonVO(false,"查询专题失败。", "出错信息：" + e.toString());
+			return new CommonVO(false,"查询专题详情失败。", "出错信息：" + e.toString());
 		}
 	}
 	
 	@GetMapping("/topiclist")
 	public CommonVO topicList(@RequestParam(name="userID", required=false) String userID,
-			@RequestParam(name="isRecommend", required=true) Boolean isRecommend,
-			@RequestParam(name="page", required=true) Integer page,
-			@RequestParam(name="size", required=true) Integer size) {
+			@RequestParam(name="isRecommend", required=true) boolean isRecommend,
+			@RequestParam(name="page", required=false, defaultValue="1") Integer page,
+			@RequestParam(name="size", required=false, defaultValue="4") Integer size) {
 		
 		if (page <= 0 || size <= 0) {
 			return new CommonVO(false, "参数输入不合理。", "请先核对后重新输入参数。");
 		}
 		try {
 			User user = userService.queryUser("userID", userID);
-			List<Topic> topicList1 = new ArrayList<Topic>();
-			List<Topic> topicList2 = new ArrayList<Topic>();
-			
-			Map<String,Object> conditions = new HashMap<String,Object>();
-			if (isRecommend) {
-				conditions.put("isRecommend", 1);
-			}
+			List<Topic> topiclist1 = new ArrayList<Topic>();
+			List<Topic> topiclist2 = new ArrayList<Topic>();
 			
 			if (user == null) {
-				topicList1 = topicService.topicList(conditions, null, null);
+				topiclist1 = topicService.topiclist(isRecommend);
 			} else {
-				if (user.getCollectTopic() == null || user.getCollectTopic().size() == 0) {
+				List<String> collectTopic = user.getCollectTopic();
+				if (collectTopic == null || collectTopic.size() == 0) {
 					return new CommonVO(false, "该用户无收藏专题", "{}");
 				}
 				
-				for (String topicID : user.getCollectTopic()) {
+				for (String topicID : collectTopic) {
 					Topic topic = topicService.queryTopic("topicID", topicID);
 					if (topic == null) {
+						collectTopic.remove(topicID);
 						continue;
 					}
-					topicList1.add(topic);
+					topiclist1.add(topic);
 				}
+				userService.setUser("userID", userID, "collectTopic", collectTopic);
 			}
 			
 			int currIdx = (page > 1 ? (page-1)*size : 0);
-			for (int i = 0; i < size && i < topicList1.size()-currIdx; i++) {
-				Topic topic = topicList1.get(currIdx + i);
-				topicList2.add(topic);
+			for (int i = 0; i < size && i < topiclist1.size()-currIdx; i++) {
+				Topic topic = topiclist1.get(currIdx + i);
+				topiclist2.add(topic);
 			}
 			
-			Long topicAmount = (long) topicList1.size();
+			Long topicAmount = (long) topiclist1.size();
 			Long pageAmount = 0l;
 			if (topicAmount % size == 0) {
 				pageAmount = topicAmount / size;
@@ -170,25 +170,36 @@ public class TopicController {
 			}
 			
 			List<Map<String, Object>> maplist = new LinkedList<Map<String, Object>>();
-			for (Topic topic : topicList2) {
+			for (Topic topic : topiclist2) {
+				String topicID = topic.getTopicID();
 				Map<String, Object> map = new HashMap <String, Object>();
-				map.put("topicID", topic.getTopicID());
+				map.put("topicID", topicID);
 				map.put("topicName", topic.getTopicName());
 				map.put("picturePath", topic.getPicturePath());
 				map.put("describe", topic.getDescribe());
 				map.put("collected", topic.getCollected());
 				map.put("browsed", topic.getBrowsed());
-				List<String> works = topic.getWorks();
-				if (works != null && works.size() > 0) {
-					for (int i = 0; i < 3 && i < works.size(); i++) {
-						String workID = works.get(i);
-						Work work = workService.queryWork("workID", workID);
-						String picture = null;
-						if (work.getPictures() != null && work.getPictures().size() > 0) {
-							picture = getFilePath(work.getPictures().get(0));
+				
+				List<String> workIDs = topic.getWorks();
+				if (workIDs != null && workIDs.size() > 0) {
+					List<Map<String, Object>> picturePaths = new LinkedList<Map<String, Object>>();
+					
+					for (int i = 0, j = 0; i < workIDs.size() && j < 3; i++) {
+						Map<String, Object> picturemap = new HashMap<String, Object>();
+						Work work = workService.queryWork("workID", workIDs.get(i));
+						if (work == null) {
+							continue;
 						}
-						map.put("picturePath" + (i+1), picture);
+						String picturePath = null;
+						if (work.getPictures() != null && work.getPictures().size() > 0) {
+							picturePath = fileService.getFilePath(work.getPictures().get(0));
+						}
+						picturemap.put("topicID", topicID);
+						picturemap.put("picturePath", picturePath);
+						picturePaths.add(picturemap);
+						j++;
 					}
+					map.put("picturePaths", picturePaths);
 				}
 				maplist.add(map);
 			}
@@ -217,33 +228,29 @@ public class TopicController {
 		
 		try {
 			User user = userService.queryUser("userID", userID);
-			List<String> collectTopic1 = new ArrayList<String>();
-			List<String> collectTopic2 = new ArrayList<String>();
+			Topic topic = topicService.queryTopic("topicID", topicID);
+			Long collectNum = topic.getCollected();
+			
+			List<String> collectTopic = new ArrayList<String>();
 			if (user.getCollectTopic() != null) {
-				collectTopic1 = user.getCollectTopic();
+				collectTopic = user.getCollectTopic();
 			}
 			
 			if (isCollect) {
-				if (collectTopic1.contains(topicID)) {
-					return new SimpleVO(false, "该专题已被收藏。"); 
-				} 
-				collectTopic2 = ListUtil.addElement(collectTopic1, topicID);
+				if (collectTopic.add(topicID)) {
+					topicService.setTopic("topicID", topicID, "collected", collectNum + 1);
+					userService.setUser("userID", userID, "collectTopic", ListUtil.addElement(collectTopic, topicID));
+				}
 			} else {
-				if (!collectTopic1.contains(topicID)) {
-					return new SimpleVO(false, "该专题尚未被收藏。"); 
-				} 
-				collectTopic2 = ListUtil.removeElement(collectTopic1, topicID);
+				if (collectTopic.remove(topicID)) {
+					userService.setUser("userID", userID, "collectTopic", ListUtil.removeElement(collectTopic, topicID));
+					topicService.setTopic("topicID", topicID, "collected", collectNum - 1);
+				}
 			}
-			userService.setUser("userID", userID, "collectTopic", collectTopic2);
-			return new SimpleVO(true, "收藏专题成功！"); 
+			return new SimpleVO(true, "收藏/取消专题成功！"); 
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new SimpleVO(false, "出错信息：" + e.toString()); 
 		}
-	}
-	
-	private String getFilePath(String fileID) {
-		FileInfo fileInfo = fileService.queryFile("fileID", fileID);
-		return fileInfo.getFilePath();
 	}
 }

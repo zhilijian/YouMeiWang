@@ -131,11 +131,8 @@ public class WorkService {
 		return workDao.workList1(conditions, page, size);
 	}
 	
-	public List<Work> worklist(Integer modelType, String condition, Integer pattern, Integer sortType){
-		return workDao.worklist(modelType, condition, pattern, sortType);
-	}
-	
-	public List<Work> worklist(Integer primaryClassification, Integer secondaryClassification, Integer reclassify, Integer pattern, Integer sortType){
-		return workDao.worklist(primaryClassification, secondaryClassification, reclassify, pattern, sortType);
+	public List<Work> worklist(Integer modelType, String condition, Integer primaryClassification, 
+			Integer secondaryClassification, Integer reclassify, Integer pattern, Integer sortType){
+		return workDao.worklist(modelType, condition, primaryClassification, secondaryClassification, reclassify, pattern, sortType);
 	}
 }

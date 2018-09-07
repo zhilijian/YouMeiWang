@@ -39,7 +39,7 @@ public class WeChatPayService {
 		return orderRequest(orderInfo, url);
 	}
 	
-	public SortedMap<String, String> receiveOrder(HttpServletRequest request) {
+	public SortedMap<String, String> receiveInfo(HttpServletRequest request) {
 		// 获取输入流
 		BufferedReader reader;
 		StringBuffer sb = new StringBuffer();

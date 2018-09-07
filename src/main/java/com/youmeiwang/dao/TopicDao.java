@@ -28,6 +28,8 @@ public interface TopicDao {
 	
 	public Long getTopicAmount(String condition1, String value1, String condition2, Integer value2);
 	
+	public List<Topic> topiclist(boolean isRecommend);
+	
 	public List<Topic> topicList(Map<String, Object> conditions, Integer page, Integer size);
 	
 	public List<Topic> topicList(String condition1, String value1, String condition2, Integer value2, Integer page, Integer size);
