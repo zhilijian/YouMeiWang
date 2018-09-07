@@ -15,14 +15,14 @@ public class BBSService {
 	@Autowired
 	private BBSDao bbsDao;
 	
-	public BBS addBBS(String username, String workID, Integer correctionType, String comment) {
+	public BBS addBBS(String userID, String workID, Integer correctionType, String comment) {
 		BBS bbs = new BBS();
 		String bbsID = null;
 		do {
 			bbsID = RandomUtil.getRandomNumber(8);
 		} while (bbsDao.queryBBS("bbsID", bbsID) != null);
 		bbs.setBbsID(bbsID);
-		bbs.setUsername(username);
+		bbs.setUserID(userID);
 		bbs.setWorkID(workID);
 		bbs.setCorrectionType(correctionType);
 		bbs.setComment(comment);

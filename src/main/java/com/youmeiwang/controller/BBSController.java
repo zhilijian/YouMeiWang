@@ -15,11 +15,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.youmeiwang.entity.BBS;
-import com.youmeiwang.entity.User;
 import com.youmeiwang.service.AdminService;
 import com.youmeiwang.service.BBSService;
 import com.youmeiwang.service.NewsService;
-import com.youmeiwang.service.UserService;
 import com.youmeiwang.util.ContainUtil;
 import com.youmeiwang.vo.CommonVO;
 import com.youmeiwang.vo.SimpleVO;
@@ -29,9 +27,6 @@ import com.youmeiwang.vo.SimpleVO;
 @RequestMapping("/bbs")
 public class BBSController {
 
-	@Autowired
-	private UserService userService;
-	
 	@Autowired
 	private AdminService adminService;
 	
@@ -53,12 +48,11 @@ public class BBSController {
 //		}
 		
 		try {
-			User user = userService.queryUser("userID", userID);
-			String username = user.getUsername();
-			BBS bbs = bbsService.addBBS(username, workID, correctionType, comment);
 			String title = "信息纠错提交成功！";
 			String content = "感谢您的信息反馈，我们后台管理人员已接受并将尽快处理您的纠错信息！";
 			newsService.addNews(userID, title, content, 1);
+			
+			BBS bbs = bbsService.addBBS(userID, workID, correctionType, comment);
 			Map<String, Object> data = new HashMap<String, Object>();
 			data.put("bbsID", bbs.getBbsID());
 			data.put("userID", userID);
@@ -168,7 +162,7 @@ public class BBSController {
 			BBS bbs = bbsService.queryBBS("bbsID", bbsID);
 			Map<String, Object> data = new HashMap<String, Object>();
 			data.put("bbsID", bbsID);
-			data.put("username", bbs.getUsername());
+			data.put("userID", bbs.getUserID());
 			data.put("comment", bbs.getComment());
 			data.put("type", bbs.getType());
 			if (bbs.getType() == 1) {

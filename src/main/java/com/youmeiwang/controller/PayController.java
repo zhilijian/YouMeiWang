@@ -113,7 +113,7 @@ public class PayController {
 			userService.setUser("userID", userID, "purchaseWork", purchaseWork2);
 			String title = "购买作品成功！";
 			String content = "恭喜您，您已成功购买《" + work.getWorkName() +"》作品，请前往下载界面下载。下载有效时间为24小时。";
-			newsService.addNews(user1.getUsername(), title, content, 1);
+			newsService.addNews(userID, title, content, 1);
 			return new SimpleVO(true, "购买作品成功！");
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -197,7 +197,7 @@ public class PayController {
 			balanceRecordService.addBalanceRecord(userID, (double)fee, 2);
 			String title = "购买VIP成功！";
 			String content = "恭喜您，您已成功VIP权益，赶紧去体验我们的会员服务吧。";
-			newsService.addNews(user.getUsername(), title, content, 1);
+			newsService.addNews(userID, title, content, 1);
 			return new SimpleVO(true, "购买VIP成功！");
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -227,7 +227,7 @@ public class PayController {
 			balanceRecordService.addBalanceRecord(userID, (double)money, 1);
 			String title = "兑换游币成功！";
 			String content = "恭喜您，您已成功兑换" + money * 10 + "游币";
-			newsService.addNews(user.getUsername(), title, content, 1);
+			newsService.addNews(userID, title, content, 1);
 			
 			return new SimpleVO(true, "余额兑换游币成功。"); 
 		} catch (Exception e) {

@@ -23,8 +23,8 @@ public class AliPayService {
 		AlipayTradePagePayModel model = new AlipayTradePagePayModel();
 		model.setOutTradeNo(order.getOutTradeNo());
 		model.setProductCode("FAST_INSTANT_TRADE_PAY");
-//		model.setTotalAmount(order.getTotalFee().toString());
-		model.setTotalAmount("0.01");
+		model.setTotalAmount(order.getTotalFee().toString());
+//		model.setTotalAmount("0.01");
 		model.setSubject(order.getBody());
 		if ("RECHARGE".equals(order.getAttach())) {
 			model.setBody("RECHARGE");

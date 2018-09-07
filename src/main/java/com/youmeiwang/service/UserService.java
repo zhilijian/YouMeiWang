@@ -30,6 +30,7 @@ public class UserService {
 		user.setUserID(userID);
 		user.setUsername(username);
 		user.setNickname("游模网_游客");
+		user.setSex(0);
 		user.setYoubiAmount(0l);
 		user.setBalance(0.0);
 		List<Integer> vipKind = new ArrayList<Integer>();

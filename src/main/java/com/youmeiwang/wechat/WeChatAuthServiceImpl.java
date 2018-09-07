@@ -37,7 +37,7 @@ public class WeChatAuthServiceImpl extends DefaultAuthServiceImpl implements WeC
     @Override
     public String getAuthorizationUrl() throws UnsupportedEncodingException {
         callbackUrl = URLEncoder.encode(callbackUrl,"utf-8");
-        String url = String.format(AUTHORIZATION_URL,APP_ID,callbackUrl,SCOPE,System.currentTimeMillis());
+        String url = String.format(AUTHORIZATION_URL,APP_ID, callbackUrl,SCOPE, System.currentTimeMillis());
         return url;
     }
     
@@ -63,12 +63,6 @@ public class WeChatAuthServiceImpl extends DefaultAuthServiceImpl implements WeC
         }else{
             throw new ServiceException("获取token失败，msg = ",resp);
         }
-    }
-    
-  //微信接口中，token和openId是一起返回，故此方法不需实现
-    @Override
-    public String getOpenId(String accessToken) {
-        return null;
     }
     
     @Override
@@ -109,4 +103,29 @@ public class WeChatAuthServiceImpl extends DefaultAuthServiceImpl implements WeC
         String access_token = jsonObject.getString("access_token");
         return access_token;
     }
+
+   //微信接口中，token和openId是一起返回，故此方法不需实现
+	@Override
+	public String getOpenID(String accessToken) {
+		return null;
+	}
+
+	@Override
+	public JSONObject getUserInfo(String code) {
+		String url1 = String.format(ACCESSTOKE_OPENID_URL, APP_ID, APP_SECRET, code);
+		UriComponentsBuilder builder1 = UriComponentsBuilder.fromHttpUrl(url1);
+		URI uri1 = builder1.build().encode().toUri();
+
+        String resp1 = getRestTemplate().getForObject(uri1, String.class);
+        JSONObject jsonObject = JSONObject.parseObject(resp1);
+        String access_token = jsonObject.getString("access_token");
+        String openID = jsonObject.getString("openid");;
+
+        String url2 = String.format(USER_INFO_URL, access_token, openID);
+        UriComponentsBuilder builder2 = UriComponentsBuilder.fromHttpUrl(url2);
+        URI uri2 = builder2.build().encode().toUri();
+
+        String resp2 = getRestTemplate().getForObject(uri2, String.class);
+        return JSONObject.parseObject(resp2);
+	}
 }

@@ -11,12 +11,19 @@ public class User {
 	//用户ID userID
 	@Indexed
 	private String userID;
+	//用户统一标识。针对一个微信开放平台帐号下的应用，同一用户的unionid是唯一的。
+	private String unionid;
 	//账号 username
 	private String username;
 	//用户昵称 nickname
 	private String nickname;
 	//姓名 fullname
 	private String fullname;
+	/*
+	 * 性别 sex
+	 * 0:未知 1：男 2：女
+	 */
+	private Integer sex;
 	//手机号 phone
 	private String phone;
 	//用户头像(文件路径) portrait
@@ -72,6 +79,14 @@ public class User {
 	public void setUserID(String userID) {
 		this.userID = userID;
 	}
+	public String getUnionid() {
+		return unionid;
+	}
+
+	public void setUnionid(String unionid) {
+		this.unionid = unionid;
+	}
+
 	public String getUsername() {
 		return username;
 	}
@@ -89,6 +104,12 @@ public class User {
 	}
 	public void setFullname(String fullname) {
 		this.fullname = fullname;
+	}
+	public Integer getSex() {
+		return sex;
+	}
+	public void setSex(Integer sex) {
+		this.sex = sex;
 	}
 	public String getPhone() {
 		return phone;
