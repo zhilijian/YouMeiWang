@@ -394,4 +394,14 @@ public class WorkMongodb implements WorkDao{
 		query.addCriteria(Criteria.where("verifyState").is(1));
 		return mongoTemplate.find(query, Work.class);
 	}
+
+	@Override
+	public List<Work> worklist(Integer primaryClassification, Integer secondaryClassification) {
+		Query query = new Query();
+		query.addCriteria(Criteria.where("primaryClassification").is(primaryClassification));
+		query.addCriteria(Criteria.where("secondaryClassification").is(secondaryClassification));
+		query.addCriteria(Criteria.where("isDelete").is(false));
+		query.limit(8);
+		return mongoTemplate.find(query, Work.class);
+	}
 }

@@ -115,16 +115,23 @@ public class PayController {
 				transactionService.addTransaction(user2.getUserID(), null, fee * commissionRate, 0, 0);
 				balanceRecordService.addBalanceRecord(userID, (double)work.getPrice(), 2);
 			} else {
-				Long youbiAmount1 = user1.getYoubiAmount() - work.getPrice();
-				Long youbiAmount2 = user2.getYoubiAmount() + work.getPrice();
-				if (youbiAmount1 < 0) {
-					return new SimpleVO(false, "游币不足，请先兑换。");
+				Integer freedownload = user1.getFreedownload();
+				if (freedownload != null && freedownload > 0) {
+					userService.setUser("userID", userID, "freedownload", freedownload - 1);
+					purchaseService.addPurchase(userID, 3, workID, work.getWorkName(), null, null, work.getPrice(), 0);
+					
+				} else {
+					Long youbiAmount1 = user1.getYoubiAmount() - work.getPrice();
+					Long youbiAmount2 = user2.getYoubiAmount() + work.getPrice();
+					if (youbiAmount1 < 0) {
+						return new SimpleVO(false, "游币不足，请先兑换。");
+					}
+					userService.setUser("userID", userID, "youbiAmount", youbiAmount1);
+					userService.setUser("username", work.getAuthor(), "youbiAmount", youbiAmount2);
+					purchaseService.addPurchase(userID, 3, workID, work.getWorkName(), null, null, work.getPrice(), work.getPrice());
+					transactionService.addTransaction(userID, workID, null, 1, 1);
+					transactionService.addTransaction(user2.getUserID(), null, (double)work.getPrice(), 1, 0);
 				}
-				userService.setUser("userID", userID, "youbiAmount", youbiAmount1);
-				userService.setUser("username", work.getAuthor(), "youbiAmount", youbiAmount2);
-				purchaseService.addPurchase(userID, 3, workID, work.getWorkName(), null, null, work.getPrice(), work.getPrice());
-				transactionService.addTransaction(userID, workID, null, 1, 1);
-				transactionService.addTransaction(user2.getUserID(), null, (double)work.getPrice(), 1, 0);
 			}
 			List<String> purchaseWork1 = user1.getPurchaseWork();
 			List<String> purchaseWork2 = ListUtil.addElement(purchaseWork1, workID);
@@ -186,6 +193,7 @@ public class PayController {
 				calendar.add(Calendar.MONDAY, monthNum);
 				userService.setUser("userID", userID, "shareVIPTime", calendar.getTimeInMillis());
 				List<Integer> vips = ListUtil.addElement(user.getVipKind(), 1);
+				vips = ListUtil.removeElement(vips, 0);
 				Collections.sort(vips);
 				userService.setUser("userID", userID, "vipKind", vips);
 				break;
@@ -254,9 +262,9 @@ public class PayController {
 		
 		String userID = (String) session.getAttribute("userID");
 		User user = userService.queryUser("userID", userID);
-//		if (userID == null || user == null) {
-//			return new SimpleVO(false, "用户尚未登录或用户不存在");
-//		}
+		if (userID == null || user == null) {
+			return new SimpleVO(false, "用户尚未登录或用户不存在");
+		}
 		
 		try {
 			transactionService.addTransaction(userID, null, (double)money, 0, 3);

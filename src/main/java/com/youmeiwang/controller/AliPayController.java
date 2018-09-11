@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.alipay.api.AlipayClient;
@@ -25,6 +26,7 @@ import com.youmeiwang.config.AliPayConfig;
 import com.youmeiwang.entity.Order;
 import com.youmeiwang.entity.User;
 import com.youmeiwang.service.AliPayService;
+import com.youmeiwang.service.NewsService;
 import com.youmeiwang.service.OrderService;
 import com.youmeiwang.service.PurchaseService;
 import com.youmeiwang.service.UserService;
@@ -52,13 +54,19 @@ public class AliPayController {
 	@Autowired
 	private PurchaseService purchaseService;
 	
+	@Autowired
+	private NewsService newsService;
+	
 	@PostMapping("/createorder")
-	public SimpleVO createOrder(String userID, String workID, Double money, 
-			HttpServletRequest request, HttpServletResponse httpResponse, HttpSession session) {
+	public SimpleVO createOrder(@RequestParam(name="workID", required=false) String workID, 
+			@RequestParam(name="money", required=false) Double money,
+			HttpServletResponse httpResponse, HttpSession session) {
 		
-//		if (session.getAttribute(userID) == null) {
-//			return new SimpleVO(false, "用户尚未登录。"); 
-//		}
+		String userID = (String) session.getAttribute("userID");
+		User user = userService.queryUser("userID", userID);
+		if (userID == null || user == null) {
+			return new SimpleVO(false, "用户尚未登录或用户不存在");
+		}
 		
 		if (workID == null && money == null) {
 			return new SimpleVO(false, "商品和金额不能同时为空。");
@@ -67,6 +75,12 @@ public class AliPayController {
 		if (workID != null && money != null) {
 			return new SimpleVO(false, "只可以进行购买商品或充值得操作。");
 		}
+		
+		List<String> worklist = user.getPurchaseWork();
+		if(worklist != null && worklist.contains(workID)) {
+			return new SimpleVO(true, "已购作品24小时内不必再次购买。"); 
+		}
+		
 		try {
 			Order order = orderService.createOrder(userID, workID, money, "AliPay");
 			AlipayTradePagePayModel model = alipayService.createModel(order);
@@ -103,15 +117,26 @@ public class AliPayController {
 			
 			Order order = orderService.queryOrder("outTradeNo", out_trade_no);
 			User user = userService.queryUser("userID", order.getUserID());
+			String title = "";
+			String content = "";
 			
 			if ("TRADE_SUCCESS".equals(trade_state)) {
 				if ("RECHARGE".equals(responseMap.get("body"))) {
-					Double balance = user.getBalance()==null ? 0 : user.getBalance();
-					balance += Double.valueOf(responseMap.get("receipt_amount"));
-					userService.setUser("userID", order.getUserID(), "balance", balance);
+					Double balance1 = user.getBalance()==null ? 0 : user.getBalance();
+					Double balance2 = Double.valueOf(responseMap.get("receipt_amount"));
+					balance1 += balance2;
+					userService.setUser("userID", order.getUserID(), "balance", balance1);
+					
+					title = "充值成功！";
+					content = "恭喜您，您已成功充值" + balance2 +"元。快去购买您喜欢的作品吧。";
+					newsService.addNews(user.getUserID(), title, content, 1);
 				} else {
 					List<String> worklist = ListUtil.addElement(user.getPurchaseWork(), responseMap.get("body"));
 					userService.setUser("userID", order.getUserID(), "purchaseWork", worklist);
+					
+					title = "购买作品成功！";
+					content = "恭喜您，您已成功" + order.getBody() +"作品，请前往下载界面下载。下载有效时间为24小时。";
+					newsService.addNews(user.getUserID(), title, content, 1);
 				}
 				orderService.setOrder("outTradeNo", out_trade_no, "payStatus", "SUCCESS");
 				orderService.setOrder("outTradeNo", order.getOutTradeNo(), "cashFee", Double.valueOf(responseMap.get("receipt_amount")));

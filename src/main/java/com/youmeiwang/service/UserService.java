@@ -82,6 +82,10 @@ public class UserService {
 		return userDao.getAmount(condition1, value1, condition2, value2, condition3, value3);
 	}
 	
+	public List<User> userlist() {
+		return userDao.userlist();
+	}
+	
 	public List<User> userList(String condition, Object value, Integer page, Integer size) {
 		return userDao.userList(condition, value, page, size);
 	}

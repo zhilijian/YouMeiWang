@@ -51,4 +51,6 @@ public interface WorkDao {
 	public List<Work> workList1(List<Map<String, Object>> conditions, Integer page, Integer size);
 	
 	public List<Work> worklist(Integer modelType, String condition, Integer primaryClassification, Integer secondaryClassification, Integer reclassify, Integer pattern, Integer sortType);
+	
+	public List<Work> worklist(Integer primaryClassification, Integer secondaryClassification);
 }

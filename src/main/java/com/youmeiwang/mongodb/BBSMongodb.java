@@ -28,14 +28,6 @@ public class BBSMongodb implements BBSDao{
 		Query query = new Query(Criteria.where(condition).is(value));
 		mongoTemplate.remove(query, BBS.class);
 	}
-	
-	@Override
-	public void batchRemoveBBS(String condition, Object[] values) {
-		for (Object value : values) {
-			Query query = new Query(Criteria.where(condition).is(value));
-			mongoTemplate.remove(query, BBS.class);
-		}
-	}
 
 	@Override
 	public void updateBBS(BBS bbs) {

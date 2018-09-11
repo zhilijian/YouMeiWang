@@ -2,7 +2,6 @@ package com.youmeiwang.controller;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -19,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.youmeiwang.entity.FileInfo;
 import com.youmeiwang.entity.User;
 import com.youmeiwang.entity.Work;
 import com.youmeiwang.service.FileService;
@@ -27,7 +25,6 @@ import com.youmeiwang.service.UserService;
 import com.youmeiwang.service.VerifyService;
 import com.youmeiwang.service.WorkService;
 import com.youmeiwang.util.ListUtil;
-import com.youmeiwang.util.RandomUtil;
 import com.youmeiwang.vo.CommonVO;
 import com.youmeiwang.vo.SimpleVO;
 
@@ -49,8 +46,7 @@ public class WorkController {
 	private FileService fileService;
 	
 	@PostMapping("/addverifyingwork") 
-	public CommonVO addVerifyingWork(@RequestParam(name="userID", required=true) String userID,
-			@RequestParam(name="workName", required=true) String workName,
+	public CommonVO addVerifyingWork(@RequestParam(name="workName", required=true) String workName,
 			@RequestParam(name="primaryClassification", required=true) String primaryClassification,
 			@RequestParam(name="secondaryClassification", required=true) String secondaryClassification,
 			@RequestParam(name="reclassify", required=false) String reclassify,
@@ -64,72 +60,25 @@ public class WorkController {
 			@RequestParam(name="files", required=true) String[] files,
 			HttpSession session ) {
 		
-//		if (session.getAttribute(userID) == null) {
-//			return new CommonVO(false, "用户非法登录。", "请先登录再操作"); 
-//		}
+		String userID = (String) session.getAttribute("userID");
+		User user = userService.queryUser("userID", userID);
+		if (userID == null || user == null) {
+			return new CommonVO(false, "用户尚未登录或不存在。", "请先登录再操作"); 
+		}
 		
 		try {
-			User user = userService.queryUser("userID", userID);
-			String workID = null;
-			do {
-				workID = RandomUtil.getRandomNumber(10);
-			} while (workService.queryWork("workID", workID) != null);
-			
-			Work work = new Work();
-			work.setWorkID(workID);
-			work.setWorkName(workName);
-			work.setAuthor(user.getUsername());
-			String[] primaryClassifications = primaryClassification.split(":");
-			work.setPrimaryClassification(Integer.valueOf(primaryClassifications[0]));
-			work.setYijifenlei(primaryClassifications[1]);
-			String[] secondaryClassifications = secondaryClassification.split(":");
-			work.setSecondaryClassification(Integer.valueOf(secondaryClassifications[0]));
-			work.setErjifenlei(secondaryClassifications[1]);
-			if (reclassify != null) {
-				String[] reclassifies = reclassify.split(":");
-				work.setReclassify(Integer.valueOf(reclassifies[0]));
-				work.setSanjifenlei(reclassifies[1]);
-			}
-			List<Integer> intlist = new LinkedList<Integer>();
-			List<String> strlist = new LinkedList<String>();
-			String[] patterns = pattern.split(",");
-			for (String str1 : patterns) {
-				String[] str2 = str1.split(":");
-				intlist.add(Integer.valueOf(str2[0]));
-				strlist.add(str2[1]);
-			}
-			work.setPattern(intlist);
-			work.setGeshi(strlist);
-			work.setHasTextureMapping(hasTextureMapping);
-			work.setBinding(isBinding);
-			work.setHasCartoon(hasCartoon);
-			work.setPrice(price);
-			work.setLabels(Arrays.asList(labels));
-			work.setVerifyState(0);
-			List<String> picturelist = Arrays.asList(pictures);
-			work.setPictures(picturelist);
-			List<String> filelist = Arrays.asList(files);
-			work.setFiles(filelist);
-			Long modelSize = 0l;
-			for (String fileID : filelist) {
-				FileInfo fileInfo = fileService.queryFile("fileID", fileID);
-				if (fileInfo == null) {
-					continue;
-				}
-				modelSize += fileInfo.getFileSize();
-			}
-			work.setModelSize(modelSize);
-			work.setDownloadNum(0l);
-			work.setCollectNum(0l);
-			work.setBrowseNum(0l);
-			work.setUploadTime(System.currentTimeMillis());
-			work.setIsDelete(false);
-			workService.addWork(work);
+			Work work = workService.addWork(workName, user.getUsername(), primaryClassification, 
+					secondaryClassification, reclassify, pattern, hasTextureMapping, isBinding, 
+					hasCartoon, price, labels, pictures, files);
+			String workID = work.getWorkID();
 			verifyService.addVerifyingWork(userID, workID);
+			
+			Long youbiAmount = user.getYoubiAmount() + 10;
+			userService.setUser("userID", userID, "youbiAmount", youbiAmount);
 			
 			Map<String, Object> data = new HashMap<String, Object>();
 			data.put("userID", userID);
-			data.put("username", user.getUsername());
+			data.put("nickname", user.getNickname());
 			data.put("workID", workID);
 			data.put("workname", work.getWorkName());
 		
@@ -140,16 +89,17 @@ public class WorkController {
 	}
 	
 	@GetMapping("/removework")
-	public SimpleVO removeWork(@RequestParam(name="userID", required=true) String userID,
-			@RequestParam(name="workID", required=true) String workID,
+	public SimpleVO removeWork(@RequestParam(name="workID", required=true) String workID,
 			HttpSession session) {
 		
-//		if (session.getAttribute(userID) == null) {
-//			return new SimpleVO(false, "用户非法登录。"); 
-//		}
+		String userID = (String) session.getAttribute("userID");
+		User user = userService.queryUser("userID", userID);
+		if (userID == null || user == null) {
+			return new SimpleVO(false, "用户尚未登录或不存在。"); 
+		}
+		
 		try {
-			User user = userService.queryUser("userID", userID);
-			Work work = workService.queryWork("workID", workID); 
+			Work work = workService.queryWork("workID", workID);
 			if (!user.getUsername().equals(work.getAuthor())) {
 				return new SimpleVO(false, "非作者无法删除该作品。"); 
 			}
@@ -179,12 +129,12 @@ public class WorkController {
 	}
 	
 	@GetMapping("/workdetail")
-	public CommonVO workDetail(@RequestParam(name="userID", required=false) String userID,
-			@RequestParam(name="workID", required=true) String workID,
-			HttpSession session) {
+	public CommonVO workDetail(@RequestParam(name="workID", required=true) String workID, HttpSession session) {
+		
+		String userID = (String) session.getAttribute("userID");
+		User user = userService.queryUser("userID", userID);
 		
 		try {
-			User user = userService.queryUser("userID", userID);
 			Work work = workService.queryWork("workID", workID);
 			if (work == null || work.getIsDelete() == true) {
 				return new CommonVO(false, "不存在此ID的作品或者该作品已被作者删除", "请查看其他作品。");
@@ -204,12 +154,10 @@ public class WorkController {
 			data.put("hasCartoon", work.isHasCartoon());
 			data.put("price", work.getPrice());
 			data.put("labels", work.getLabels());
-			if (work.getRemarks() != null) {
-				data.put("remarks", work.getRemarks());
-			}
+			data.put("remarks", work.getRemarks());
 			List<String> picturelist = new LinkedList<String>();
 			for (String fileID : work.getPictures()) {
-				String filePath = getFilePath(fileID);
+				String filePath = fileService.getFilePath(fileID);
 				if (filePath == null) {
 					continue;
 				}
@@ -218,7 +166,7 @@ public class WorkController {
 			data.put("pictures", picturelist);
 			List<Map<String, Object>> filelist = new LinkedList<Map<String, Object>>();
 			for (String fileID : work.getFiles()) {
-				Map<String, Object> filemap = getFileMap(fileID);
+				Map<String, Object> filemap = fileService.getFileMap(fileID);
 				if (filemap == null) {
 					continue;
 				}
@@ -230,17 +178,16 @@ public class WorkController {
 			data.put("downloadNum", work.getDownloadNum());
 			data.put("uploadTime", new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date(work.getUploadTime())));
 			data.put("modelSize", work.getModelSize());
+			boolean flag1 = false;
+			boolean flag2 = false;
 			if (user != null) {
-				boolean flag1 = user.getPurchaseWork().contains(workID);
-				boolean flag2 = user.getCollectWork().contains(workID);
-				data.put("isPurchase", flag1);
-				data.put("isCollected", flag2);
+				flag1 = user.getPurchaseWork().contains(workID);
+				flag2 = user.getCollectWork().contains(workID);
 			}
-			Map<String, Object> conditions = new HashMap<String, Object>();
-			conditions.put("primaryClassification", work.getPrimaryClassification());
-			conditions.put("secondaryClassification", work.getSecondaryClassification());
-			conditions.put("isDelete", false);
-			List<Work> worklist = workService.workSortDESC("downloadNum", conditions, 8);
+			data.put("isPurchase", flag1);
+			data.put("isCollected", flag2);
+			
+			List<Work> worklist = workService.worklist(work.getPrimaryClassification(), work.getSecondaryClassification());
 			List<Map<String, Object>> maplist = new LinkedList<Map<String, Object>>();
 			for (Work relatedWork : worklist) {
 				Map<String, Object> relatedWorks = new HashMap<String, Object>();
@@ -248,7 +195,7 @@ public class WorkController {
 				relatedWorks.put("workName", relatedWork.getWorkName());
 				String picture = null;
 				if (relatedWork.getPictures() != null && relatedWork.getPictures().size() > 0) {
-					picture = getFilePath(relatedWork.getPictures().get(0));
+					picture = fileService.getFilePath(relatedWork.getPictures().get(0));
 				}
 				relatedWorks.put("picture", picture);
 				relatedWorks.put("price", relatedWork.getPrice());
@@ -324,7 +271,7 @@ public class WorkController {
 				workmap.put("workName", work.getWorkName());
 				String picture = null;
 				if (work.getPictures() != null && work.getPictures().size() > 0) {
-					picture = getFilePath(work.getPictures().get(0));
+					picture = fileService.getFilePath(work.getPictures().get(0));
 				}
 				workmap.put("picture", picture);
 				workmap.put("secondaryClassification", work.getErjifenlei());
@@ -385,7 +332,7 @@ public class WorkController {
 				workmap.put("yijifenlei", work.getYijifenlei());
 				String picture = null;
 				if (work.getPictures() != null && work.getPictures().size() > 0) {
-					picture = getFilePath(work.getPictures().get(0));
+					picture = fileService.getFilePath(work.getPictures().get(0));
 				}
 				workmap.put("picture", picture);
 				workmap.put("downloadNum", work.getDownloadNum());
@@ -429,7 +376,7 @@ public class WorkController {
 				workmap.put("collectNum", work.getCollectNum()); 
 				String picture = null;
 				if (work.getPictures() != null && work.getPictures().size() > 0) {
-					picture = getFilePath(work.getPictures().get(0));
+					picture = fileService.getFilePath(work.getPictures().get(0));
 				}
 				workmap.put("picture", picture);
 				data.add(workmap);
@@ -478,25 +425,5 @@ public class WorkController {
 			e.printStackTrace();
 			return new SimpleVO(false, "出错信息：" + e.toString()); 
 		}
-	}
-	
-	private String getFilePath(String fileID) {
-		FileInfo fileInfo = fileService.queryFile("fileID", fileID);
-		if (fileInfo == null) {
-			return null;
-		}
-		return fileInfo.getFilePath();
-	}
-	
-	private Map<String, Object> getFileMap(String fileID) {
-		FileInfo fileInfo = fileService.queryFile("fileID", fileID);
-		if (fileInfo == null) {
-			return null;
-		}
-		Map<String, Object> filemap = new HashMap<String, Object>();
-		filemap.put("fileID", fileInfo.getFileID());
-		filemap.put("fileName", fileInfo.getFileName());
-		filemap.put("fileSize", fileInfo.getFileSize());
-		return filemap;
 	}
 }

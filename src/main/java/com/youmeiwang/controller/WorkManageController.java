@@ -154,14 +154,14 @@ public class WorkManageController {
 					verifyService.verifyAndPassWork(user.getUserID(), workID);
 					String title = "作品审核通过！";
 					String content = "恭喜你，您上传的作品经游模网审核通过啦！";
-					newsService.addNews(work.getAuthor(), title, content, 1);
+					newsService.addNews(user.getUserID(), title, content, 1);
 				} else {
 					work.setVerifyState(2);
 					work.setVerifyMessage(verifyMessage);
 					verifyService.verifyNotPassWork(user.getUserID(), workID);
 					String title = "作品审核未通过。";
 					String content = "很遗憾，您上传的作品不符合游模网的规则条件。不要气馁，您还可以继续提交申请哦！";
-					newsService.addNews(work.getAuthor(), title, content, 1);
+					newsService.addNews(user.getUserID(), title, content, 1);
 				}
 			}
 			if (pictures != null && pictures.length > 0) {

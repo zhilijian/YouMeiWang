@@ -49,10 +49,6 @@ public class BBSService {
 		bbsDao.removeBBS(condition, value);
 	}
 	
-	public void batchRemoveBBS(String condition, String[] values) {
-		bbsDao.batchRemoveBBS(condition, values);
-	}
-	
 	public void updateBBS(BBS bbs) {
 		bbsDao.updateBBS(bbs);
 	}

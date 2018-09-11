@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.youmeiwang.entity.Order;
 import com.youmeiwang.entity.User;
+import com.youmeiwang.service.NewsService;
 import com.youmeiwang.service.OrderService;
 import com.youmeiwang.service.PurchaseService;
 import com.youmeiwang.service.UserService;
@@ -43,15 +44,19 @@ public class WechatPayController {
 	@Autowired
 	private WeChatPayService wechatPayService;
 	
+	@Autowired
+	private NewsService newsService;
+	
 	@PostMapping("/createorder")
-	public CommonVO createOrder(@RequestParam(name="userID", required=true) String userID,
-			@RequestParam(name="workID", required=false) String workID,
+	public CommonVO createOrder(@RequestParam(name="workID", required=false) String workID,
 			@RequestParam(name="money", required=false) Double money,
 			HttpServletRequest request, HttpSession session) {
 		
-//		if (session.getAttribute(userID) == null) {
-//			return new CommonVO(false, "用户尚未登录。"); 
-//		}
+		String userID = (String) session.getAttribute("userID");
+		User user = userService.queryUser("userID", userID);
+		if (userID == null || user == null) {
+			return new CommonVO(false, "用户尚未登录或不存在。", "{}"); 
+		}
 		
 		if (workID == null && money == null) {
 			return new CommonVO(false, "微信支付订单发送失败。", "请选择购买或者充值。");
@@ -62,9 +67,14 @@ public class WechatPayController {
 		}
 		
 		String reqIP = request.getRemoteAddr();
-//		String reqIP = "192.168.0.128";
+
+		List<String> worklist = user.getPurchaseWork();
+		if(worklist != null && worklist.contains(workID)) {
+			return new CommonVO(true, "已购作品24小时内不必再次购买。", "{}"); 
+		}
 		
 		Order order = orderService.createOrder(userID, workID, money, "WeChatPay");
+		
 		try {
 			Map<String, Object> data = new HashMap<String, Object>();
  			SortedMap<String, String> resultMap = wechatPayService.createOrder(order, reqIP);
@@ -102,6 +112,8 @@ public class WechatPayController {
 		}
 			
 		String out_trade_no = responseMap.get("out_trade_no");	
+		String title = "";
+		String content = "";
 		
 		try {
 			String trade_state = responseMap.get("trade_state");
@@ -111,12 +123,21 @@ public class WechatPayController {
 			User user = userService.queryUser("userID", order.getUserID());
 			if ("SUCCESS".equals(trade_state)) {
 				if ("RECHARGE".equals(responseMap.get("attach"))) {
-					Double balance = user.getBalance()==null ? 0 : user.getBalance();
-					balance += Double.valueOf(responseMap.get("total_fee"))/100;
-					userService.setUser("userID", order.getUserID(), "balance", balance);
+					Double balance1 = user.getBalance()==null ? 0 : user.getBalance();
+					Double balance2 = Double.valueOf(responseMap.get("receipt_amount"));
+					balance1 += balance2;
+					userService.setUser("userID", order.getUserID(), "balance", balance1);
+					
+					title = "充值成功！";
+					content = "恭喜您，您已成功充值" + balance2 +"元。快去购买您喜欢的作品吧。";
+					newsService.addNews(user.getUserID(), title, content, 1);
 				} else {
 					List<String> worklist = ListUtil.addElement(user.getPurchaseWork(), responseMap.get("attach"));
 					userService.setUser("userID", order.getUserID(), "purchaseWork", worklist);
+					
+					title = "购买作品成功！";
+					content = "恭喜您，您已成功" + order.getBody() +"作品，请前往下载界面下载。下载有效时间为24小时。";
+					newsService.addNews(user.getUserID(), title, content, 1);
 				}
 				orderService.setOrder("outTradeNo", out_trade_no, "payStatus", trade_state);
 				orderService.setOrder("outTradeNo", order.getOutTradeNo(), "cashFee", Double.valueOf(responseMap.get("cash_fee"))/100);

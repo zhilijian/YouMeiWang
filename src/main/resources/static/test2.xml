@@ -1,8 +1,0 @@
-<xml>
-<form name="punchout_form" method="post" action="https://openapi.alipay.com/gateway.do?charset=UTF-8&method=alipay.trade.page.pay&sign=sjBwD%2F%2Fm9UD58%2FURWam921PL%2FHiOZFzGKp41SybyGQ4b%2BdBEC8QN5QLoSV9d7Gt5FT1LVNI4noHcY62DsJMie5RD9ayIh1wcSMB6KXBhL3flENH1%2BCrEFNMHIJi%2Fj2bFAEqHzvE9NfCEzTzuLPE1sn0Osk8R5yDJO%2FyVtNDc3lWOgX5Z3QFNOHeO2BPNpb3lhd385ggDBcvOtaQn575vL4UzB%2BnQEBVWnv9Nr3KuMj1vgoYkTYt9VY1hv%2B%2BfX3uclqyBCo%2FlZCxcCVvWvr26RG1qE9gkjc6hps8cC%2BkWprqCiR6lI8%2FDFYhMXA01KmE%2FbSyR0%2BPYizBcFt%2BvFad6aA%3D%3D&return_url=http%3A%2F%2Fwww.baidu.com&notify_url=http%3A%2F%2Fwww.linshaocong.cn%3A8081%2Falipay%2Falipaynotify&version=1.0&app_id=2016082701812363&sign_type=RSA2&timestamp=2018-08-28+13%3A04%3A57&alipay_sdk=alipay-sdk-java-3.3.4.ALL&format=json">
-    <input type="hidden" name="biz_content" value="{&quot;body&quot;:&quot;RECHARGE&quot;,&quot;out_trade_no&quot;:&quot;20180828130457123456783-efc53b12&quot;,&quot;product_code&quot;:&quot;FAST_INSTANT_TRADE_PAY&quot;,&quot;subject&quot;:&quot;充值&quot;,&quot;total_amount&quot;:&quot;0.01&quot;}">
-    <input type="submit" value="立即支付" style="display:none" >
-</form>
-<script>document.forms[0].submit();</script>
-</xml>
- 

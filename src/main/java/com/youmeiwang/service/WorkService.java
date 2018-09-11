@@ -1,5 +1,6 @@
 package com.youmeiwang.service;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -7,11 +8,14 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.youmeiwang.dao.FileDao;
 import com.youmeiwang.dao.UserDao;
 import com.youmeiwang.dao.WorkDao;
+import com.youmeiwang.entity.FileInfo;
 import com.youmeiwang.entity.User;
 import com.youmeiwang.entity.Work;
 import com.youmeiwang.util.ListUtil;
+import com.youmeiwang.util.RandomUtil;
 
 @Service
 public class WorkService {
@@ -22,8 +26,70 @@ public class WorkService {
 	@Autowired
 	private WorkDao workDao;
 	
-	public void addWork(Work work) {
+	@Autowired
+	private FileDao fileDao;
+	
+	public Work addWork(String workName, String username, String primaryClassification, 
+			String secondaryClassification, String reclassify, String pattern, boolean hasTextureMapping, 
+			boolean isBinding, boolean hasCartoon, Integer price, String[] labels,  
+			String[] pictures, String[] files) {
+		
+		Work work = new Work();
+		String workID = null;
+		do {
+			workID = RandomUtil.getRandomNumber(10);
+		} while (workDao.queryWork("workID", workID) != null);
+		
+		work.setWorkID(workID);
+		work.setWorkName(workName);
+		work.setAuthor(username);
+		String[] primaryClassifications = primaryClassification.split(":");
+		work.setPrimaryClassification(Integer.valueOf(primaryClassifications[0]));
+		work.setYijifenlei(primaryClassifications[1]);
+		String[] secondaryClassifications = secondaryClassification.split(":");
+		work.setSecondaryClassification(Integer.valueOf(secondaryClassifications[0]));
+		work.setErjifenlei(secondaryClassifications[1]);
+		if (reclassify != null) {
+			String[] reclassifies = reclassify.split(":");
+			work.setReclassify(Integer.valueOf(reclassifies[0]));
+			work.setSanjifenlei(reclassifies[1]);
+		}
+		List<Integer> intlist = new LinkedList<Integer>();
+		List<String> strlist = new LinkedList<String>();
+		String[] patterns = pattern.split(",");
+		for (String str1 : patterns) {
+			String[] str2 = str1.split(":");
+			intlist.add(Integer.valueOf(str2[0]));
+			strlist.add(str2[1]);
+		}
+		work.setPattern(intlist);
+		work.setGeshi(strlist);
+		work.setHasTextureMapping(hasTextureMapping);
+		work.setBinding(isBinding);
+		work.setHasCartoon(hasCartoon);
+		work.setPrice(price);
+		work.setLabels(Arrays.asList(labels));
+		work.setVerifyState(0);
+		List<String> picturelist = Arrays.asList(pictures);
+		work.setPictures(picturelist);
+		List<String> filelist = Arrays.asList(files);
+		work.setFiles(filelist);
+		Long modelSize = 0l;
+		for (String fileID : filelist) {
+			FileInfo fileInfo = fileDao.queryFile("fileID", fileID);
+			if (fileInfo == null) {
+				continue;
+			}
+			modelSize += fileInfo.getFileSize();
+		}
+		work.setModelSize(modelSize);
+		work.setDownloadNum(0l);
+		work.setCollectNum(0l);
+		work.setBrowseNum(0l);
+		work.setUploadTime(System.currentTimeMillis());
+		work.setIsDelete(false);
 		workDao.addWork(work);
+		return work;
 	}
 	
 	public void addCollectWork(String userID, String workID) {
@@ -134,5 +200,9 @@ public class WorkService {
 	public List<Work> worklist(Integer modelType, String condition, Integer primaryClassification, 
 			Integer secondaryClassification, Integer reclassify, Integer pattern, Integer sortType){
 		return workDao.worklist(modelType, condition, primaryClassification, secondaryClassification, reclassify, pattern, sortType);
+	}
+	
+	public List<Work> worklist(Integer primaryClassification, Integer secondaryClassification) {
+		return workDao.worklist(primaryClassification, secondaryClassification);
 	}
 }

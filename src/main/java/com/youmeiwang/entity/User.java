@@ -41,13 +41,16 @@ public class User {
 	//VIP类别 VIPKind
 	//0：大众用户	 1：共享VIP 2：原创VIP 3：企业VIP
 	private List<Integer> vipKind;
+	//
+	private Integer freedownload;
+	//共享VIP到期时间
 	private Long shareVIPTime;
+	//原创VIP到期时间
 	private Long originalVIPTime;
+	//企业VIP到期时间
 	private Long companyVIPTime;
 	//会员种类 memberKind 0：普通用户 1：原创用户
 	private Integer memberKind;
-	//会员到期时间 memberExpirationTime
-	private String memberExpirationTime;
 	//待审核作品
 	private List<String> verifyingWork;
 	//已通过作品
@@ -159,6 +162,12 @@ public class User {
 	public void setVipKind(List<Integer> vipKind) {
 		this.vipKind = vipKind;
 	}
+	public Integer getFreedownload() {
+		return freedownload;
+	}
+	public void setFreedownload(Integer freedownload) {
+		this.freedownload = freedownload;
+	}
 	public Long getShareVIPTime() {
 		return shareVIPTime;
 	}
@@ -182,12 +191,6 @@ public class User {
 	}
 	public void setMemberKind(Integer memberKind) {
 		this.memberKind = memberKind;
-	}
-	public String getMemberExpirationTime() {
-		return memberExpirationTime;
-	}
-	public void setMemberExpirationTime(String memberExpirationTime) {
-		this.memberExpirationTime = memberExpirationTime;
 	}
 	public List<String> getVerifyingWork() {
 		return verifyingWork;

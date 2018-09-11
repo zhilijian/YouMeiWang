@@ -1,10 +1,18 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<title>接口测试</title>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta charset="UTF-8">
+<title>Insert title here</title>
 </head>
 <body>
+	<form action="/test" method="GET" enctype="multipart/form-data">
+		url：<input type="text" name="url" /><br /> 
+		adminname：<input type="text" name="adminname" /><br /> 
+		password：<input type="text" name="password" /><br /> 
+		<input type="submit" />
+	</form>
+	<br />
+	
 	<form action="/file/uploadpicture" method="POST" enctype="multipart/form-data">
 		用户ID：<input type="text" name="userID"/><br/>
 		文件：<input type="file" name="picture" /> <br/>
@@ -34,10 +42,5 @@
 			<input type="submit" value="上传" />
 		</p>
 	</form><br/>
-	<form action="/test" method="POST" enctype="multipart/form-data">
-		url：<input type="text" name="url"/><br/>
-		adminname：<input type="text" name="adminname"/><br/>
-		password：<input type="text" name="password"/><br/>
-		<input type="submit" />
-	</form><br/>
+</body>
 </html>

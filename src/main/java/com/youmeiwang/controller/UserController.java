@@ -1,5 +1,7 @@
 package com.youmeiwang.controller;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.youmeiwang.entity.User;
 import com.youmeiwang.service.NewsService;
 import com.youmeiwang.service.UserService;
+import com.youmeiwang.util.VerifyUtil;
 import com.youmeiwang.vo.CommonVO;
 import com.youmeiwang.vo.SimpleVO;
 
@@ -79,15 +82,13 @@ public class UserController {
 		}
 	}
 	
-	@GetMapping("/login")
-	public CommonVO login(@RequestParam(name="username", required=true) String username, 
-						@RequestParam(name="code", required=true) String code, 
-						HttpSession session) {
+	@PostMapping("/login")
+	public CommonVO login(@RequestParam(name="username", required=true) String username, HttpSession session) {
 		
-//		if (session.getAttribute(code) == null) {
+//		if (session.getAttribute("code") == null) {
 //			return new CommonVO(false, "验证码输入错误。", "请正确输入验证码。");
 //		}
-//		session.removeAttribute(code);
+//		session.removeAttribute("code");
 		
 		try {
 			User user = userService.queryUser("username", username);
@@ -96,7 +97,7 @@ public class UserController {
 			}
 			
 			String userID = user.getUserID();
-			session.setAttribute(userID, userID);
+			session.setAttribute("userID", userID);
 			Map<String, Object> data = new HashMap<String, Object>();
 			data.put("userID", userID);
 			data.put("username", user.getUsername());
@@ -107,6 +108,22 @@ public class UserController {
 			data.put("applyForOriginal", user.getApplyForOriginal());
 			data.put("youbiAmount", user.getYoubiAmount());
 			data.put("balance", user.getBalance());
+			if (user.getShareVIPTime() == null) {
+				data.put("shareVIPTime", null);
+			} else {
+				data.put("shareVIPTime", new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date(user.getShareVIPTime())));
+			}
+			if (user.getOriginalVIPTime() == null) {
+				data.put("originalVIPTime", null);
+			} else {
+				data.put("originalVIPTime", new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date(user.getOriginalVIPTime())));
+			}
+			if (user.getCompanyVIPTime() == null) {
+				data.put("companyVIPTime", null);
+			} else {
+				data.put("companyVIPTime", new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date(user.getCompanyVIPTime())));
+			}
+			data.put("newsAmount", newsService.getAmount(userID));
 			return new CommonVO(true, "用户登录成功！", data);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -205,5 +222,44 @@ public class UserController {
 			e.printStackTrace();
 			return new CommonVO(false, "信息保存失败。", "出错信息：" + e.toString());
 		}
+	}
+	
+	@PostMapping("/wechatlogin")
+	public CommonVO wechatlogin(@RequestParam(name="unionid", required=true) String unionid, 
+			@RequestParam(name="nickname", required=false) String nickname, 
+			@RequestParam(name="headimgurl", required=false) String portrait, 
+			@RequestParam(name="sex", required=false, defaultValue="0") Integer sex,
+			@RequestParam(name="username", required=false) String username) {
+		
+		User user1 = userService.queryUser("unionid", unionid);
+		
+		if (user1 == null) {
+			user1 = userService.addUser(unionid);
+			userService.setUser("username", unionid, "unionid", unionid);
+			userService.setUser("username", unionid, "nickname", nickname);
+			userService.setUser("username", unionid, "portrait", portrait);
+			userService.setUser("username", unionid, "sex", sex);
+		}
+		
+		if (username != null && VerifyUtil.isValidPhone(username)) {
+			User user2 = userService.queryUser("username", username);
+			if (user2 != null) {
+				return new CommonVO(false, "该手机号已注册过。", "{}");
+			}
+			user1.setUsername(username);
+			userService.setUser("unionid", unionid, "username", username);
+		}
+		
+		Map<String, Object> data = new HashMap<String, Object>();
+		data.put("userID", user1.getUserID());
+		data.put("username", user1.getUsername());
+		data.put("nickname", user1.getNickname());
+		data.put("portrait", user1.getPortrait());
+		data.put("vipKind", user1.getVipKind());
+		data.put("memberKind", user1.getMemberKind());
+		data.put("applyForOriginal", user1.getApplyForOriginal());
+		data.put("youbiAmount", user1.getYoubiAmount());
+		data.put("balance", user1.getBalance());
+		return new CommonVO(true, "用户登录成功！", data);
 	}
 }

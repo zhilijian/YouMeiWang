@@ -26,6 +26,8 @@ public interface UserDao {
 	public Long getAmount(String condition1, String value1, String condition2, 
 			Integer value2, String condition3, Integer value3);
 	
+	public List<User> userlist();
+	
 	public List<User> userList(String condition, Object value, Integer page, Integer size);
 	
 	public List<User> userList(String condition, Integer VIPKind, Integer memberKind, Integer applyForOriginal);

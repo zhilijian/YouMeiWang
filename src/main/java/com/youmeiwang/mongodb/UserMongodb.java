@@ -68,9 +68,6 @@ public class UserMongodb implements UserDao {
 		if (user.getMemberKind() != null) {
 			update.set("memberKind", user.getMemberKind());
 		}
-		if (user.getMemberExpirationTime() != null) {
-			update.set("memberExpirationTime", user.getMemberExpirationTime());
-		}
 		if (user.getVerifyingWork() != null) {
 			update.set("verifyingWork", user.getVerifyingWork());
 		}
@@ -149,6 +146,12 @@ public class UserMongodb implements UserDao {
 		return mongoTemplate.count(query, User.class);
 	}
 	
+	@Override
+	public List<User> userlist() {
+		Query query = new Query();
+		return mongoTemplate.find(query, User.class);
+	}
+
 	@Override
 	public List<User> userList(String condition, Object value, Integer page, Integer size) {
 		Query query = new Query();

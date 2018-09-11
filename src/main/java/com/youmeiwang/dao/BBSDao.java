@@ -13,8 +13,6 @@ public interface BBSDao {
 	
 	public void removeBBS(String condition, Object value);
 	
-	public void batchRemoveBBS(String condition, Object[] values);
-	
 	public void updateBBS(BBS bbs);
 	
 	public Long getBBSAmount(String condition, Object value);

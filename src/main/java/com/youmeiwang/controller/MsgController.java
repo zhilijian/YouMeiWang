@@ -30,7 +30,7 @@ public class MsgController {
 		String code = RandomUtil.getRandomNumber(6);
 	    String jsonContent = "{\"code\":\"" + code + "\"}";
 	    
-	    session.setAttribute(code, code);
+	    session.setAttribute("code", code);
 	    
 	    Map<String, String> paramMap = new HashMap<String, String>();
 	    paramMap.put("phoneNumber", username);

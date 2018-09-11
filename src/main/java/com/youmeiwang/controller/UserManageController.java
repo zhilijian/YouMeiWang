@@ -144,7 +144,7 @@ public class UserManageController {
 		}
 	}
 	
-	@GetMapping("/batchremoveuser")
+	@PostMapping("/batchremoveuser")
 	public SimpleVO BatchRemoveUser(@RequestParam(name="userIDs", required=true) String[] userIDs, HttpSession session) {
 		
 		String adminID = (String) session.getAttribute("adminID");
