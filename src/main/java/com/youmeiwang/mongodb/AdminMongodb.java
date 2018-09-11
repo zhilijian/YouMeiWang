@@ -30,14 +30,6 @@ public class AdminMongodb implements AdminDao{
 	}
 	
 	@Override
-	public void batchRemoveAdmin(String condition, String[] values) {
-		for (String value : values) {
-			Query query = new Query(Criteria.where(condition).is(value));
-			mongoTemplate.remove(query, Admin.class);
-		}
-	}
-	
-	@Override
 	public void updateAdmin(Admin admin) {
 		Query query = new Query(Criteria.where("adminID").is(admin.getAdminID()));
 		Update update = new Update();
@@ -52,6 +44,14 @@ public class AdminMongodb implements AdminDao{
 		mongoTemplate.updateFirst(query, update, Admin.class);
 	}
 	
+	@Override
+	public void setAdmin(String condition, Object value1, String target, Object value2) {
+		Query query = new Query(Criteria.where(condition).is(value1));
+		Update update = new Update();
+		update.set(target, value2);
+		mongoTemplate.updateFirst(query, update, Admin.class);
+	}
+
 	@Override
 	public Admin queryAdmin(String condition, String value) {
 		Query query = new Query(Criteria.where(condition).is(value));
@@ -69,22 +69,11 @@ public class AdminMongodb implements AdminDao{
 	}
 
 	@Override
-	public Long getAmount(String condition, String value) {
+	public List<Admin> adminlist(String condition, String value) {
 		Query query = new Query();
 		if (value != null) {
 			query.addCriteria(Criteria.where(condition).regex(value));
 		}
-		return mongoTemplate.count(query, Admin.class);
-	}
-	
-	@Override
-	public List<Admin> adminList(String condition, String value, Integer page, Integer size) {
-		Query query = new Query();
-		if (value != null) {
-			query.addCriteria(Criteria.where(condition).regex(value));
-		}
-		query.skip((page - 1) * size);
-		query.limit(size);
 		return mongoTemplate.find(query, Admin.class);
 	}
 }

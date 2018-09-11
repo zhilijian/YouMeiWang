@@ -171,7 +171,7 @@ public class FileUtil {
 
 				// 添加ZipEntry，并ZipEntry中写入文件流
 				// 这里，加上i是防止要下载的文件有重名的导致下载失败
-				zipos.putNextEntry(new ZipEntry(i + "." + fileName));
+				zipos.putNextEntry(new ZipEntry("批量下载" + i + "." + fileName));
 				os = new DataOutputStream(zipos);
 				InputStream is = new FileInputStream(file);
 				byte[] b = new byte[100];

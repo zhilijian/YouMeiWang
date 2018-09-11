@@ -13,16 +13,14 @@ public interface AdminDao {
 	
 	public void removeAdmin(String condition, String value);
 	
-	public void batchRemoveAdmin(String condition, String[] values);
-
 	public void updateAdmin(Admin admin);
+	
+	public void setAdmin(String condition, Object value1, String target, Object value2);
 	
 	public Admin queryAdmin(String condition, String value);
 
 	public Admin queryAdmin(String condition1, String value1, String condition2, String value2);
 	
-	public Long getAmount(String condition, String value);
-	
-	public List<Admin> adminList(String condition, String value, Integer page, Integer size);
+	public List<Admin> adminlist(String condition, String value);
 	
 }

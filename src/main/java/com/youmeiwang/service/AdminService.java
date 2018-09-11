@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.youmeiwang.dao.AdminDao;
 import com.youmeiwang.entity.Admin;
+import com.youmeiwang.util.RandomUtil;
 
 @Service
 public class AdminService {
@@ -14,20 +15,50 @@ public class AdminService {
 	@Autowired
 	private AdminDao adminDao;
 	
-	public void addAdmin(Admin admin) {
+	public Admin addAdmin(String adminname, String password, String position, Integer[] userManage, Integer[] workManage, Integer[] homepageModule, Integer[] rechargeManage, Integer[] roleAuthority) {
+		Admin admin = new Admin();
+		String adminID = null;
+		do {
+			adminID = RandomUtil.getRandomNumber(4);
+		} while (adminDao.queryAdmin("adminID", adminID) != null);
+		admin.setAdminID(adminID);
+		admin.setAdminname(adminname);
+		admin.setPassword(password);
+		admin.setPosition(position);
+		if (userManage == null) {
+			userManage = new Integer[] {};
+		}
+		admin.setUserManage(userManage);
+		if (workManage == null) {
+			workManage = new Integer[] {};
+		}
+		admin.setWorkManage(workManage);
+		if (homepageModule == null) {
+			homepageModule = new Integer[] {};
+		}
+		admin.setHomepageModule(homepageModule);
+		if (rechargeManage == null) {
+			rechargeManage = new Integer[] {};
+		}
+		admin.setRechargeManage(rechargeManage);
+		if (roleAuthority == null) {
+			roleAuthority = new Integer[] {};
+		}
+		admin.setRoleAuthority(roleAuthority);
 		adminDao.addAdmin(admin);
+		return admin;
 	}
 	
 	public void removeAdmin(String condition, String value) {
 		adminDao.removeAdmin(condition, value);
 	}
 	
-	public void batchRemoveAdmin(String condition, String[] values) {
-		adminDao.batchRemoveAdmin(condition, values);
-	}
-	
 	public void updateAdmin(Admin admin) {
 		adminDao.updateAdmin(admin);
+	}
+	
+	public void setAdmin(String condition, Object value1, String target, Object value2) {
+		adminDao.setAdmin(condition, value1, target, value2);
 	}
 	
 	public Admin queryAdmin(String condition, String value) {
@@ -38,12 +69,7 @@ public class AdminService {
 		return adminDao.queryAdmin(condition1, value1, condition2, value2);
 	}
 	
-	public Long getAmount(String condition, String value) {
-		return adminDao.getAmount(condition, value);
+	public List<Admin> adminlist(String condition, String value) {
+		return adminDao.adminlist(condition, value);
 	}
-	
-	public List<Admin> adminList(String condition, String value, Integer page, Integer size) {
-		return adminDao.adminList(condition, value, page, size);
-	}
-	
 }

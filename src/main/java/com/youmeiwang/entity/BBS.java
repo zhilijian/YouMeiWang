@@ -11,6 +11,8 @@ public class BBS {
 	private String bbsID;
 	//用户ID userID
 	private String userID;
+	//
+	private String username;
 	//作品ID workID
 	private String workID;
 	//纠错类型 correctionType
@@ -44,6 +46,14 @@ public class BBS {
 
 	public String getWorkID() {
 		return workID;
+	}
+
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
 	}
 
 	public void setWorkID(String workID) {

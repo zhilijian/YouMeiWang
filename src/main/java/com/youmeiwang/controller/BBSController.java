@@ -220,9 +220,9 @@ public class BBSController {
 							@RequestParam(name="size", required=true) Integer size,
 							HttpSession session) {
 		
-		if (session.getAttribute(adminID) == null) {
-			return new CommonVO(false, "管理员尚未登录。", "请先确认该管理员是否登录。");
-		}
+//		if (session.getAttribute(adminID) == null) {
+//			return new CommonVO(false, "管理员尚未登录。", "请先确认该管理员是否登录。");
+//		}
 		
 		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getUserManage(), 2);
 		if (!flag) {

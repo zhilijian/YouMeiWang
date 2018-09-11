@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.youmeiwang.entity.Admin;
 import com.youmeiwang.entity.User;
 import com.youmeiwang.service.AdminService;
 import com.youmeiwang.service.NewsService;
@@ -41,8 +42,7 @@ public class UserManageController {
 	private NewsService newsService;
 	
 	@PostMapping("/usersearch")
-	public CommonVO userSearch(@RequestParam(name="adminID", required=true) String adminID,
-			@RequestParam(name="condition", required=false) String condition,
+	public CommonVO userSearch(@RequestParam(name="condition", required=false) String condition,
 			@RequestParam(name="VIPKind", required=false) Integer VIPKind,
 			@RequestParam(name="memberKind", required=false) Integer memberKind,
 			@RequestParam(name="applyForOriginal", required=false) Integer applyForOriginal,
@@ -50,11 +50,13 @@ public class UserManageController {
 			@RequestParam(name="size", required=true) Integer size,
 			HttpSession session) {
 		
-		if (session.getAttribute(adminID) == null) {
-			return new CommonVO(false, "管理员尚未登录。", "请先确认是否登录成功。");
+		String adminID = (String) session.getAttribute("adminID");
+		Admin admin = adminService.queryAdmin("adminID", adminID);
+		if (adminID == null || admin == null) {
+			return new CommonVO(false, "用户尚未登录或不存在。", "{}");
 		}
 		
-		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getUserManage(), 0);
+		boolean flag = ContainUtil.hasNumber(admin.getUserManage(), 0);
 		if (!flag) {
 			return new CommonVO(false, "该用户无此权限。","请先申请查看管理员的权限。");
 		}
@@ -87,6 +89,7 @@ public class UserManageController {
 				usermap.put("balance", user.getBalance());
 				users.add(usermap);
 			}
+			
 			Long userAmount = (long) userset.size();
 			Long pageAmount = 0l;
 			if (userAmount % size == 0) {
@@ -94,6 +97,7 @@ public class UserManageController {
 			} else {
 				pageAmount = userAmount / size + 1;
 			}
+			
 			Map<String, Object> data = new HashMap <String, Object>();
 			data.put("users", users);
 			data.put("userAmount", userAmount);
@@ -106,12 +110,12 @@ public class UserManageController {
 	}
 	
 	@GetMapping("/userdetail")
-	public CommonVO userDetail(@RequestParam(name="adminID", required=true) String adminID,
-							@RequestParam(name="userID", required=true) String userID,
-							HttpSession session) {
+	public CommonVO userDetail(@RequestParam(name="userID", required=true) String userID, HttpSession session) {
 		
-		if (session.getAttribute(adminID) == null) {
-			return new CommonVO(false, "管理员尚未登录。", "请先确认是否登录成功。");
+		String adminID = (String) session.getAttribute("adminID");
+		Admin admin = adminService.queryAdmin("adminID", adminID);
+		if (adminID == null || admin == null) {
+			return new CommonVO(false, "管理员未登录或不存在。", "{}");
 		}
 		
 		try {
@@ -141,12 +145,12 @@ public class UserManageController {
 	}
 	
 	@GetMapping("/batchremoveuser")
-	public SimpleVO BatchRemoveUser(@RequestParam(name="adminID", required=true) String adminID, 
-								@RequestParam(name="userIDs", required=true) String[] userIDs,
-								HttpSession session) {
+	public SimpleVO BatchRemoveUser(@RequestParam(name="userIDs", required=true) String[] userIDs, HttpSession session) {
 		
-		if (session.getAttribute(adminID) == null) {
-			return new SimpleVO(false, "该用户尚未登录。");
+		String adminID = (String) session.getAttribute("adminID");
+		Admin admin = adminService.queryAdmin("adminID", adminID);
+		if (adminID == null || admin == null) {
+			return new SimpleVO(false, "用户尚未登录或不存在。");
 		}
 		
 		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getHomepageModule(), 1);
@@ -155,26 +159,29 @@ public class UserManageController {
 		}
 		
 		try {
-			userService.batchRemoveUser("userID", userIDs);
+			for (String userID : userIDs) {
+				userService.removeUser("userID", userID);
+			}
 			return new SimpleVO(true, "批量删除成功！");
 		} catch (Exception e) {
 			e.printStackTrace();
-			return new SimpleVO(false, "出错信息：" + e.getMessage());
+			return new SimpleVO(false, "出错信息：" + e.toString());
 		}
 	}
 	
 	@PostMapping("/verifyapply")
-	public CommonVO verifyApply(@RequestParam(name = "adminID", required = true) String adminID,
-			@RequestParam(name = "userID", required = true) String userID,
+	public CommonVO verifyApply(@RequestParam(name = "userID", required = true) String userID,
 			@RequestParam(name = "isPass", required = true) boolean isPass,
 			@RequestParam(name = "dismissalMsg", required = false) String dismissalMsg, 
 			HttpSession session) {
 
-		if (session.getAttribute(adminID) == null) {
-			return new CommonVO(false, "管理员尚未登录。", "请先确认是否登录成功。");
+		String adminID = (String) session.getAttribute("adminID");
+		Admin admin = adminService.queryAdmin("adminID", adminID);
+		if (adminID == null || admin == null) {
+			return new CommonVO(false, "用户尚未登录或不存在。", "{}");
 		}
 
-		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getUserManage(), 1);
+		boolean flag = ContainUtil.hasNumber(admin.getUserManage(), 1);
 		if (!flag) {
 			return new CommonVO(false, "该用户无此权限。", "请先核对该管理员是否有此权限。");
 		}
@@ -184,31 +191,31 @@ public class UserManageController {
 			if (user == null) {
 				return new CommonVO(false, "该用户不存在或已销户", "请审核其他用户。");
 			}
-			String username = user.getUsername();
 			if (isPass) {
 				userService.setUser("userID", userID, "applyForOriginal", 2);
 				userService.setUser("userID", userID, "memberKind", 1);
+				
 				String title = "申请原创作者审核通过！";
 				String content = "恭喜你，您提交的原创作者申请经游模网审核通过啦！";
-				newsService.addNews(username, title, content, 1);
+				newsService.addNews(userID, title, content, 1);
 			} else {
 				userService.setUser("userID", userID, "applyForOriginal", 3);
 				userService.setUser("userID", userID, "dismissalMsg", dismissalMsg);
+				
 				String title = "申请原创作者审核未通过。";
 				String content = "很抱歉，您提交的原创作者申请经游模网审核并未通过。您可查看驳回信息，或直接咨询我们客服人员。";
-				newsService.addNews(username, title, content, 1);
+				newsService.addNews(userID, title, content, 1);
 			}
 
 			Map<String, Object> data = new HashMap<String, Object>();
 			data.put("userID", userID);
 			data.put("nickname", user.getNickname());
-			data.put("phone", user.getPhone());
 			data.put("applyForOriginal", user.getApplyForOriginal());
 			
 			return new CommonVO(true, "审核原创作者成功！", data);
 		} catch (Exception e) {
 			e.printStackTrace();
-			return new CommonVO(false, "审核原创作者失败。", "出错信息：" +  e.getMessage());
+			return new CommonVO(false, "审核原创作者失败。", "出错信息：" +  e.toString());
 		}
 	}
 }

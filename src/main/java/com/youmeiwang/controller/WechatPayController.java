@@ -121,7 +121,7 @@ public class WechatPayController {
 				orderService.setOrder("outTradeNo", out_trade_no, "payStatus", trade_state);
 				orderService.setOrder("outTradeNo", order.getOutTradeNo(), "cashFee", Double.valueOf(responseMap.get("cash_fee"))/100);
 				orderService.setOrder("outTradeNo", order.getOutTradeNo(), "endTime", System.currentTimeMillis());
-				purchaseService.addPurchase(order.getUserID(), 2, order.getProductID(), Double.valueOf(responseMap.get("total_fee"))/100, Double.valueOf(responseMap.get("cash_fee"))/100, null, null);
+				purchaseService.addPurchase(order.getUserID(), 2, order.getProductID(), order.getBody(), Double.valueOf(responseMap.get("total_fee"))/100, Double.valueOf(responseMap.get("cash_fee"))/100, null, null);
 			}
 			return "<xml><return_code><![CDATA[SUCCESS]]></return_code></xml>";
 		} catch (Exception e) {

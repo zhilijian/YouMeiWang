@@ -6,9 +6,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.youmeiwang.dao.FileDao;
 import com.youmeiwang.dao.UserDao;
-import com.youmeiwang.entity.FileInfo;
 import com.youmeiwang.entity.User;
 import com.youmeiwang.util.RandomUtil;
 
@@ -19,7 +17,7 @@ public class UserService {
 	private UserDao userDao;
 	
 	@Autowired
-	private FileDao fileDao;
+	private FileService fileService;
 
 	public User addUser(String username) {
 		User user = new User();
@@ -36,8 +34,7 @@ public class UserService {
 		List<Integer> vipKind = new ArrayList<Integer>();
 		vipKind.add(0);
 		user.setVipKind(vipKind);
-		FileInfo fileInfo = fileDao.queryFile("fileID", "000000000001");
-		user.setPortrait(fileInfo.getFilePath());
+		user.setPortrait(fileService.getFilePath("000000000001"));
 		user.setMemberKind(0);
 		user.setVerifyingWork(new ArrayList<String>());
 		user.setVerifiedWork(new ArrayList<String>());
@@ -53,10 +50,6 @@ public class UserService {
 	
 	public void removeUser(String condition, String value) {
 		userDao.removeUser(condition, value);
-	}
-	
-	public void batchRemoveUser(String condition, String[] values) {
-		userDao.batchRemoveUser(condition, values);
 	}
 	
 	public void updateUser(User user) {

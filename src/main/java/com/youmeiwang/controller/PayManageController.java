@@ -389,7 +389,7 @@ public class PayManageController {
 				userService.setUser("userID", order.getUserID(), "balance", balance);
 				orderService.setOrder("outTradeNo", outTradeNo, "cashFee", order.getTotalFee());
 				orderService.setOrder("outTradeNo", outTradeNo, "endTime", System.currentTimeMillis());
-				purchaseService.addPurchase(order.getUserID(), 2, order.getProductID(), order.getTotalFee(), order.getCashFee(), null, null);
+				purchaseService.addPurchase(order.getUserID(), 2, order.getProductID(), order.getBody(), order.getTotalFee(), order.getCashFee(), null, null);
 			} else {
 				List<String> worklist = ListUtil.addElement(user.getPurchaseWork(), order.getProductID());
 				userService.setUser("userID", order.getUserID(), "purchaseWork", worklist);

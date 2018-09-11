@@ -116,7 +116,7 @@ public class AliPayController {
 				orderService.setOrder("outTradeNo", out_trade_no, "payStatus", "SUCCESS");
 				orderService.setOrder("outTradeNo", order.getOutTradeNo(), "cashFee", Double.valueOf(responseMap.get("receipt_amount")));
 				orderService.setOrder("outTradeNo", order.getOutTradeNo(), "endTime", System.currentTimeMillis());
-				purchaseService.addPurchase(order.getUserID(), 2, order.getProductID(), Double.valueOf(responseMap.get("receipt_amount")), Double.valueOf(responseMap.get("receipt_amount")), null, null);
+				purchaseService.addPurchase(order.getUserID(), 2, order.getProductID(), order.getBody(), Double.valueOf(responseMap.get("receipt_amount")), Double.valueOf(responseMap.get("receipt_amount")), null, null);
 			}
 			return "success";
 		} catch (Exception e) {

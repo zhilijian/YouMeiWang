@@ -1,7 +1,7 @@
 package com.youmeiwang.controller;
 
-import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -15,11 +15,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.youmeiwang.config.CommonConfig;
 import com.youmeiwang.entity.Order;
 import com.youmeiwang.entity.User;
 import com.youmeiwang.entity.Work;
 import com.youmeiwang.service.BalanceRecordService;
+import com.youmeiwang.service.ConfigService;
 import com.youmeiwang.service.NewsService;
 import com.youmeiwang.service.OrderService;
 import com.youmeiwang.service.PurchaseService;
@@ -55,6 +55,9 @@ public class PayController {
 	@Autowired
 	private NewsService newsService;
 	
+	@Autowired
+	private ConfigService configService;
+	
 	@GetMapping("/purchasework")
 	public SimpleVO purchaseWork(@RequestParam(name="userID", required=true) String userID,
 			@RequestParam(name="workID", required=true) String workID,
@@ -76,22 +79,40 @@ public class PayController {
 				return new SimpleVO(false, "模型作者不存在或已销户。"); 
 			}
 			
+			if (user1 == user2) {
+				return new SimpleVO(true, "发行作者不必购买自己的作品。");
+			}
+			
+			List<String> worklist = user1.getPurchaseWork();
+			if(worklist.contains(workID)) {
+				return new SimpleVO(true, "已购作品24小时内不必再次购买。"); 
+			}
+			
+			double discount = (double) configService.getConfigValue("discount");
+			double commissionRate = (double) configService.getConfigValue("commissionRate");
+			
 			if (work.getPrimaryClassification() == 1) {
-				Double balance1 = user1.getBalance() - work.getPrice();
+				Double balance1 = 0.0;
+				Double balance2 = 0.0;
+				double fee = 0.0;
+				if (user1.getVipKind().contains(2)) {
+					fee = work.getPrice() * discount;
+				} else {
+					fee = work.getPrice();
+				}
+				
+				balance1 = user1.getBalance() - fee;
 				if (balance1 < 0) {
 					return new SimpleVO(false, "余额不足，请先充值。");
 				}
-				Double balance2 = 0.0;
-				if (user1.getVipKind().contains(2)) {
-					balance2 = user2.getBalance() + work.getPrice() * CommonConfig.commissionRate;
-				} else {
-					balance2 = user2.getBalance() + work.getPrice();
-				}
+				
+				balance2 = user2.getBalance() + fee * commissionRate;
+				
 				userService.setUser("userID", userID, "balance", balance1);
 				userService.setUser("username", work.getAuthor(), "balance", balance2);
-				purchaseService.addPurchase(userID, 2, work.getWorkID(), (double)work.getPrice(), (double)work.getPrice(), null, null);
+				purchaseService.addPurchase(userID, 2, workID, work.getWorkName(), (double)work.getPrice(), (double)work.getPrice(), null, null);
 				transactionService.addTransaction(userID, workID, null, 0, 1);
-				transactionService.addTransaction(user2.getUserID(), null, work.getPrice() * CommonConfig.commissionRate, 0, 0);
+				transactionService.addTransaction(user2.getUserID(), null, fee * commissionRate, 0, 0);
 				balanceRecordService.addBalanceRecord(userID, (double)work.getPrice(), 2);
 			} else {
 				Long youbiAmount1 = user1.getYoubiAmount() - work.getPrice();
@@ -101,16 +122,14 @@ public class PayController {
 				}
 				userService.setUser("userID", userID, "youbiAmount", youbiAmount1);
 				userService.setUser("username", work.getAuthor(), "youbiAmount", youbiAmount2);
-				purchaseService.addPurchase(userID, 3, work.getWorkName(), null, null, work.getPrice(), work.getPrice());
+				purchaseService.addPurchase(userID, 3, workID, work.getWorkName(), null, null, work.getPrice(), work.getPrice());
 				transactionService.addTransaction(userID, workID, null, 1, 1);
 				transactionService.addTransaction(user2.getUserID(), null, (double)work.getPrice(), 1, 0);
 			}
-			List<String> purchaseWork1 = new ArrayList<String>();
-			if (user1.getPurchaseWork() != null) {
-				purchaseWork1 = user1.getPurchaseWork();
-			}
+			List<String> purchaseWork1 = user1.getPurchaseWork();
 			List<String> purchaseWork2 = ListUtil.addElement(purchaseWork1, workID);
 			userService.setUser("userID", userID, "purchaseWork", purchaseWork2);
+			
 			String title = "购买作品成功！";
 			String content = "恭喜您，您已成功购买《" + work.getWorkName() +"》作品，请前往下载界面下载。下载有效时间为24小时。";
 			newsService.addNews(userID, title, content, 1);
@@ -122,28 +141,39 @@ public class PayController {
 	}
 	
 	@PostMapping("/purchasevip")
-	public SimpleVO purchaseVIP(@RequestParam(name="userID", required=true) String userID,
-			@RequestParam(name="vipKind", required=true) Integer vipKind,
-			@RequestParam(name="fee", required=true) Integer fee,
-			@RequestParam(name="monthNum", required=true) Integer monthNum,
+	public SimpleVO purchaseVIP(@RequestParam(name="vipKind", required=true) Integer vipKind,
+			@RequestParam(name="taocanType", required=true) Integer taocanType,
 			HttpSession session) {
 		
-//		if (session.getAttribute(userID) == null) {
-//			return new SimpleVO(false, "请先确认登录后再操作。"); 
+		String userID = (String) session.getAttribute("userID");
+		User user = userService.queryUser("userID", userID);
+//		if (userID == null || user == null) {
+//			return new SimpleVO(false, "用户尚未登录或用户不存在");
 //		}
 		
 		try {
-			User user = userService.queryUser("userID", userID);
-			Double balance = user.getBalance() - fee;
-			if (balance < 0) {
-				return new SimpleVO(false, "余额不足，请先充值。");
-			}
-			userService.setUser("userID", userID, "balance", balance);
-			
+			double fee = 0;
+			int monthNum = 0;
 			Calendar calendar = Calendar.getInstance();
 			switch (vipKind) {
 			case 1:
-				userService.setUser("userID", userID, "vipKind", ListUtil.addElement(user.getVipKind(), 1));
+				switch (taocanType) {
+				case 1:
+					fee = (double) configService.getConfigValue("shareVIPMonth");
+					monthNum = 1;
+					purchaseService.addPurchase(userID, 1, null, "共享VIP包月套餐", (double)fee, (double)fee, null, null);
+					break;
+				case 2:
+					fee = (double) configService.getConfigValue("shareVIPHalf");
+					monthNum = 6;
+					purchaseService.addPurchase(userID, 1, null, "共享VIP半年套餐", (double)fee, (double)fee, null, null);
+					break;
+				case 3:
+					fee = (double) configService.getConfigValue("shareVIPYear");
+					monthNum = 12;
+					purchaseService.addPurchase(userID, 1, null, "共享VIP包年套餐", (double)fee, (double)fee, null, null);
+					break;
+				}
 				
 				Long shareVIPTime = 0l;
 				if (user.getShareVIPTime() == null || user.getShareVIPTime() < System.currentTimeMillis()) {
@@ -155,46 +185,59 @@ public class PayController {
 				calendar.setTime(new Date(shareVIPTime));
 				calendar.add(Calendar.MONDAY, monthNum);
 				userService.setUser("userID", userID, "shareVIPTime", calendar.getTimeInMillis());
-				purchaseService.addPurchase(userID, 1, "共享VIP", (double)fee, (double)fee, null, null);
+				List<Integer> vips = ListUtil.addElement(user.getVipKind(), 1);
+				Collections.sort(vips);
+				userService.setUser("userID", userID, "vipKind", vips);
 				break;
-			
 			case 2:
-				userService.setUser("userID", userID, "vipKind", ListUtil.addElement(user.getVipKind(), 2));
-				
-				Long originalVIPTime = 0l;
-				if (user.getOriginalVIPTime() == null || user.getOriginalVIPTime() < System.currentTimeMillis()) {
-					originalVIPTime = System.currentTimeMillis();
-				} else {
-					originalVIPTime = user.getOriginalVIPTime();
+				switch (taocanType) {
+				case 1:
+					fee = (double) configService.getConfigValue("originalVIPMonth");
+					monthNum = 1;
+					purchaseService.addPurchase(userID, 1, null, "原创VIP包月套餐", (double)fee, (double)fee, null, null);
+					break;
+				case 2:
+					fee = (double) configService.getConfigValue("originalVIPHalf");
+					monthNum = 6;
+					purchaseService.addPurchase(userID, 1, null, "原创VIP半年套餐", (double)fee, (double)fee, null, null);
+					break;
+				case 3:
+					fee = (double) configService.getConfigValue("originalVIPYear");
+					monthNum = 12;
+					purchaseService.addPurchase(userID, 1, null, "原创VIP包年套餐", (double)fee, (double)fee, null, null);
+					break;
 				}
-				
-				calendar.setTime(new Date(originalVIPTime));
-				calendar.add(Calendar.MONDAY, monthNum);
-				userService.setUser("userID", userID, "originalVIPTime", calendar.getTimeInMillis());
-				purchaseService.addPurchase(userID, 1, "原创VIP", (double)fee, (double)fee, null, null);
 				break;
-			
 			case 3:
-				userService.setUser("userID", userID, "vipKind", ListUtil.addElement(user.getVipKind(), 3));
-				
-				Long companyVIPTime = 0l;
-				if (user.getCompanyVIPTime() == null || user.getCompanyVIPTime() < System.currentTimeMillis()) {
-					companyVIPTime = System.currentTimeMillis();
-				} else {
-					companyVIPTime = user.getCompanyVIPTime();
+				switch (taocanType) {
+				case 1:
+					fee = (double) configService.getConfigValue("companyVIPMonth");
+					monthNum = 1;
+					purchaseService.addPurchase(userID, 1, null, "企业VIP包月套餐", (double)fee, (double)fee, null, null);
+					break;
+				case 2:
+					fee = (double) configService.getConfigValue("companyVIPHalf");
+					monthNum = 6;
+					purchaseService.addPurchase(userID, 1, null, "企业VIP半年套餐", (double)fee, (double)fee, null, null);
+					break;
+				case 3:
+					fee = (double) configService.getConfigValue("companyVIPYear");
+					monthNum = 12;
+					purchaseService.addPurchase(userID, 1, null, "企业VIP包年套餐", (double)fee, (double)fee, null, null);
+					break;
 				}
-				
-				calendar.setTime(new Date(companyVIPTime));
-				calendar.add(Calendar.MONDAY, monthNum);
-				userService.setUser("userID", userID, "companyVIPTime", calendar.getTimeInMillis());
-				purchaseService.addPurchase(userID, 1, "企业VIP", (double)fee, (double)fee, null, null);
-				break;
-
-			default:
 				break;
 			}
+			
+			Double balance = user.getBalance() - fee;
+			if (balance < 0) {
+				return new SimpleVO(false, "余额不足，请先充值。");
+			}
+			userService.setUser("userID", userID, "balance", balance);
+			
 			transactionService.addTransaction(userID, null, (double)fee, 0, 5);
 			balanceRecordService.addBalanceRecord(userID, (double)fee, 2);
+			
 			String title = "购买VIP成功！";
 			String content = "恭喜您，您已成功VIP权益，赶紧去体验我们的会员服务吧。";
 			newsService.addNews(userID, title, content, 1);
@@ -202,21 +245,21 @@ public class PayController {
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new SimpleVO(false, "出错信息：" + e.toString());
-		} 
+		}
 	}
 	
 	@GetMapping("/exchange")
-	public SimpleVO exchange(@RequestParam(name="userID", required=true) String userID,
-			@RequestParam(name="money", required=true) Integer money,
+	public SimpleVO exchange(@RequestParam(name="money", required=true) Integer money,
 			HttpSession session) {
 		
-//		if (session.getAttribute(userID) == null) {
-//			return new SimpleVO(false, "请先确认登录后再操作。"); 
+		String userID = (String) session.getAttribute("userID");
+		User user = userService.queryUser("userID", userID);
+//		if (userID == null || user == null) {
+//			return new SimpleVO(false, "用户尚未登录或用户不存在");
 //		}
 		
 		try {
 			transactionService.addTransaction(userID, null, (double)money, 0, 3);
-			User user = userService.queryUser("userID", userID);
 			Double balance = user.getBalance() - money;
 			Long youbiAmount = user.getYoubiAmount() + money * 10;
 			if (balance < 0) {

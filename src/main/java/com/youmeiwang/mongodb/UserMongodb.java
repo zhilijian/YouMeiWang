@@ -30,14 +30,6 @@ public class UserMongodb implements UserDao {
 	}
 	
 	@Override
-	public void batchRemoveUser(String condition, String[] values) {
-		for (String value : values) {
-			Query query = new Query(Criteria.where(condition).is(value));
-			mongoTemplate.remove(query, User.class);
-		}
-	}
-
-	@Override
 	public void updateUser(User user) {
 		Query query = new Query(Criteria.where("userID").is(user.getUserID()));
 		Update update = new Update();

@@ -6,16 +6,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.youmeiwang.dao.BBSDao;
+import com.youmeiwang.dao.UserDao;
 import com.youmeiwang.entity.BBS;
+import com.youmeiwang.entity.User;
 import com.youmeiwang.util.RandomUtil;
 
 @Service
 public class BBSService {
 
 	@Autowired
+	private UserDao userDao;
+	
+	@Autowired
 	private BBSDao bbsDao;
 	
 	public BBS addBBS(String userID, String workID, Integer correctionType, String comment) {
+		User user = userDao.queryUser("userID", userID);
+		String username = user.getUsername();
+		
 		BBS bbs = new BBS();
 		String bbsID = null;
 		do {
@@ -23,6 +31,7 @@ public class BBSService {
 		} while (bbsDao.queryBBS("bbsID", bbsID) != null);
 		bbs.setBbsID(bbsID);
 		bbs.setUserID(userID);
+		bbs.setUsername(username);
 		bbs.setWorkID(workID);
 		bbs.setCorrectionType(correctionType);
 		bbs.setComment(comment);
