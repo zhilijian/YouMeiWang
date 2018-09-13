@@ -138,11 +138,12 @@ public class OrderMongodb implements OrderDao{
 	}
 
 	@Override
-	public List<Order> orderList(String condition, String value, Integer payType,
-			String payStatus, Long startTime, Long endTime, Integer page, Integer size) {
+	public List<Order> orderlist(String condition, Integer payType, String payStatus, Long startTime, Long endTime) {
 		Query query = new Query();
-		if (value != null && !"".equals(value)) {
-			query.addCriteria(Criteria.where(condition).regex(value));
+		if (condition != null && !"".equals(condition.trim())) {
+			Criteria criteria1 = Criteria.where("outTradeNo").regex(condition);
+			Criteria criteria2 = Criteria.where("userID").regex(condition);
+			query.addCriteria(new Criteria().orOperator(criteria1, criteria2));
 		}
 		if (payType != null) {
 			switch (payType) {
@@ -170,12 +171,6 @@ public class OrderMongodb implements OrderDao{
 			query.addCriteria(criteria);
 		}
 		query.addCriteria(Criteria.where("transactionID").ne(null));
-		if (page != null && size != null) {
-			query.skip((page - 1) * size);
-			query.limit(size);
-		}
 		return mongoTemplate.find(query, Order.class);
 	}
-
-	
 }

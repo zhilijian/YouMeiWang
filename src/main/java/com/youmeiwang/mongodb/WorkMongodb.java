@@ -67,6 +67,7 @@ public class WorkMongodb implements WorkDao{
 		update.set("browseNum", work.getBrowseNum());
 		update.set("remarks", work.getRemarks());
 		update.set("isDelete", work.getIsDelete());
+		update.set("verifyMessage", work.getVerifyMessage());
 		mongoTemplate.updateFirst(query, update, Work.class);
 	}
 	
@@ -392,6 +393,24 @@ public class WorkMongodb implements WorkDao{
 			}
 		}
 		query.addCriteria(Criteria.where("verifyState").is(1));
+		return mongoTemplate.find(query, Work.class);
+	}
+
+	@Override
+	public List<Work> worklist(String condition, Integer primaryClassification, Boolean verifyState) {
+		Query query = new Query();
+		if (condition != null && !"".equals(condition)) {
+			Criteria criteria1 = Criteria.where("workID").regex(condition);
+			Criteria criteria2 = Criteria.where("workName").regex(condition);
+			Criteria criteria3 = Criteria.where("author").regex(condition);
+			query.addCriteria(new Criteria().orOperator(criteria1, criteria2, criteria3));
+		}
+		if (primaryClassification != null) {
+			query.addCriteria(Criteria.where("primaryClassification").is(primaryClassification));
+		}
+		if (verifyState) {
+			query.addCriteria(Criteria.where("verifyState").is(1));
+		}
 		return mongoTemplate.find(query, Work.class);
 	}
 

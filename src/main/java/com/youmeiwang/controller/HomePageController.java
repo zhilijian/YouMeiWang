@@ -19,8 +19,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.youmeiwang.entity.Admin;
 import com.youmeiwang.entity.Banner;
-import com.youmeiwang.entity.FileInfo;
 import com.youmeiwang.entity.Work;
 import com.youmeiwang.service.AdminService;
 import com.youmeiwang.service.BannerService;
@@ -48,14 +48,15 @@ public class HomePageController {
 	private FileService fileService;
 	
 	@GetMapping("/bannerlist")
-	public CommonVO bannerList(@RequestParam(name="adminID", required=true) String adminID, 
-			HttpSession session) {
+	public CommonVO bannerList(HttpSession session) {
 		
-//		if (session.getAttribute(adminID) == null) {
-//			return new CommonVO(false, "该用户尚未登录。", "请先确认该管理员是否成功登录。");
-//		}
+		String adminID = (String) session.getAttribute("adminID");
+		Admin admin = adminService.queryAdmin("adminID", adminID);
+		if (adminID == null || admin == null) {
+			return new CommonVO(false, "管理员尚未登录或不存在。", "{}");
+		}
 		
-		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getHomepageModule(), 0);
+		boolean flag = ContainUtil.hasNumber(admin.getHomepageModule(), 0);
 		if (!flag) {
 			return new CommonVO(false, "该用户无此权限。", "请先确认该管理员是否有此权限。");
 		}
@@ -78,18 +79,52 @@ public class HomePageController {
 			return new CommonVO(true, "查询banner管理失败。", "出错信息：" + e.toString());
 		}
 	}
-	
-	@GetMapping("/workshowlist")
-	public CommonVO workShowList(@RequestParam(name="adminID", required=true) String adminID, 
-			@RequestParam(name="bannerID", required=true) String bannerID,			
-			@RequestParam(name="authority", required=true) Integer authority,			
+
+	@PostMapping("/editbanner")
+	public SimpleVO editBanner(@RequestParam(name="bannerID", required=true) String bannerID,			
+			@RequestParam(name="bannerName", required=true) String bannerName,			
+			@RequestParam(name="picturePath", required=false) String picturePath,			
+			@RequestParam(name="associatedLink", required=true) String associatedLink,			
 			HttpSession session) {
 		
-//		if (session.getAttribute(adminID) == null) {
-//			return new CommonVO(false, "该用户尚未登录。", "请先确认该管理员是否成功登录。");
-//		}
+		String adminID = (String) session.getAttribute("adminID");
+		Admin admin = adminService.queryAdmin("adminID", adminID);
+		if (adminID == null || admin == null) {
+			return new SimpleVO(false, "管理员尚未登录或不存在。");
+		}
 		
-		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getHomepageModule(), authority);
+		boolean flag = ContainUtil.hasNumber(admin.getHomepageModule(), 0);
+		if (!flag) {
+			return new SimpleVO(false, "该用户无此权限");
+		}
+		try {
+			Banner banner = bannerService.queryBanner("bannerID", bannerID);
+			banner.setBannerName(bannerName);
+			if (picturePath != null && !"".equals(picturePath.trim())) {
+				banner.setPicturePath(picturePath);
+			}
+			banner.setAssociatedLink(associatedLink);
+			banner.setPublishTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+			bannerService.updateBanner(banner);
+			return new SimpleVO(true, "修改banner成功！");
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new SimpleVO(false, "修改banner失败。");
+		}
+	}
+	
+	@GetMapping("/workshowlist")
+	public CommonVO workShowList(@RequestParam(name="bannerID", required=true) String bannerID,	HttpSession session) {
+		
+		String adminID = (String) session.getAttribute("adminID");
+		Admin admin = adminService.queryAdmin("adminID", adminID);
+		if (adminID == null || admin == null) {
+			return new CommonVO(false, "管理员尚未登录或不存在。", "{}");
+		}
+		
+		int authority = getAuthority(bannerID);
+		
+		boolean flag = ContainUtil.hasNumber(admin.getHomepageModule(), authority);
 		if (!flag) {
 			return new CommonVO(false, "该用户无此权限。", "请先确认该管理员是否有此权限。");
 		}
@@ -118,7 +153,7 @@ public class HomePageController {
 				workmap.put("workName", work.getWorkName());
 				String picture = null;
 				if (work.getPictures() != null && work.getPictures().size() > 0) {
-					picture = getFilePath(work.getPictures().get(0));
+					picture = fileService.getFilePath(work.getPictures().get(0));
 				}
 				workmap.put("pictures", picture);
 				workmap.put("primaryClassification", work.getYijifenlei());
@@ -132,84 +167,40 @@ public class HomePageController {
 			return new CommonVO(false, "模块展示失败", "出错信息：" + e.toString());
 		}
 	}
-	
-	@PostMapping("/editbanner")
-	public SimpleVO editBanner(@RequestParam(name="adminID", required=true) String adminID, 
-			@RequestParam(name="bannerID", required=true) String bannerID,			
-			@RequestParam(name="bannerName", required=true) String bannerName,			
-			@RequestParam(name="picturePath", required=false) String picturePath,			
-			@RequestParam(name="associatedLink", required=true) String associatedLink,			
-			HttpSession session) {
-		
-//		if (session.getAttribute(adminID) == null) {
-//			return new SimpleVO(false, "该用户尚未登录。");
-//		}
-		
-		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getHomepageModule(), 0);
-		if (!flag) {
-			return new SimpleVO(false, "该用户无此权限");
-		}
-		try {
-			Banner banner = bannerService.queryBanner("bannerID", bannerID);
-			banner.setBannerName(bannerName);
-			if (picturePath != null) {
-				banner.setPicturePath(picturePath);
-			}
-			banner.setAssociatedLink(associatedLink);
-			banner.setPublishTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
-			bannerService.updateBanner(banner);
-			return new SimpleVO(true, "修改banner成功！");
-		} catch (Exception e) {
-			e.printStackTrace();
-			return new SimpleVO(false, "修改banner失败。");
-		}
-	}
-	
-	@PostMapping("/edithotword")
-	public SimpleVO editHotWord(@RequestParam(name="adminID", required=true) String adminID, 
-			@RequestParam(name="bannerID", required=true) String bannerID1,			
-			@RequestParam(name="hotWord", required=true) String[] hotWord,			
-			@RequestParam(name="authority", required=true) Integer authority,			
-			HttpSession session) {
-		
-//		if (session.getAttribute(adminID) == null) {
-//			return new SimpleVO(false, "该用户尚未登录。");
-//		}
-		
-		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getHomepageModule(), authority);
-		if (!flag) {
-			return new SimpleVO(false, "该用户无此权限");
-		}
-		
-		try {
-			String bannerID2 = String.valueOf(Integer.parseInt(bannerID1)+1);
-			Banner banner1 = bannerService.queryBanner("bannerID", bannerID1);
-			Banner banner2 = bannerService.queryBanner("bannerID", bannerID2);
-			banner1.setHotWord(Arrays.asList(hotWord));
-			banner2.setHotWord(Arrays.asList(hotWord));
-			bannerService.updateBanner(banner1);
-			bannerService.updateBanner(banner2);
-			return new SimpleVO(true, "保存热词成功！");
-		} catch (Exception e) {
-			e.printStackTrace();
-			return new SimpleVO(true, "保存热词成功！");
-		}
-	}
-	
+
 	@PostMapping("/editworkshow")
-	public CommonVO editWorkShow(@RequestParam(name="adminID", required=true) String adminID, 
-			@RequestParam(name="bannerID", required=true) String bannerID,
+	public CommonVO editWorkShow(@RequestParam(name="bannerID", required=true) String bannerID,
 			@RequestParam(name="index", required=true) Integer index,
 			@RequestParam(name="workID", required=true) String workID,
-			@RequestParam(name="primaryClassification", required=false) Integer primaryClassification,
-			@RequestParam(name="authority", required=true) Integer authority,
 			HttpSession session) {
 		
-//		if (session.getAttribute(adminID) == null) {
-//			return new CommonVO(false, "该用户尚未登录。", "请先确认该管理员是否成功登录。");
-//		}
+		String adminID = (String) session.getAttribute("adminID");
+		Admin admin = adminService.queryAdmin("adminID", adminID);
+		if (adminID == null || admin == null) {
+			return new CommonVO(false, "管理员尚未登录或不存在。", "{}");
+		}
 		
-		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getHomepageModule(), authority);
+		int primaryClassification = 3;
+		int authority = 6;
+		switch (Integer.parseInt(bannerID)) {
+		case 11:
+			authority = 2;
+			break;
+		case 13:
+			primaryClassification = 1;
+			authority = 3;
+			break;
+		case 15:
+			primaryClassification = 0;
+			authority = 4;
+			break;
+		case 17:
+			primaryClassification = 2;
+			authority = 5;
+			break;
+		}
+		
+		boolean flag = ContainUtil.hasNumber(admin.getHomepageModule(), authority);
 		if (!flag) {
 			return new CommonVO(false, "该用户无此权限。", "请先确认该管理员是否有此权限。");
 		}
@@ -219,11 +210,12 @@ public class HomePageController {
 			if (work == null) {
 				return new CommonVO(false, "不存在该编号的作品。", "请重新输入正确的作品ID。");
 			}
-			if (primaryClassification != null) {
+			if (primaryClassification != 3) {
 				if (!work.getPrimaryClassification().equals(primaryClassification)) {
 					return new CommonVO(false, "该作品不符合类型要求。", "请重新输入正确的作品ID。");
 				}
 			}
+			
 			Banner banner= bannerService.queryBanner("bannerID", bannerID);
 			List<String> workShow = banner.getWorkShow();
 			workShow.set(index-1, workID);
@@ -243,24 +235,56 @@ public class HomePageController {
 		}
 	}
 	
-	@PostMapping("/removeworkshow")
-	public SimpleVO removeWorkShow(@RequestParam(name="adminID", required=true) String adminID, 
-			@RequestParam(name="bannerID", required=true) String bannerID,
-			@RequestParam(name="index", required=true) Integer index,
-			@RequestParam(name="authority", required=true) Integer authority,
+	@PostMapping("/edithotword")
+	public SimpleVO editHotWord(@RequestParam(name="bannerID", required=true) String bannerID1,			
+			@RequestParam(name="hotWord", required=true) String[] hotWord1,			
 			HttpSession session) {
 		
-//		if (session.getAttribute(adminID) == null) {
-//			return new SimpleVO(false, "该用户尚未登录。");
-//		}
-		
-		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getHomepageModule(), authority);
-		if (!flag) {
-			return new SimpleVO(false, "该用户无此权限。");
+		String adminID = (String) session.getAttribute("adminID");
+		Admin admin = adminService.queryAdmin("adminID", adminID);
+		if (adminID == null || admin == null) {
+			return new SimpleVO(false, "管理员尚未登录或不存在。");
 		}
 		
-		if (index <= 0 || authority < 0 || authority > 5) {
+		int authority = getAuthority(bannerID1);
+		
+		boolean flag = ContainUtil.hasNumber(admin.getHomepageModule(), authority);
+		if (!flag) {
+			return new SimpleVO(false, "该用户无此权限");
+		}
+		
+		try {
+			String bannerID2 = String.valueOf(Integer.parseInt(bannerID1)+1);
+			List<String> hotWord2 = Arrays.asList(hotWord1);
+			bannerService.setBanner("bannerID", bannerID1, "hotWord", hotWord2);
+			bannerService.setBanner("bannerID", bannerID2, "hotWord", hotWord2);
+			return new SimpleVO(true, "保存热词成功！");
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new SimpleVO(false, "出错信息：" + e.toString());
+		}
+	}
+	
+	@PostMapping("/removeworkshow")
+	public SimpleVO removeWorkShow(@RequestParam(name="bannerID", required=true) String bannerID,
+			@RequestParam(name="index", required=true) Integer index,
+			HttpSession session) {
+		
+		String adminID = (String) session.getAttribute("adminID");
+		Admin admin = adminService.queryAdmin("adminID", adminID);
+		if (adminID == null || admin == null) {
+			return new SimpleVO(false, "管理员尚未登录或不存在。");
+		}
+		
+		if (index <= 0) {
 			return new SimpleVO(false, "输入的参数有误。");
+		}
+		
+		int authority = getAuthority(bannerID);
+		
+		boolean flag = ContainUtil.hasNumber(admin.getHomepageModule(), authority);
+		if (!flag) {
+			return new SimpleVO(false, "该用户无此权限。");
 		}
 		
 		try {
@@ -271,21 +295,22 @@ public class HomePageController {
 			return new SimpleVO(true, "删除展示作品成功！");
 		} catch (Exception e) {
 			e.printStackTrace();
-			return new SimpleVO(false, "删除展示作品成功！");
+			return new SimpleVO(false, "出错信息：" + e.toString());
 		}
 	}
-	
+
 	@PostMapping("/publishworkshow")
-	public SimpleVO publishWorkShow(@RequestParam(name="adminID", required=true) String adminID, 
-			@RequestParam(name="bannerID", required=true) String bannerID1,
-			@RequestParam(name="authority", required=true) Integer authority,
-			HttpSession session) {
+	public SimpleVO publishWorkShow(@RequestParam(name="bannerID", required=true) String bannerID1, HttpSession session) {
 		
-//		if (session.getAttribute(adminID) == null) {
-//			return new SimpleVO(false, "该用户尚未登录。");
-//		}
+		String adminID = (String) session.getAttribute("adminID");
+		Admin admin = adminService.queryAdmin("adminID", adminID);
+		if (adminID == null || admin == null) {
+			return new SimpleVO(false, "管理员尚未登录或不存在。");
+		}
 	
-		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getHomepageModule(), authority);
+		int authority = getAuthority(bannerID1);
+		
+		boolean flag = ContainUtil.hasNumber(admin.getHomepageModule(), authority);
 		if (!flag) {
 			return new SimpleVO(false, "该用户无此权限。");
 		}
@@ -359,7 +384,7 @@ public class HomePageController {
 				workmap.put("yijifenlei", work.getYijifenlei()); 
 				String picture = null;
 				if (work.getPictures() != null && work.getPictures().size() > 0) {
-					picture = getFilePath(work.getPictures().get(0));
+					picture = fileService.getFilePath(work.getPictures().get(0));
 				}
 				workmap.put("picture", picture);
 				worklist.add(workmap);
@@ -374,8 +399,22 @@ public class HomePageController {
 		}
 	}
 	
-	private String getFilePath(String fileID) {
-		FileInfo fileInfo = fileService.queryFile("fileID", fileID);
-		return fileInfo.getFilePath();
+	private int getAuthority(String bannerID) {
+		int authority = 6;
+		switch (Integer.parseInt(bannerID)) {
+		case 11:
+			authority = 2;
+			break;
+		case 13:
+			authority = 3;
+			break;
+		case 15:
+			authority = 4;
+			break;
+		case 17:
+			authority = 5;
+			break;
+		}
+		return authority;
 	}
 }

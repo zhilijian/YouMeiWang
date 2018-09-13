@@ -1,5 +1,8 @@
 package com.youmeiwang.service;
 
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -13,6 +16,7 @@ import com.youmeiwang.dao.WorkDao;
 import com.youmeiwang.entity.Topic;
 import com.youmeiwang.entity.Work;
 import com.youmeiwang.util.ListUtil;
+import com.youmeiwang.util.RandomUtil;
 
 @Service
 public class TopicService {
@@ -23,8 +27,25 @@ public class TopicService {
 	@Autowired
 	private TopicDao topicDao;
 	
-	public void addTopic(Topic topic) {
+	public Topic addTopic(String topicName, String picturePath, String describe, String[] workIDs) {
+		String topicID = null;
+		do {
+			topicID = RandomUtil.getRandomNumber(5);
+		} while (topicDao.queryTopic("topicID", topicID) != null);
+		List<String> works = Arrays.asList(workIDs);
+		
+		Topic topic = new Topic();
+		topic.setTopicID(topicID);
+		topic.setTopicName(topicName);
+		topic.setPicturePath(picturePath);
+		topic.setDescribe(describe);
+		topic.setIsRecommend(0);
+		topic.setCreateTime(new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date(System.currentTimeMillis())));
+		topic.setBrowsed(0l);
+		topic.setCollected(0l);
+		topic.setWorks(works);
 		topicDao.addTopic(topic);
+		return topic;
 	}
 	
 	public Map<String, String> addTopicWork(String workID) {
@@ -53,10 +74,6 @@ public class TopicService {
 	
 	public void removeTopic(String condition, String value) {
 		topicDao.removeTopic(condition, value);
-	}
-	
-	public void batchRemoveTopic(String condition, String[] values) {
-		topicDao.batchRemoveTopic(condition, values);
 	}
 
 	public void updateTopic(Topic topic) {
@@ -92,7 +109,11 @@ public class TopicService {
 		return topicDao.topicList(conditions, page, size);
 	}
 
-	public List<Topic> topicList(String condition1, String value1, String condition2, Integer value2, Integer page, Integer size) {
-		return topicDao.topicList(condition1, value1, condition2, value2, page, size);
+	public List<Topic> topiclist() {
+		return topicDao.topiclist();
+	}
+	
+	public List<Topic> topiclist(String topicName, Integer isRecommend) {
+		return topicDao.topiclist(topicName, isRecommend);
 	}
 }

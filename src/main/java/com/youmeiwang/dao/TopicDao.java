@@ -13,8 +13,6 @@ public interface TopicDao {
 	public void addTopic(Topic topic);
 	
 	public void removeTopic(String condition, String value);
-	
-	public void batchRemoveTopic(String condition, String[] values);
 
 	public void updateTopic(Topic topic);
 	
@@ -34,4 +32,7 @@ public interface TopicDao {
 	
 	public List<Topic> topicList(String condition1, String value1, String condition2, Integer value2, Integer page, Integer size);
 	
+	public List<Topic> topiclist();
+	
+	public List<Topic> topiclist(String topicName, Integer isRecommend);
 }

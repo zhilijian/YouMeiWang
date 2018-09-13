@@ -27,6 +27,10 @@ public class BannerService {
 		bannerDao.updateBanner(banner);
 	}
 	
+	public void setBanner(String condition, Object value1, String target, Object value2) {
+		bannerDao.setBanner(condition, value1, target, value2);
+	}
+	
 	public Banner queryBanner(String condition, Object value) {
 		return bannerDao.queryBanner(condition, value);
 	}

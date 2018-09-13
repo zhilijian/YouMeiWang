@@ -1,13 +1,10 @@
 package com.youmeiwang.controller;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.servlet.http.HttpSession;
 
@@ -19,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.youmeiwang.entity.Admin;
 import com.youmeiwang.entity.FileInfo;
 import com.youmeiwang.entity.User;
 import com.youmeiwang.entity.Work;
@@ -56,36 +54,54 @@ public class WorkManageController {
 	private NewsService newsService;
 	
 	@PostMapping("/removework")
-	public SimpleVO removeWork(@RequestParam(name="adminID", required=true) String adminID, 
-							@RequestParam(name="workIDs", required=true) String workIDs,
-							@RequestParam(name="primaryClassification", required=true) Integer primaryClassification,				
-							@RequestParam(name="authority", required=true) Integer authority,
-							HttpSession session) {
+	public SimpleVO removeWork(@RequestParam(name="workIDs", required=true) String workIDs, HttpSession session) {
 		
-		if (session.getAttribute(adminID) == null) {
-			return new SimpleVO(false, "该管理员尚未登录。");
+		String adminID = (String) session.getAttribute("adminID");
+		Admin admin = adminService.queryAdmin("adminID", adminID);
+		if (adminID == null || admin == null) {
+			return new SimpleVO(false, "用户尚未登录或不存在。");
 		}
-		
-		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getWorkManage(), authority);
-		if (!flag) {
-			return new SimpleVO(false, "该用户无此权限。");
-		}
+		Integer[] workmanage = admin.getWorkManage();
+		Integer primaryClassification; 
+		Integer authority = 3;
 		
 		try {
 			List<String> workIDlist = Arrays.asList(workIDs.split(","));
+			Work work = new Work();
 			for (String workID : workIDlist) {
+				work = workService.queryWork("workID", workID);
+				if (work == null) {
+					continue;
+				}
+				primaryClassification = work.getPrimaryClassification();
+				
+				switch (primaryClassification) {
+				case 0:
+					authority = 1;
+					break;
+				case 1:
+					authority = 0;
+					break;
+				case 2:
+					authority = 2;
+					break;
+				}
+				
+				boolean flag = ContainUtil.hasNumber(workmanage, authority);
+				if (!flag) {
+					return new SimpleVO(false, "该用户无此权限。");
+				}
 				workService.removeWork("workID", workID, "primaryClassification", primaryClassification);
 			}
 			return new SimpleVO(true, "删除作品成功！");
 		} catch (Exception e) {
 			e.printStackTrace();
-			return new SimpleVO(false, "出错信息：" + e.getMessage());
+			return new SimpleVO(false, "出错信息：" + e.toString());
 		}
 	}
 	
 	@PostMapping("/editwork")
-	public SimpleVO editWork(@RequestParam(name="adminID", required=true) String adminID, 
-		@RequestParam(name="workID", required=true) String workID,
+	public SimpleVO editWork(@RequestParam(name="workID", required=true) String workID,
 		@RequestParam(name="workName", required=true) String workName,
 		@RequestParam(name="primaryClassification", required=true) String primaryClassification,
 		@RequestParam(name="secondaryClassification", required=true) String secondaryClassification,
@@ -99,30 +115,46 @@ public class WorkManageController {
 		@RequestParam(name="remarks", required=false) String remarks,
 		@RequestParam(name="pictures", required=false) String[] pictures,
 		@RequestParam(name="files", required=false) String[] files,
-		@RequestParam(name="authority", required=true) Integer authority,
 		@RequestParam(name="isPass", required=false) Integer isPass,
 		@RequestParam(name="verifyMessage", required=false) String verifyMessage,
 		HttpSession session) {
 		
-		if (session.getAttribute(adminID) == null) {
-			return new SimpleVO(false, "该用户尚未登录。");
-		}
-		
-		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getWorkManage(), authority);
-		if (!flag) {
-			return new SimpleVO(false, "该用户无此权限。");
+		String adminID = (String) session.getAttribute("adminID");
+		Admin admin = adminService.queryAdmin("adminID", adminID);
+		if (adminID == null || admin == null) {
+			return new SimpleVO(false, "管理员尚未登录或不存在。");
 		}
 		
 		try {
  			Work work = workService.queryWork("workID", workID);
- 			User user = userService.queryUser("username", work.getAuthor());
-			if (user == null) {
-				return new SimpleVO(false, "该原创用户不存或已注销。");
+ 			User user = userService.queryUser("userID", work.getAuthor());
+ 			if (user == null) {
+ 				return new SimpleVO(false, "该用户不存在。");
 			}
+ 			String userID = user.getUserID();
+ 			Integer[] workmanage = admin.getWorkManage();
+ 			Integer authority = 3;
  			
- 			work.setWorkName(workName);
 			String[] primaryClassifications = primaryClassification.split(":");
-			work.setPrimaryClassification(Integer.valueOf(primaryClassifications[0]));
+			int primaryClassification0 = Integer.valueOf(primaryClassifications[0]);
+			switch (primaryClassification0) {
+			case 0:
+				authority = 1;
+				break;
+			case 1:
+				authority = 0;
+				break;
+			case 2:
+				authority = 2;
+				break;
+			}
+			boolean flag = ContainUtil.hasNumber(workmanage, authority);
+			if (!flag) {
+				return new SimpleVO(false, "该管理员无此权限。");
+			}
+			 
+			work.setWorkName(workName);
+			work.setPrimaryClassification(primaryClassification0);
 			work.setYijifenlei(primaryClassifications[1]);
 			String[] secondaryClassifications = secondaryClassification.split(":");
 			work.setSecondaryClassification(Integer.valueOf(secondaryClassifications[0]));
@@ -149,19 +181,28 @@ public class WorkManageController {
 			work.setLabels(Arrays.asList(labels));
 			work.setRemarks(remarks);
 			if (isPass != null) {
-				if (isPass.equals(1)) {
-					work.setVerifyState(1);
-					verifyService.verifyAndPassWork(user.getUserID(), workID);
-					String title = "作品审核通过！";
-					String content = "恭喜你，您上传的作品经游模网审核通过啦！";
-					newsService.addNews(user.getUserID(), title, content, 1);
-				} else {
+				String title = "";
+				String content = "";
+				switch (isPass) {
+				case 0:
 					work.setVerifyState(2);
 					work.setVerifyMessage(verifyMessage);
 					verifyService.verifyNotPassWork(user.getUserID(), workID);
-					String title = "作品审核未通过。";
-					String content = "很遗憾，您上传的作品不符合游模网的规则条件。不要气馁，您还可以继续提交申请哦！";
-					newsService.addNews(user.getUserID(), title, content, 1);
+					title = "作品审核未通过。";
+					content = "很遗憾，您上传的作品不符合游模网的规则条件。不要气馁，您还可以继续提交申请哦！";
+					newsService.addNews(userID, title, content, 1);
+					break;
+				case 1:
+					work.setVerifyState(1);
+					verifyService.verifyAndPassWork(user.getUserID(), workID);
+					
+					Long youbiAmount = user.getYoubiAmount() + 10;
+					userService.setUser("userID", userID, "youbiAmount", youbiAmount);
+					
+					title = "作品审核通过！";
+					content = "恭喜你，您上传的作品经游模网审核通过啦！";
+					newsService.addNews(userID, title, content, 1);
+					break;
 				}
 			}
 			if (pictures != null && pictures.length > 0) {
@@ -186,26 +227,40 @@ public class WorkManageController {
 			return new SimpleVO(true, "保存模型成功！");
 		} catch (Exception e) {
 			e.printStackTrace();
-			return new SimpleVO(false, "出错信息：" + e.getMessage());
+			return new SimpleVO(false, "出错信息：" + e.toString());
 		}
 	}
 	
 	@GetMapping("/workdetail")
-	public CommonVO workDetail(@RequestParam(name="adminID", required=true) String adminID, 
-							@RequestParam(name="workID", required=true) String workID,
-							@RequestParam(name="authority", required=true) Integer authority,				
-							HttpSession session) {
+	public CommonVO workDetail(@RequestParam(name="workID", required=true) String workID, HttpSession session) {
 		
-//		if (session.getAttribute(adminID) == null) {
-//			return new CommonVO(false, "该用户尚未登录。", "请先确认是否登录成功。");
-//		}
-		
-		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getWorkManage(), authority);
-		if (!flag) {
-			return new CommonVO(false, "该用户无此权限。","请先申请查看管理员的权限。");
+		String adminID = (String) session.getAttribute("adminID");
+		Admin admin = adminService.queryAdmin("adminID", adminID);
+		if (adminID == null || admin == null) {
+			return new CommonVO(false, "管理员尚未登录或不存在。", "{}");
 		}
+		
 		try {
 			Work work = workService.queryWork("workID", workID);
+			
+			int authority = 3;
+			int primaryClassification = work.getPrimaryClassification();
+			switch (primaryClassification) {
+			case 0:
+				authority = 1;
+				break;
+			case 1:
+				authority = 0;
+				break;
+			case 2:
+				authority = 2;
+				break;
+			}
+			boolean flag = ContainUtil.hasNumber(admin.getWorkManage(), authority);
+			if (!flag) {
+				return new CommonVO(false, "该管理员无此权限。", "{}");
+			}
+
 			Map<String, Object> data = new HashMap<String, Object>();
 			data.put("workID", workID);
 			data.put("workName", work.getWorkName());
@@ -227,7 +282,7 @@ public class WorkManageController {
 			data.put("remarks", work.getRemarks());
 			List<String> picturelist = new LinkedList<String>();
 			for (String fileID : work.getPictures()) {
-				String filePath = getFilePath(fileID);
+				String filePath = fileService.getFilePath(fileID);
 				if (filePath == null) {
 					continue;
 				}
@@ -236,7 +291,7 @@ public class WorkManageController {
 			data.put("pictures", picturelist);
 			List<Map<String, Object>> filelist = new LinkedList<Map<String, Object>>();
 			for (String fileID : work.getFiles()) {
-				Map<String, Object> filemap = getFileMap(fileID);
+				Map<String, Object> filemap = fileService.getFileMap(fileID);
 				if (filemap == null) {
 					continue;
 				}
@@ -246,66 +301,48 @@ public class WorkManageController {
 			return new CommonVO(true, "查看模型详情成功！", data);
 		} catch (Exception e) {
 			e.printStackTrace();
-			return new CommonVO(false, "查看模型详情失败。", "出错信息：" + e.getMessage());
+			return new CommonVO(false, "查看模型详情失败。", "出错信息：" + e.toString());
 		}
 	}
 		
 	@GetMapping("/worklist")
-	public CommonVO workList(@RequestParam(name="adminID", required=true) String adminID, 
-							@RequestParam(name="condition", required=false) String condition,
-							@RequestParam(name="primaryClassification", required=false) Integer primaryClassification,				
-							@RequestParam(name="authority", required=true) Integer authority,				
-							@RequestParam(name="verifyState", required=false) Integer verifyState,				
-							@RequestParam(name="page", required=true) Integer page,
-							@RequestParam(name="size", required=true) Integer size,
-							HttpSession session) {
+	public CommonVO workList(@RequestParam(name="condition", required=false) String condition,
+			@RequestParam(name="primaryClassification", required=true) Integer primaryClassification,				
+			@RequestParam(name="isVerify", required=true) boolean isVerify,				
+			@RequestParam(name="page", required=true) Integer page,
+			@RequestParam(name="size", required=true) Integer size,
+			HttpSession session) {
 		
-		if (session.getAttribute(adminID) == null) {
-			return new CommonVO(false, "该用户尚未登录。", "请先确认是否登录成功。");
+		String adminID = (String) session.getAttribute("adminID");
+		Admin admin = adminService.queryAdmin("adminID", adminID);
+		if (adminID == null || admin == null) {
+			return new CommonVO(false, "管理员尚未登录或不存在。", "{}");
 		}
 		
-		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getWorkManage(), authority);
+		int authority = 4;
+		switch (primaryClassification) {
+		case 0:
+			authority = 1;
+			break;
+		case 1:
+			authority = 0;
+			break;
+		case 2:
+			authority = 2;
+			break;
+		}
+		
+		if (isVerify) {
+			authority = 3;
+		}
+		
+		boolean flag = ContainUtil.hasNumber(admin.getWorkManage(), authority);
 		if (!flag) {
 			return new CommonVO(false, "该用户无此权限。","请先申请查看管理员的权限。");
 		}
 		
 		try {
-			List<Map<String, Object>> conditions1 = new ArrayList<Map<String, Object>>();
-			List<Map<String, Object>> conditions2 = new ArrayList<Map<String, Object>>();
-			if (condition != null) {
-				Map<String, Object> searchCondition1 = new HashMap<String, Object>();
-				Map<String, Object> searchCondition2 = new HashMap<String, Object>();
-				searchCondition1.put("searchType", 2);
-				searchCondition1.put("condition", "workID");
-				searchCondition1.put("value", condition);
-				conditions1.add(searchCondition1);
-				searchCondition2.put("searchType", 2);
-				searchCondition2.put("condition", "author");
-				searchCondition2.put("value", condition);
-				conditions2.add(searchCondition2);
-			}
-			if (primaryClassification != null) {
-				Map<String, Object> searchCondition = new HashMap<String, Object>();
-				searchCondition.put("searchType", 1);
-				searchCondition.put("condition", "primaryClassification");
-				searchCondition.put("value", primaryClassification);
-				conditions1.add(searchCondition);
-				conditions2.add(searchCondition);
-			}
-			if (verifyState != null) {
-				Map<String, Object> searchCondition = new HashMap<String, Object>();
-				searchCondition.put("searchType", 1);
-				searchCondition.put("condition", "verifyState");
-				searchCondition.put("value", verifyState);
-				conditions1.add(searchCondition);
-				conditions2.add(searchCondition);
-			}
-			
-			Set<Work> workset = new HashSet<Work>();
-			workset.addAll(workService.workList1(conditions1, null, null));
-			workset.addAll(workService.workList1(conditions2, null, null));
-
-			List<Work> worklist1 = new ArrayList<Work>(workset);
+			List<Work> worklist1 = workService.worklist(condition, primaryClassification, isVerify);
 			List<Work> worklist2 = new LinkedList<Work>();
 			int currIdx = (page > 1 ? (page-1)*size : 0);
 			for (int i = 0; i < size && i < worklist1.size()-currIdx; i++) {
@@ -328,8 +365,8 @@ public class WorkManageController {
 				maplist.add(map);
 			}
 			
-			Long workAmount = (long) worklist1.size();
-			Long pageAmount = 0l;
+			int workAmount = worklist1.size();
+			int pageAmount = 0;
 			if (workAmount % size == 0) {
 				pageAmount = workAmount / size;
 			} else {
@@ -340,30 +377,10 @@ public class WorkManageController {
 			data.put("works", maplist);
 			data.put("workAmount", workAmount);
 			data.put("pageAmount", pageAmount);
-			data.put("commissionRate", null);
 			return new CommonVO(true, "查询模型成功！", data);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new CommonVO(false, "查询模型失败。", "出错信息：" + e.toString());
 		}
-	}
-	
-	private String getFilePath(String fileID) {
-		FileInfo fileInfo = fileService.queryFile("fileID", fileID);
-		if (fileInfo == null) {
-			return null;
-		}
-		return fileInfo.getFilePath();
-	}
-	
-	private Map<String, Object> getFileMap(String fileID) {
-		FileInfo fileInfo = fileService.queryFile("fileID", fileID);
-		if (fileInfo == null) {
-			return null;
-		}
-		Map<String, Object> filemap = new HashMap<String, Object>();
-		filemap.put("fileID", fileInfo.getFileID());
-		filemap.put("fileName", fileInfo.getFileName());
-		return filemap;
 	}
 }

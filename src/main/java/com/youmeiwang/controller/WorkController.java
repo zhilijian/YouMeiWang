@@ -67,14 +67,11 @@ public class WorkController {
 		}
 		
 		try {
-			Work work = workService.addWork(workName, user.getUsername(), primaryClassification, 
-					secondaryClassification, reclassify, pattern, hasTextureMapping, isBinding, 
-					hasCartoon, price, labels, pictures, files);
+			Work work = workService.addWork(workName, userID, primaryClassification, 
+					secondaryClassification, reclassify, pattern, hasTextureMapping, 
+					isBinding, hasCartoon, price, labels, pictures, files);
 			String workID = work.getWorkID();
 			verifyService.addVerifyingWork(userID, workID);
-			
-			Long youbiAmount = user.getYoubiAmount() + 10;
-			userService.setUser("userID", userID, "youbiAmount", youbiAmount);
 			
 			Map<String, Object> data = new HashMap<String, Object>();
 			data.put("userID", userID);

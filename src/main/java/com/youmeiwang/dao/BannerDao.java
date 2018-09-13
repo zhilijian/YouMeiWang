@@ -13,6 +13,8 @@ public interface BannerDao {
 	
 	public void updateBanner(Banner banner);
 	
+	public void setBanner(String condition, Object value1, String target, Object value2);
+	
 	public Banner queryBanner(String condition, Object value);
 	
 }

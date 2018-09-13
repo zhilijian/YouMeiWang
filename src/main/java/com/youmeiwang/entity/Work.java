@@ -13,7 +13,7 @@ public class Work {
 	private String workID;
 	//workName 作品名称
 	private String workName;
-	//author 发布者账号（username）
+	//author 发布者账号（userID）
 	private String author;
 	//primaryClassification 一级分类
 	//0：共享模型  1：原创模型  2：2D美术

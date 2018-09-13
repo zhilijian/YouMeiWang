@@ -29,7 +29,7 @@ public class WorkService {
 	@Autowired
 	private FileDao fileDao;
 	
-	public Work addWork(String workName, String username, String primaryClassification, 
+	public Work addWork(String workName, String userID, String primaryClassification, 
 			String secondaryClassification, String reclassify, String pattern, boolean hasTextureMapping, 
 			boolean isBinding, boolean hasCartoon, Integer price, String[] labels,  
 			String[] pictures, String[] files) {
@@ -42,7 +42,7 @@ public class WorkService {
 		
 		work.setWorkID(workID);
 		work.setWorkName(workName);
-		work.setAuthor(username);
+		work.setAuthor(userID);
 		String[] primaryClassifications = primaryClassification.split(":");
 		work.setPrimaryClassification(Integer.valueOf(primaryClassifications[0]));
 		work.setYijifenlei(primaryClassifications[1]);
@@ -200,6 +200,10 @@ public class WorkService {
 	public List<Work> worklist(Integer modelType, String condition, Integer primaryClassification, 
 			Integer secondaryClassification, Integer reclassify, Integer pattern, Integer sortType){
 		return workDao.worklist(modelType, condition, primaryClassification, secondaryClassification, reclassify, pattern, sortType);
+	}
+	
+	public List<Work> worklist(String condition, Integer primaryClassification, Boolean verifyState) {
+		return workDao.worklist(condition, primaryClassification, verifyState);
 	}
 	
 	public List<Work> worklist(Integer primaryClassification, Integer secondaryClassification) {

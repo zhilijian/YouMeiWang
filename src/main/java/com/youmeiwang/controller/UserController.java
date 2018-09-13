@@ -4,6 +4,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
 import javax.servlet.http.HttpSession;
 
@@ -15,12 +17,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.alibaba.fastjson.JSONObject;
 import com.youmeiwang.entity.User;
 import com.youmeiwang.service.NewsService;
 import com.youmeiwang.service.UserService;
 import com.youmeiwang.util.VerifyUtil;
 import com.youmeiwang.vo.CommonVO;
 import com.youmeiwang.vo.SimpleVO;
+import com.youmeiwang.wechat.WeChatAuthService;
 
 @CrossOrigin
 @RestController
@@ -32,6 +36,9 @@ public class UserController {
 	
 	@Autowired
 	private NewsService newsService;
+	
+	@Autowired
+	private WeChatAuthService weChatAuthService;
 	
 	@GetMapping("/adduser")
 	public CommonVO register(@RequestParam(name="username", required=true) String username,
@@ -131,16 +138,62 @@ public class UserController {
 		}
 	}
 	
+	@GetMapping("/sendcode")
+	public CommonVO wechatlogin(String code, String state) throws InterruptedException, ExecutionException, TimeoutException {
+		
+		try {
+			JSONObject result = weChatAuthService.getUserInfo(code);
+			String nickname= (String) result.get("nickname");
+			Integer sex= (Integer) result.get("sex");
+			String portrait = (String) result.get("headimgurl");
+			User user = userService.addUser(null);
+			String userID = user.getUserID();
+			userService.setUser("userID", userID, "nickname", nickname);
+			userService.setUser("userID", userID, "sex", sex);
+			userService.setUser("userID", userID, "portrait", portrait);
+			
+			Map<String, Object> data = new HashMap<String, Object>();
+			data.put("userID", userID);
+			data.put("username", user.getUsername());
+			data.put("nickname", nickname);
+			data.put("portrait", portrait);
+			data.put("vipKind", user.getVipKind());
+			data.put("memberKind", user.getMemberKind());
+			data.put("applyForOriginal", user.getApplyForOriginal());
+			data.put("youbiAmount", user.getYoubiAmount());
+			data.put("balance", user.getBalance());
+			if (user.getShareVIPTime() == null) {
+				data.put("shareVIPTime", null);
+			} else {
+				data.put("shareVIPTime", new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date(user.getShareVIPTime())));
+			}
+			if (user.getOriginalVIPTime() == null) {
+				data.put("originalVIPTime", null);
+			} else {
+				data.put("originalVIPTime", new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date(user.getOriginalVIPTime())));
+			}
+			if (user.getCompanyVIPTime() == null) {
+				data.put("companyVIPTime", null);
+			} else {
+				data.put("companyVIPTime", new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date(user.getCompanyVIPTime())));
+			}
+			data.put("newsAmount", newsService.getAmount(userID));
+			return new CommonVO(true, "用户登录成功！", data);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new CommonVO(false, "用户登录失败。", "出错信息：" + e.toString());
+		}
+	}
+	
 	@GetMapping("/logout")
-	public SimpleVO logout(@RequestParam(name="userID", required=true) String userID, 
-						HttpSession session) {
+	public SimpleVO logout(HttpSession session) {
 		
 //		if (session.getAttribute(userID) == null) {
 //			return new SimpleVO(false, "用户非法登录。"); 
 //		}
 		
 		try {
-			session.removeAttribute(userID);
+			session.removeAttribute("userID");
 			return new SimpleVO(true, "用户退出成功！");
 		} catch (Exception e) {
 			e.printStackTrace();

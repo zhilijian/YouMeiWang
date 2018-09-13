@@ -29,14 +29,6 @@ public class TopicMongodb implements TopicDao{
 		Query query = new Query(Criteria.where(condition).is(value));
 		mongoTemplate.remove(query, Topic.class);
 	}
-	
-	@Override
-	public void batchRemoveTopic(String condition, String[] values) {
-		for (String value : values) {
-			Query query = new Query(Criteria.where(condition).is(value));
-			mongoTemplate.remove(query, Topic.class);
-		}
-	}
 
 	@Override
 	public void updateTopic(Topic topic) {
@@ -130,6 +122,24 @@ public class TopicMongodb implements TopicDao{
 		
 		query.skip((page - 1) * size);
 		query.limit(size);
+		return mongoTemplate.find(query, Topic.class);
+	}
+
+	@Override
+	public List<Topic> topiclist() {
+		Query query = new Query();
+		return mongoTemplate.find(query, Topic.class);
+	}
+
+	@Override
+	public List<Topic> topiclist(String topicName, Integer isRecommend) {
+		Query query = new Query();
+		if (topicName != null && !"".equals(topicName.trim())) {
+			query.addCriteria(Criteria.where("topicName").regex(topicName));
+		}
+		if (isRecommend != null) {
+			query.addCriteria(Criteria.where("isRecommend").is(isRecommend));
+		}
 		return mongoTemplate.find(query, Topic.class);
 	}
 

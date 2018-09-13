@@ -71,8 +71,7 @@ public class OrderService {
 		return orderDao.orderList(conditions, page, size);
 	}
 	
-	public List<Order> orderList(String condition, String value, Integer payType, String payStatus, Long startTime, Long endTime,
-			Integer page, Integer size) {
-		return orderDao.orderList(condition, value, payType, payStatus, startTime, endTime, page, size);
+	public List<Order> orderlist(String condition, Integer payType, String payStatus, Long startTime, Long endTime){
+		return orderDao.orderlist(condition, payType, payStatus, startTime, endTime);
 	}
 }

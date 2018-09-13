@@ -35,9 +35,7 @@ public class BannerMongodb implements BannerDao{
 		if (banner.getPicturePath() != null) {
 			update.set("picturePath", banner.getPicturePath());
 		}
-		if (banner.getAssociatedLink() != null) {
-			update.set("associatedLink", banner.getAssociatedLink());
-		}
+		update.set("associatedLink", banner.getAssociatedLink());
 		if (banner.getPublishTime() != null) {
 			update.set("publishTime", banner.getPublishTime());
 		}
@@ -47,6 +45,14 @@ public class BannerMongodb implements BannerDao{
 		if (banner.getWorkShow() != null) {
 			update.set("workShow", banner.getWorkShow());
 		}
+		mongoTemplate.updateFirst(query, update, Banner.class);
+	}
+
+	@Override
+	public void setBanner(String condition, Object value1, String target, Object value2) {
+		Query query = new Query(Criteria.where(condition).is(value1));
+		Update update = new Update();
+		update.set(target, value2);
 		mongoTemplate.updateFirst(query, update, Banner.class);
 	}
 

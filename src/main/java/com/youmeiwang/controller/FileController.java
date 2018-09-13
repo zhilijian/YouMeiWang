@@ -17,10 +17,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.youmeiwang.entity.Admin;
 import com.youmeiwang.entity.Config;
 import com.youmeiwang.entity.FileInfo;
 import com.youmeiwang.entity.User;
 import com.youmeiwang.entity.Work;
+import com.youmeiwang.service.AdminService;
 import com.youmeiwang.service.ConfigService;
 import com.youmeiwang.service.FileService;
 import com.youmeiwang.service.UserService;
@@ -39,6 +41,9 @@ public class FileController {
 	private UserService userService;
 	
 	@Autowired
+	private AdminService adminService;
+	
+	@Autowired
 	private WorkService workService;
 	
 	@Autowired
@@ -48,26 +53,31 @@ public class FileController {
 	private FileService fileService;
 	
 	@PostMapping(value = "uploadpicture")
-    public CommonVO uploadPicture(@RequestParam(name="userID", required=true) String userID,
-			@RequestParam(name="picture", required=true) MultipartFile file,
+    public CommonVO uploadPicture(@RequestParam(name="picture", required=true) MultipartFile file,
 			HttpSession session) {
 		
-//		if (session.getAttribute(adminID) == null) {
-//			return new CommonVO(false, "该用户尚未登录。", "请先确认是否登录成功。");
-//		}
-		
-        try {
+		String userID = (String) session.getAttribute("userID");
+		User user = userService.queryUser("userID", userID);
+		String adminID = (String) session.getAttribute("adminID");
+		Admin admin = adminService.queryAdmin("adminID", adminID);
+		if (user == null && admin == null) {
+			return new CommonVO(false, "用户或管理员尚未登录。", "{}") ;
+		}
+		String ID = userID == null ? adminID : userID;
+       
+		try {
         	Config config1 = configService.queryConfig("configName", "uploadPicturePath");
         	String uploadPath = (String) config1.getValue();
         	Config config2 = configService.queryConfig("configName", "downloadPicture");
         	String downloadPath = (String) config2.getValue();
         	
-        	Map<String, Object> configmap = FileUtil.upload(userID, file, uploadPath);
+        	Map<String, Object> configmap = FileUtil.upload(ID, file, uploadPath);
         	String fileName = (String) configmap.get("fileName");
 			String filePath = downloadPath + String.valueOf(configmap.get("filePath")).substring(3).replace("\\", "/");
 			Long fileSize = (Long) configmap.get("fileSize");
 			String pattern = (String) configmap.get("pattern");
-			FileInfo fileInfo = fileService.addFile(userID, fileName, filePath, fileSize, pattern);
+			FileInfo fileInfo = fileService.addFile(ID, fileName, filePath, fileSize, pattern);
+			
 			Map<String, Object> data = new HashMap<String, Object>();
         	data.put("fileID", fileInfo.getFileID());
         	data.put("filePath", filePath);
@@ -79,24 +89,27 @@ public class FileController {
     }
 	
 	@PostMapping(value = "uploadfile")
-	public CommonVO uploadFile(@RequestParam(name="userID", required=true) String userID,
-			@RequestParam(name="file", required=true) MultipartFile file,
-			HttpSession session) {
+	public CommonVO uploadFile(@RequestParam(name="file", required=true) MultipartFile file, HttpSession session) {
 		
-//		if (session.getAttribute(adminID) == null) {
-//			return new CommonVO(false, "该用户尚未登录。", "请先确认是否登录成功。");
-//		}
+		String userID = (String) session.getAttribute("userID");
+		User user = userService.queryUser("userID", userID);
+		String adminID = (String) session.getAttribute("adminID");
+		Admin admin = adminService.queryAdmin("adminID", adminID);
+		if (user == null && admin == null) {
+			return new CommonVO(false, "用户或管理员尚未登录。", "{}") ;
+		}
+		String ID = userID == null ? adminID : userID;
 		
 		try {
 			Config config = configService.queryConfig("configName", "uploadFilePath");
 			String uploadPath = (String) config.getValue();
 			
-			Map<String, Object> configmap = FileUtil.upload(userID, file, uploadPath);
+			Map<String, Object> configmap = FileUtil.upload(ID, file, uploadPath);
 			String fileName = (String) configmap.get("fileName");
 			String filePath = String.valueOf(configmap.get("filePath")).replace("\\", "/");
 			Long fileSize = (Long) configmap.get("fileSize");
 			String pattern = (String) configmap.get("pattern");
-			FileInfo fileInfo = fileService.addFile(userID, fileName, filePath, fileSize, pattern);
+			FileInfo fileInfo = fileService.addFile(ID, fileName, filePath, fileSize, pattern);
 			
 			Map<String, Object> data = new HashMap<String, Object>();
 			data.put("fileID", fileInfo.getFileID());
@@ -110,18 +123,19 @@ public class FileController {
 	}
 	
 	@GetMapping(value = "download")
-	public SimpleVO download(@RequestParam(name="userID", required=false) String userID,
-			@RequestParam(name="adminID", required=false) String adminID,
-			@RequestParam(name="workID", required=true) String workID,
+	public SimpleVO download(@RequestParam(name="workID", required=true) String workID,
 			@RequestParam(name="fileID", required=true) String fileID,
 			HttpServletResponse response, HttpSession session) {
 		
-//		if (session.getAttribute(userID) == null && session.getAttribute(adminID) == null) {
-//			return new SimpleVO(false, "该用户尚未登录。");
-//		}
+		String userID = (String) session.getAttribute("userID");
+		User user = userService.queryUser("userID", userID);
+		String adminID = (String) session.getAttribute("adminID");
+		Admin admin = adminService.queryAdmin("adminID", adminID);
+		if (user == null && admin == null) {
+			return new SimpleVO(false, "用户或管理员尚未登录。") ;
+		}
 		
 		try {
-			User user = userService.queryUser("userID", userID);
 			Work work = workService.queryWork("workID", workID);
 			if (work == null || work.getIsDelete()) {
 				return new SimpleVO(false, "该作品并不存在或已被删除。");
@@ -152,18 +166,19 @@ public class FileController {
 	}
 	
 	@GetMapping(value = "downloadZIP")
-	public SimpleVO downloadZIP(@RequestParam(name="userID", required=false) String userID,
-			@RequestParam(name="adminID", required=false) String adminID,
-			@RequestParam(name="workID", required=true) String workID,
+	public SimpleVO downloadZIP(@RequestParam(name="workID", required=true) String workID,
 			@RequestParam(name="fileIDs", required=true) String[] fileIDs,
 			HttpServletResponse response, HttpSession session) {
 		
-//		if (session.getAttribute(userID) == null && session.getAttribute(adminID) == null) {
-//			return new SimpleVO(false, "该用户尚未登录。");
-//		}
+		String userID = (String) session.getAttribute("userID");
+		User user = userService.queryUser("userID", userID);
+		String adminID = (String) session.getAttribute("adminID");
+		Admin admin = adminService.queryAdmin("adminID", adminID);
+		if (user == null && admin == null) {
+			return new SimpleVO(false, "用户或管理员尚未登录。") ;
+		}
 		
 		try {
-			User user = userService.queryUser("userID", userID);
 			Work work = workService.queryWork("workID", workID);
 			if (work == null || work.getIsDelete()) {
 				return new SimpleVO(false, "该作品并不存在或已被删除。");
@@ -191,6 +206,7 @@ public class FileController {
 				List<String> worklist = ListUtil.addElement(user.getDownWork(), workID);
 				userService.setUser("userID", userID, "downWork", worklist);
 			}
+			
 			FileUtil.downloadZIP(work.getWorkName() + ".zip", filelist, response);
 			long downloadNum = work.getDownloadNum() + 1;
 			workService.setWork("workID", workID, "downloadNum", downloadNum);

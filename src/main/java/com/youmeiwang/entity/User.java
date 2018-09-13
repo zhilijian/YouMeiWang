@@ -72,6 +72,8 @@ public class User {
 	private String verifyMessage;
 	//佣金比例
 	private String commissionRate;
+	//
+	private boolean isDelete;
 
 	public User() {
 	}
@@ -251,6 +253,12 @@ public class User {
 	}
 	public void setCommissionRate(String commissionRate) {
 		this.commissionRate = commissionRate;
+	}
+	public boolean isDelete() {
+		return isDelete;
+	}
+	public void setDelete(boolean isDelete) {
+		this.isDelete = isDelete;
 	}
 
 	@Override

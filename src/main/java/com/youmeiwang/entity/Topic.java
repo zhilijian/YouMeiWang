@@ -20,12 +20,12 @@ public class Topic {
 	//是否推荐 isRecommend 0：否 1：是
 	private Integer isRecommend;
 	//创建日期 createDate
-	private Long createTime;
+	private String createTime;
 	//被浏览数目 browsed
 	private Long browsed;
 	//被收藏数目 collected
 	private Long collected;
-	//关联模型（保存作品ID、作品名称、售价）
+	//关联模型（保存作品ID）
 	private List<String> works;
 	
 	public Topic() {
@@ -71,11 +71,11 @@ public class Topic {
 		this.isRecommend = isRecommend;
 	}
 
-	public Long getCreateTime() {
+	public String getCreateTime() {
 		return createTime;
 	}
 
-	public void setCreateTime(Long createTime) {
+	public void setCreateTime(String createTime) {
 		this.createTime = createTime;
 	}
 

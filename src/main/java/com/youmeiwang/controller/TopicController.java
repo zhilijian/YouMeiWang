@@ -1,8 +1,6 @@
 package com.youmeiwang.controller;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -108,7 +106,7 @@ public class TopicController {
 			data.put("browsedNum", topic.getBrowsed());
 			data.put("collectedNum", topic.getCollected());
 			data.put("collectedNum", topic.getCollected());
-			data.put("createTime", new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date(topic.getCreateTime())));
+			data.put("createTime", topic.getCreateTime());
 			data.put("works", works);
 			if (user != null) {
 				data.put("isCollect", user.getCollectTopic().contains(topicID));
