@@ -307,7 +307,7 @@ public class WorkManageController {
 		
 	@GetMapping("/worklist")
 	public CommonVO workList(@RequestParam(name="condition", required=false) String condition,
-			@RequestParam(name="primaryClassification", required=true) Integer primaryClassification,				
+			@RequestParam(name="primaryClassification", required=false) Integer primaryClassification,				
 			@RequestParam(name="isVerify", required=true) boolean isVerify,				
 			@RequestParam(name="page", required=true) Integer page,
 			@RequestParam(name="size", required=true) Integer size,
@@ -320,16 +320,18 @@ public class WorkManageController {
 		}
 		
 		int authority = 4;
-		switch (primaryClassification) {
-		case 0:
-			authority = 1;
-			break;
-		case 1:
-			authority = 0;
-			break;
-		case 2:
-			authority = 2;
-			break;
+		if (primaryClassification != null) {
+			switch (primaryClassification) {
+			case 0:
+				authority = 1;
+				break;
+			case 1:
+				authority = 0;
+				break;
+			case 2:
+				authority = 2;
+				break;
+			}
 		}
 		
 		if (isVerify) {

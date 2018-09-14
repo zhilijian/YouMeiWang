@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.alibaba.fastjson.JSONObject;
 import com.youmeiwang.entity.Order;
@@ -20,6 +22,7 @@ import com.youmeiwang.service.UserService;
 
 @CrossOrigin
 @Controller
+@RequestMapping
 public class WeChatController {
 
 	@Autowired
@@ -41,7 +44,8 @@ public class WeChatController {
 	}
 	
 	@GetMapping("/")
-	public String wechatlogin(String code, String state) throws InterruptedException, ExecutionException, TimeoutException {
+	public String wechatlogin(@RequestParam(name="code", required=true) String code,
+			@RequestParam(name="state", required=false) String state) throws InterruptedException, ExecutionException, TimeoutException {
 		
 		JSONObject result = weChatAuthService.getUserInfo(code);
 		String nickname= (String) result.get("nickname");
@@ -52,7 +56,8 @@ public class WeChatController {
 		userService.setUser("userID", userID, "nickname", nickname);
 		userService.setUser("userID", userID, "sex", sex);
 		userService.setUser("userID", userID, "portrait", portrait);
-		return "redirect:http://www.linshaocong.cn:8019/#/userID=" + userID;
+		
+		return "redirect:" + "http://www.linshaocong.cn/#/Wxlogin" + nickname;
 	}
 	
 	@GetMapping("/alipayreturn")
