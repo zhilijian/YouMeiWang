@@ -7,8 +7,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import javax.servlet.http.HttpSession;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,6 +21,7 @@ import com.youmeiwang.entity.Work;
 import com.youmeiwang.service.AdminService;
 import com.youmeiwang.service.TopicService;
 import com.youmeiwang.service.WorkService;
+import com.youmeiwang.sessionmanage.CmdService;
 import com.youmeiwang.util.ContainUtil;
 import com.youmeiwang.vo.CommonVO;
 import com.youmeiwang.vo.SimpleVO;
@@ -41,14 +40,17 @@ public class TopicManageController {
 	@Autowired
 	private TopicService topicService;
 	
+	@Autowired
+	private CmdService cmdService;
+	
 	@PostMapping("/addtopic")
 	public CommonVO addTopic(@RequestParam(name="topicName", required=true) String topicName,
 			@RequestParam(name="picturePath", required=true) String picturePath,
 			@RequestParam(name="describe", required=true) String describe,
 			@RequestParam(name="workIDs", required=false) String[] workIDs,
-			HttpSession session) {
+			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = (String) session.getAttribute("adminID");
+		String adminID = cmdService.getUserIdBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new CommonVO(false, "用户尚未登录或不存在。", "{}");
@@ -73,9 +75,10 @@ public class TopicManageController {
 	}
 	
 	@GetMapping("/removetopic")
-	public SimpleVO removeTopic(@RequestParam(name="topicID", required=true) String topicID, HttpSession session) {
+	public SimpleVO removeTopic(@RequestParam(name="topicID", required=true) String topicID, 
+			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = (String) session.getAttribute("adminID");
+		String adminID = cmdService.getUserIdBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new SimpleVO(false, "用户尚未登录或不存在。");
@@ -96,9 +99,10 @@ public class TopicManageController {
 	}
 	
 	@GetMapping("/batchremovetopic")
-	public SimpleVO BatchRemoveTopic(@RequestParam(name="topicIDs", required=true) String[] topicIDs, HttpSession session) {
+	public SimpleVO BatchRemoveTopic(@RequestParam(name="topicIDs", required=true) String[] topicIDs, 
+			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = (String) session.getAttribute("adminID");
+		String adminID = cmdService.getUserIdBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new SimpleVO(false, "用户尚未登录或不存在。");
@@ -126,9 +130,9 @@ public class TopicManageController {
 			@RequestParam(name="picturePath", required=false) String picturePath,
 			@RequestParam(name="describe", required=false) String describe,
 			@RequestParam(name="workIDs", required=false) String[] workIDs,
-			HttpSession session) {
+			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = (String) session.getAttribute("adminID");
+		String adminID = cmdService.getUserIdBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new SimpleVO(false, "用户尚未登录或不存在。");
@@ -162,9 +166,9 @@ public class TopicManageController {
 	public CommonVO toEditTopic(@RequestParam(name="topicID", required=true) String topicID,
 			@RequestParam(name="page", required=true) Integer page,
 			@RequestParam(name="size", required=true) Integer size,
-			HttpSession session) {
+			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = (String) session.getAttribute("adminID");
+		String adminID = cmdService.getUserIdBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new CommonVO(false, "用户尚未登录或不存在。", "{}");
@@ -229,9 +233,9 @@ public class TopicManageController {
 			@RequestParam(name="isRecommend", required=false) Integer isRecommend,
 			@RequestParam(name="page", required=true) Integer page,
 			@RequestParam(name="size", required=true) Integer size,
-			HttpSession session) {
+			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = (String) session.getAttribute("adminID");
+		String adminID = cmdService.getUserIdBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new CommonVO(false, "用户尚未登录或不存在。", "{}");
@@ -290,9 +294,10 @@ public class TopicManageController {
 	
 	
 	@GetMapping("/addtopicwork")
-	public CommonVO addTopicWork(@RequestParam(name="workID", required=true) String workID, HttpSession session) {
+	public CommonVO addTopicWork(@RequestParam(name="workID", required=true) String workID, 
+			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = (String) session.getAttribute("adminID");
+		String adminID = cmdService.getUserIdBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new CommonVO(false, "用户尚未登录或不存在。", "{}");
@@ -319,9 +324,10 @@ public class TopicManageController {
 	}
 	
 	@GetMapping("/publishtopic")
-	public SimpleVO publishTopic(@RequestParam(name="topicIDs", required=true) String[] topicIDs, HttpSession session) {
+	public SimpleVO publishTopic(@RequestParam(name="topicIDs", required=true) String[] topicIDs, 
+			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = (String) session.getAttribute("adminID");
+		String adminID = cmdService.getUserIdBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new SimpleVO(false, "用户尚未登录或不存在。");
@@ -355,9 +361,9 @@ public class TopicManageController {
 	@GetMapping("/changeisrecommend")
 	public SimpleVO changeIsRecommend(@RequestParam(name="topicID", required=true) String topicID,
 			@RequestParam(name="isRecommend", required=true) Integer isRecommend,
-			HttpSession session) {
+			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = (String) session.getAttribute("adminID");
+		String adminID = cmdService.getUserIdBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new SimpleVO(false, "用户尚未登录或不存在。");

@@ -5,8 +5,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-import javax.servlet.http.HttpSession;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,6 +24,7 @@ import com.youmeiwang.service.PurchaseService;
 import com.youmeiwang.service.TransactionService;
 import com.youmeiwang.service.UserService;
 import com.youmeiwang.service.WorkService;
+import com.youmeiwang.sessionmanage.CmdService;
 import com.youmeiwang.util.ListUtil;
 import com.youmeiwang.vo.SimpleVO;
 
@@ -58,14 +57,18 @@ public class PayController {
 	@Autowired
 	private ConfigService configService;
 	
+	@Autowired
+	private CmdService cmdService;
+	
 	@GetMapping("/purchasework")
-	public SimpleVO purchaseWork(@RequestParam(name="userID", required=true) String userID,
-			@RequestParam(name="workID", required=true) String workID,
-			HttpSession session ) {
+	public SimpleVO purchaseWork(@RequestParam(name="workID", required=true) String workID, 
+			@RequestParam(name="userToken", required=true) String sessionId ) {
 		
-//		if (session.getAttribute(userID) == null) {
-//			return new SimpleVO(false, "请先确认登录后再操作。"); 
-//		}
+		String userID = cmdService.getUserIdBySessionId(sessionId);
+		User user1 = userService.queryUser("userID", userID);
+		if (userID == null || user1 == null) {
+			return new SimpleVO(false, "用户尚未登录。"); 
+		}
 
 		Work work = workService.queryWork("workID", workID);
 		if (work == null || work.getIsDelete() == true) {
@@ -73,8 +76,7 @@ public class PayController {
 		}
 		
 		try {
-			User user1 = userService.queryUser("userID", userID);
-			User user2 = userService.queryUser("username", work.getAuthor());
+			User user2 = userService.queryUser("userID", work.getAuthor());
 			if (user2 == null) {
 				return new SimpleVO(false, "模型作者不存在或已销户。"); 
 			}
@@ -133,11 +135,10 @@ public class PayController {
 					transactionService.addTransaction(user2.getUserID(), null, (double)work.getPrice(), 1, 0);
 				}
 			}
-			List<String> purchaseWork1 = user1.getPurchaseWork();
-			List<String> purchaseWork2 = ListUtil.addElement(purchaseWork1, workID);
-			userService.setUser("userID", userID, "purchaseWork", purchaseWork2);
+			worklist.add(workID);
+			userService.setUser("userID", userID, "purchaseWork", worklist);
 			
-			String title = "购买作品成功！";
+			String title = "购买作品成功！"; 
 			String content = "恭喜您，您已成功购买《" + work.getWorkName() +"》作品，请前往下载界面下载。下载有效时间为24小时。";
 			newsService.addNews(userID, title, content, 1);
 			return new SimpleVO(true, "购买作品成功！");
@@ -150,13 +151,13 @@ public class PayController {
 	@PostMapping("/purchasevip")
 	public SimpleVO purchaseVIP(@RequestParam(name="vipKind", required=true) Integer vipKind,
 			@RequestParam(name="taocanType", required=true) Integer taocanType,
-			HttpSession session) {
+			@RequestParam(name="userToken", required=true) String sessionId) {
 		
-		String userID = (String) session.getAttribute("userID");
+		String userID = cmdService.getUserIdBySessionId(sessionId);
 		User user = userService.queryUser("userID", userID);
-//		if (userID == null || user == null) {
-//			return new SimpleVO(false, "用户尚未登录或用户不存在");
-//		}
+		if (userID == null || user == null) {
+			return new SimpleVO(false, "用户尚未登录或用户不存在");
+		}
 		
 		try {
 			double fee = 0;
@@ -258,12 +259,16 @@ public class PayController {
 	
 	@GetMapping("/exchange")
 	public SimpleVO exchange(@RequestParam(name="money", required=true) Integer money,
-			HttpSession session) {
+			@RequestParam(name="userToken", required=true) String sessionId) {
 		
-		String userID = (String) session.getAttribute("userID");
+		String userID = cmdService.getUserIdBySessionId(sessionId);
 		User user = userService.queryUser("userID", userID);
 		if (userID == null || user == null) {
-			return new SimpleVO(false, "用户尚未登录或用户不存在");
+			return new SimpleVO(false, "用户尚未登录或用户不存在。");
+		}
+		
+		if (money < 10) {
+			return new SimpleVO(false, "余额兑换游币，10元起充。");
 		}
 		
 		try {
@@ -276,6 +281,7 @@ public class PayController {
 			userService.setUser("userID", userID, "balance", balance);
 			userService.setUser("userID", userID, "youbiAmount", youbiAmount);
 			balanceRecordService.addBalanceRecord(userID, (double)money, 1);
+			
 			String title = "兑换游币成功！";
 			String content = "恭喜您，您已成功兑换" + money * 10 + "游币";
 			newsService.addNews(userID, title, content, 1);
@@ -305,5 +311,4 @@ public class PayController {
 			return new SimpleVO(false, "出错信息：" + e.toString()); 
 		}
 	}
-	
 }

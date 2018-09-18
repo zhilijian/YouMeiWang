@@ -6,8 +6,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import javax.servlet.http.HttpSession;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,6 +24,7 @@ import com.youmeiwang.service.NewsService;
 import com.youmeiwang.service.UserService;
 import com.youmeiwang.service.VerifyService;
 import com.youmeiwang.service.WorkService;
+import com.youmeiwang.sessionmanage.CmdService;
 import com.youmeiwang.util.ContainUtil;
 import com.youmeiwang.vo.CommonVO;
 import com.youmeiwang.vo.SimpleVO;
@@ -53,10 +52,14 @@ public class WorkManageController {
 	@Autowired
 	private NewsService newsService;
 	
+	@Autowired
+	private CmdService cmdService;
+	
 	@PostMapping("/removework")
-	public SimpleVO removeWork(@RequestParam(name="workIDs", required=true) String workIDs, HttpSession session) {
+	public SimpleVO removeWork(@RequestParam(name="workIDs", required=true) String workIDs, 
+			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = (String) session.getAttribute("adminID");
+		String adminID = cmdService.getUserIdBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new SimpleVO(false, "用户尚未登录或不存在。");
@@ -117,9 +120,9 @@ public class WorkManageController {
 		@RequestParam(name="files", required=false) String[] files,
 		@RequestParam(name="isPass", required=false) Integer isPass,
 		@RequestParam(name="verifyMessage", required=false) String verifyMessage,
-		HttpSession session) {
+		@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = (String) session.getAttribute("adminID");
+		String adminID = cmdService.getUserIdBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new SimpleVO(false, "管理员尚未登录或不存在。");
@@ -232,9 +235,10 @@ public class WorkManageController {
 	}
 	
 	@GetMapping("/workdetail")
-	public CommonVO workDetail(@RequestParam(name="workID", required=true) String workID, HttpSession session) {
+	public CommonVO workDetail(@RequestParam(name="workID", required=true) String workID, 
+			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = (String) session.getAttribute("adminID");
+		String adminID = cmdService.getUserIdBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new CommonVO(false, "管理员尚未登录或不存在。", "{}");
@@ -311,9 +315,9 @@ public class WorkManageController {
 			@RequestParam(name="isVerify", required=true) boolean isVerify,				
 			@RequestParam(name="page", required=true) Integer page,
 			@RequestParam(name="size", required=true) Integer size,
-			HttpSession session) {
+			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = (String) session.getAttribute("adminID");
+		String adminID = cmdService.getUserIdBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new CommonVO(false, "管理员尚未登录或不存在。", "{}");

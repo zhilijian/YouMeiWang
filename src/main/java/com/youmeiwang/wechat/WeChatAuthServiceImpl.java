@@ -2,7 +2,6 @@ package com.youmeiwang.wechat;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.net.URLEncoder;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -32,12 +31,11 @@ public class WeChatAuthServiceImpl extends DefaultAuthServiceImpl implements WeC
     private static final String APP_SECRET="c88cc6b110238ed69c58e4d6842fd817";
     private static final String SCOPE = "snsapi_login";
 
-    private String callbackUrl = "http://www.linshaocong.cn"; //回调域名
+    private String callbackUrl = "http://www.linshaocong.cn/redirect/wechatuser"; //回调域名
     
     @Override
     public String getAuthorizationUrl() throws UnsupportedEncodingException {
-        callbackUrl = URLEncoder.encode(callbackUrl,"utf-8");
-        String url = String.format(AUTHORIZATION_URL,APP_ID, callbackUrl,SCOPE, System.currentTimeMillis());
+        String url = String.format(AUTHORIZATION_URL, APP_ID, callbackUrl, SCOPE, System.currentTimeMillis());
         return url;
     }
     
@@ -119,7 +117,7 @@ public class WeChatAuthServiceImpl extends DefaultAuthServiceImpl implements WeC
         String resp1 = getRestTemplate().getForObject(uri1, String.class);
         JSONObject jsonObject = JSONObject.parseObject(resp1);
         String access_token = jsonObject.getString("access_token");
-        String openID = jsonObject.getString("openid");;
+        String openID = jsonObject.getString("openid");
 
         String url2 = String.format(USER_INFO_URL, access_token, openID);
         UriComponentsBuilder builder2 = UriComponentsBuilder.fromHttpUrl(url2);

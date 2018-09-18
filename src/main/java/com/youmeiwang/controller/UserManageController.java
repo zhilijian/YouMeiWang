@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.servlet.http.HttpSession;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,6 +21,7 @@ import com.youmeiwang.entity.User;
 import com.youmeiwang.service.AdminService;
 import com.youmeiwang.service.NewsService;
 import com.youmeiwang.service.UserService;
+import com.youmeiwang.sessionmanage.CmdService;
 import com.youmeiwang.util.ContainUtil;
 import com.youmeiwang.vo.CommonVO;
 import com.youmeiwang.vo.SimpleVO;
@@ -41,6 +40,9 @@ public class UserManageController {
 	@Autowired
 	private NewsService newsService;
 	
+	@Autowired
+	private CmdService cmdService;
+	
 	@PostMapping("/usersearch")
 	public CommonVO userSearch(@RequestParam(name="condition", required=false) String condition,
 			@RequestParam(name="VIPKind", required=false) Integer VIPKind,
@@ -48,9 +50,9 @@ public class UserManageController {
 			@RequestParam(name="applyForOriginal", required=false) Integer applyForOriginal,
 			@RequestParam(name="page", required=true) Integer page,
 			@RequestParam(name="size", required=true) Integer size,
-			HttpSession session) {
+			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = (String) session.getAttribute("adminID");
+		String adminID = cmdService.getUserIdBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new CommonVO(false, "用户尚未登录或不存在。", "{}");
@@ -110,9 +112,10 @@ public class UserManageController {
 	}
 	
 	@GetMapping("/userdetail")
-	public CommonVO userDetail(@RequestParam(name="userID", required=true) String userID, HttpSession session) {
+	public CommonVO userDetail(@RequestParam(name="userID", required=true) String userID, 
+			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = (String) session.getAttribute("adminID");
+		String adminID = cmdService.getUserIdBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new CommonVO(false, "管理员未登录或不存在。", "{}");
@@ -145,9 +148,10 @@ public class UserManageController {
 	}
 	
 	@PostMapping("/batchremoveuser")
-	public SimpleVO BatchRemoveUser(@RequestParam(name="userIDs", required=true) String[] userIDs, HttpSession session) {
+	public SimpleVO BatchRemoveUser(@RequestParam(name="userIDs", required=true) String[] userIDs, 
+			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = (String) session.getAttribute("adminID");
+		String adminID = cmdService.getUserIdBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new SimpleVO(false, "用户尚未登录或不存在。");
@@ -173,9 +177,9 @@ public class UserManageController {
 	public CommonVO verifyApply(@RequestParam(name = "userID", required = true) String userID,
 			@RequestParam(name = "isPass", required = true) boolean isPass,
 			@RequestParam(name = "dismissalMsg", required = false) String dismissalMsg, 
-			HttpSession session) {
+			@RequestParam(name="adminToken", required=true) String sessionId) {
 
-		String adminID = (String) session.getAttribute("adminID");
+		String adminID = cmdService.getUserIdBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new CommonVO(false, "用户尚未登录或不存在。", "{}");

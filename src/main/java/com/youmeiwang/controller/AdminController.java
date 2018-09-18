@@ -5,8 +5,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import javax.servlet.http.HttpSession;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.youmeiwang.entity.Admin;
 import com.youmeiwang.service.AdminService;
+import com.youmeiwang.sessionmanage.CmdService;
 import com.youmeiwang.util.ContainUtil;
 import com.youmeiwang.vo.CommonVO;
 import com.youmeiwang.vo.SimpleVO;
@@ -29,21 +28,23 @@ public class AdminController {
 	@Autowired
 	private AdminService adminService;
 	
+	@Autowired
+	private CmdService cmdService;
+	 
 	@PostMapping("/login")
 	public CommonVO login(@RequestParam(name="adminname", required=true) String adminname, 
-			@RequestParam(name="password", required=true) String password, 
-			HttpSession session) {
+			@RequestParam(name="password", required=true) String password) {
 		
 		Admin admin = adminService.queryAdmin("adminname", adminname, "password", password);
 		if (admin == null) {
-			return new CommonVO(false, "该管理员不存在。", "{}");
+			return new CommonVO(false, "用户不存在或密码错误。", "{}");
 		}
 		
 		try {
 			String adminID = admin.getAdminID();
-			session.setAttribute("adminID", adminID);
-			
+			String adminToken = cmdService.getAdminSessionID(adminID);
 			Map<String, Object> data = new HashMap<String, Object>();
+			data.put("adminToken", adminToken);
 			data.put("adminID", admin.getAdminID());
 			data.put("adminname", adminname);
 			data.put("position", admin.getPosition());
@@ -60,21 +61,15 @@ public class AdminController {
 	}
 	
 	@GetMapping("/logout")
-	public SimpleVO logout(HttpSession session) {
-		
-		String adminID = (String) session.getAttribute("adminID");
-		Admin admin = adminService.queryAdmin("adminID", adminID);
-		if (adminID == null || admin == null) {
-			return new SimpleVO(false, "用户尚未登录或不存在。");
-		}
+	public SimpleVO logout(@RequestParam(name="adminToken", required=true) String sessionId) {
 		
 		try {
-			session.removeAttribute(adminID);
-			if (session.getAttribute(adminID) == null) {
-				return new SimpleVO(true, "管理员退出成功！");
-			} else {
-				return new SimpleVO(false, "管理员退出失败。");
+			String adminID = cmdService.getUserIdBySessionId(sessionId);
+			if (adminID == null) {
+				return new SimpleVO(false, "管理员尚未登录");
 			}
+			cmdService.removeSession(adminID);
+			return new SimpleVO(true, "管理员退出成功！");
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new SimpleVO(false, "出错信息：" + e.toString());
@@ -90,9 +85,9 @@ public class AdminController {
 			@RequestParam(name="homepageModule", required=false) Integer[] homepageModule,
 			@RequestParam(name="rechargeManage", required=false) Integer[] rechargeManage,
 			@RequestParam(name="roleAuthority", required=false) Integer[] roleAuthority,
-			HttpSession session) {
+			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = (String) session.getAttribute("adminID");
+		String adminID = cmdService.getUserIdBySessionId(sessionId);
 		Admin admin1 = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin1 == null) {
 			return new SimpleVO(false, "用户尚未登录或不存在。");
@@ -116,9 +111,9 @@ public class AdminController {
 	@PostMapping("/editpassword")
 	public SimpleVO editPassword(@RequestParam(name="password1", required=true) String password1,
 			@RequestParam(name="password2", required=true) String password2,
-			HttpSession session) {
+			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = (String) session.getAttribute("adminID");
+		String adminID = cmdService.getUserIdBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new SimpleVO(false, "用户尚未登录或不存在。");
@@ -146,9 +141,9 @@ public class AdminController {
 			@RequestParam(name="homepageModule", required=true) Integer[] homepageModule,
 			@RequestParam(name="rechargeManage", required=true) Integer[] rechargeManage,
 			@RequestParam(name="roleAuthority", required=true) Integer[] roleAuthority,
-			HttpSession session) {
+			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID1 = (String) session.getAttribute("adminID");
+		String adminID1 = cmdService.getUserIdBySessionId(sessionId);
 		Admin admin1 = adminService.queryAdmin("adminID", adminID1);
 		if (adminID1 == null || admin1 == null) {
 			return new SimpleVO(false, "用户尚未登录或不存在。");
@@ -198,9 +193,10 @@ public class AdminController {
 	}
 	
 	@GetMapping("/removeadmin")
-	public SimpleVO removeAdmin(@RequestParam(name="adminID", required=true) String adminID2, HttpSession session) {
+	public SimpleVO removeAdmin(@RequestParam(name="adminID", required=true) String adminID2, 
+			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID1 = (String) session.getAttribute("adminID");
+		String adminID1 = cmdService.getUserIdBySessionId(sessionId);
 		Admin admin1 = adminService.queryAdmin("adminID", adminID1);
 		if (adminID1 == null || admin1 == null) {
 			return new SimpleVO(false, "用户尚未登录或不存在。");
@@ -228,9 +224,9 @@ public class AdminController {
 	public CommonVO adminlist(@RequestParam(name="position", required=false) String position,
 			@RequestParam(name="page", required=true) Integer page,
 			@RequestParam(name="size", required=true) Integer size,
-			HttpSession session) {
+			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = (String) session.getAttribute("adminID");
+		String adminID = cmdService.getUserIdBySessionId(sessionId);
 		Admin admin1 = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin1 == null) {
 			return new CommonVO(false, "用户尚未登录或不存在。","{}");
@@ -287,9 +283,10 @@ public class AdminController {
 	}
 	
 	@GetMapping("/batchremove")
-	public SimpleVO BatchRemoveAdmin(@RequestParam(name="adminIDs", required=true) String[] adminIDs, HttpSession session) {
+	public SimpleVO BatchRemoveAdmin(@RequestParam(name="adminIDs", required=true) String[] adminIDs, 
+			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID1 = (String) session.getAttribute("adminID");
+		String adminID1 = cmdService.getUserIdBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID1);
 		if (adminID1 == null || admin == null) {
 			return new SimpleVO(false, "用户尚未登录或不存在。");

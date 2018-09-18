@@ -9,8 +9,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import javax.servlet.http.HttpSession;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,6 +24,7 @@ import com.youmeiwang.service.AdminService;
 import com.youmeiwang.service.BannerService;
 import com.youmeiwang.service.FileService;
 import com.youmeiwang.service.WorkService;
+import com.youmeiwang.sessionmanage.CmdService;
 import com.youmeiwang.util.ContainUtil;
 import com.youmeiwang.vo.CommonVO;
 import com.youmeiwang.vo.SimpleVO;
@@ -47,10 +46,13 @@ public class HomePageController {
 	@Autowired
 	private FileService fileService;
 	
+	@Autowired
+	private CmdService cmdService;
+	
 	@GetMapping("/bannerlist")
-	public CommonVO bannerList(HttpSession session) {
+	public CommonVO bannerList(@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = (String) session.getAttribute("adminID");
+		String adminID = cmdService.getUserIdBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new CommonVO(false, "管理员尚未登录或不存在。", "{}");
@@ -85,9 +87,9 @@ public class HomePageController {
 			@RequestParam(name="bannerName", required=true) String bannerName,			
 			@RequestParam(name="picturePath", required=false) String picturePath,			
 			@RequestParam(name="associatedLink", required=true) String associatedLink,			
-			HttpSession session) {
+			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = (String) session.getAttribute("adminID");
+		String adminID = cmdService.getUserIdBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new SimpleVO(false, "管理员尚未登录或不存在。");
@@ -114,9 +116,10 @@ public class HomePageController {
 	}
 	
 	@GetMapping("/workshowlist")
-	public CommonVO workShowList(@RequestParam(name="bannerID", required=true) String bannerID,	HttpSession session) {
+	public CommonVO workShowList(@RequestParam(name="bannerID", required=true) String bannerID,	
+			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = (String) session.getAttribute("adminID");
+		String adminID = cmdService.getUserIdBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new CommonVO(false, "管理员尚未登录或不存在。", "{}");
@@ -172,9 +175,9 @@ public class HomePageController {
 	public CommonVO editWorkShow(@RequestParam(name="bannerID", required=true) String bannerID,
 			@RequestParam(name="index", required=true) Integer index,
 			@RequestParam(name="workID", required=true) String workID,
-			HttpSession session) {
+			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = (String) session.getAttribute("adminID");
+		String adminID = cmdService.getUserIdBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new CommonVO(false, "管理员尚未登录或不存在。", "{}");
@@ -238,9 +241,9 @@ public class HomePageController {
 	@PostMapping("/edithotword")
 	public SimpleVO editHotWord(@RequestParam(name="bannerID", required=true) String bannerID1,			
 			@RequestParam(name="hotWord", required=true) String[] hotWord1,			
-			HttpSession session) {
+			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = (String) session.getAttribute("adminID");
+		String adminID = cmdService.getUserIdBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new SimpleVO(false, "管理员尚未登录或不存在。");
@@ -268,9 +271,9 @@ public class HomePageController {
 	@PostMapping("/removeworkshow")
 	public SimpleVO removeWorkShow(@RequestParam(name="bannerID", required=true) String bannerID,
 			@RequestParam(name="index", required=true) Integer index,
-			HttpSession session) {
+			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = (String) session.getAttribute("adminID");
+		String adminID = cmdService.getUserIdBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new SimpleVO(false, "管理员尚未登录或不存在。");
@@ -300,9 +303,10 @@ public class HomePageController {
 	}
 
 	@PostMapping("/publishworkshow")
-	public SimpleVO publishWorkShow(@RequestParam(name="bannerID", required=true) String bannerID1, HttpSession session) {
+	public SimpleVO publishWorkShow(@RequestParam(name="bannerID", required=true) String bannerID1, 
+			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = (String) session.getAttribute("adminID");
+		String adminID = cmdService.getUserIdBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new SimpleVO(false, "管理员尚未登录或不存在。");
@@ -381,7 +385,12 @@ public class HomePageController {
 				workmap.put("price", work.getPrice());
 				workmap.put("downloadNum", work.getDownloadNum());
 				workmap.put("collectNum", work.getCollectNum()); 
-				workmap.put("yijifenlei", work.getYijifenlei()); 
+				workmap.put("yijifenlei", work.getYijifenlei());
+				if (work.getGeshi() != null && work.getGeshi().size() > 0) {
+					workmap.put("pattern", work.getGeshi().get(0)); 
+				} else {
+					workmap.put("pattern", null); 
+				}
 				String picture = null;
 				if (work.getPictures() != null && work.getPictures().size() > 0) {
 					picture = fileService.getFilePath(work.getPictures().get(0));

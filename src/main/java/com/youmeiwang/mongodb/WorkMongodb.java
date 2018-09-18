@@ -170,6 +170,7 @@ public class WorkMongodb implements WorkDao{
 		if (value2 != null) {
 			query.addCriteria(Criteria.where(condition2).is(value2));
 		}
+		query.addCriteria(Criteria.where("isDelete").is(false));
 		query.with(new Sort(new Order(Sort.Direction.DESC, condition3)));
 		query.limit(limit);
 		return mongoTemplate.find(query, Work.class);
@@ -393,6 +394,7 @@ public class WorkMongodb implements WorkDao{
 			}
 		}
 		query.addCriteria(Criteria.where("verifyState").is(1));
+		query.addCriteria(Criteria.where("isDelete").is(false));
 		return mongoTemplate.find(query, Work.class);
 	}
 

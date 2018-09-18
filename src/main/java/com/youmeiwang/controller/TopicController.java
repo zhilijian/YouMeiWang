@@ -6,8 +6,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import javax.servlet.http.HttpSession;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,6 +21,7 @@ import com.youmeiwang.service.FileService;
 import com.youmeiwang.service.TopicService;
 import com.youmeiwang.service.UserService;
 import com.youmeiwang.service.WorkService;
+import com.youmeiwang.sessionmanage.CmdService;
 import com.youmeiwang.util.ListUtil;
 import com.youmeiwang.vo.CommonVO;
 import com.youmeiwang.vo.SimpleVO;
@@ -44,14 +43,22 @@ public class TopicController {
 	@Autowired
 	private FileService fileService;
 	
+	@Autowired
+	private CmdService cmdService;
+	
 	@GetMapping("/topicdetail")
-	public CommonVO topicDetail(@RequestParam(name="userID", required=false) String userID,
-			@RequestParam(name="topicID", required=true) String topicID,
+	public CommonVO topicDetail(@RequestParam(name="topicID", required=true) String topicID,
 			@RequestParam(name="page", required=true) Integer page,
-			@RequestParam(name="size", required=true) Integer size) {
+			@RequestParam(name="size", required=true) Integer size,
+			@RequestParam(name="userToken", required=true) String sessionId) {
+		
+		String userID = cmdService.getUserIdBySessionId(sessionId);
+		User user = userService.queryUser("userID", userID);
+		if (userID == null || user == null) {
+			return new CommonVO(false, "用户尚未登录。", "{}"); 
+		}
 		
 		try {
-			User user = userService.queryUser("userID", userID);
 			Topic topic = topicService.queryTopic("topicID", topicID);
 			topicService.setTopic("topicID", topicID, "browsed", topic.getBrowsed() + 1);
 			
@@ -87,6 +94,11 @@ public class TopicController {
 				workmap.put("picture", picturePath);
 				workmap.put("collectNum", work.getCollectNum());
 				workmap.put("downloadNum", work.getDownloadNum());
+				if (work.getGeshi() != null && work.getGeshi().size() > 0) {
+					workmap.put("pattern", work.getGeshi().get(0)); 
+				} else {
+					workmap.put("pattern", null); 
+				}
 				works.add(workmap);
 			}
 			
@@ -121,36 +133,43 @@ public class TopicController {
 	}
 	
 	@GetMapping("/topiclist")
-	public CommonVO topicList(@RequestParam(name="userID", required=false) String userID,
-			@RequestParam(name="isRecommend", required=true) boolean isRecommend,
+	public CommonVO topicList(@RequestParam(name="isRecommend", required=true) boolean isRecommend,
 			@RequestParam(name="page", required=false, defaultValue="1") Integer page,
-			@RequestParam(name="size", required=false, defaultValue="4") Integer size) {
+			@RequestParam(name="size", required=false, defaultValue="4") Integer size,
+			@RequestParam(name="userToken", required=false) String sessionId) {
+		
+		String userID = cmdService.getUserIdBySessionId(sessionId);
+		User user = userService.queryUser("userID", userID);
 		
 		if (page <= 0 || size <= 0) {
 			return new CommonVO(false, "参数输入不合理。", "请先核对后重新输入参数。");
 		}
 		try {
-			User user = userService.queryUser("userID", userID);
 			List<Topic> topiclist1 = new ArrayList<Topic>();
 			List<Topic> topiclist2 = new ArrayList<Topic>();
 			
-			if (user == null) {
+			if (isRecommend) {
 				topiclist1 = topicService.topiclist(isRecommend);
 			} else {
-				List<String> collectTopic = user.getCollectTopic();
-				if (collectTopic == null || collectTopic.size() == 0) {
-					return new CommonVO(false, "该用户无收藏专题", "{}");
+				if (userID == null || user == null) {
+					return new CommonVO(false, "用户尚未登录。", "{}"); 
 				}
 				
-				for (String topicID : collectTopic) {
+				List<String> collectTopic1 = user.getCollectTopic();
+				List<String> collectTopic2 = new LinkedList<String>();
+				
+				for (String topicID : collectTopic1) {
 					Topic topic = topicService.queryTopic("topicID", topicID);
 					if (topic == null) {
-						collectTopic.remove(topicID);
 						continue;
 					}
 					topiclist1.add(topic);
+					collectTopic2.add(topicID);
 				}
-				userService.setUser("userID", userID, "collectTopic", collectTopic);
+				if (collectTopic2 == null || collectTopic2.size() == 0) {
+					return new CommonVO(false, "该用户无收藏专题", "{}");
+				}
+				userService.setUser("userID", userID, "collectTopic", collectTopic2);
 			}
 			
 			int currIdx = (page > 1 ? (page-1)*size : 0);
@@ -215,17 +234,17 @@ public class TopicController {
 	}
 	
 	@PostMapping("/collectorcancel")
-	public SimpleVO collectOrcancel(@RequestParam(name="userID", required=true) String userID,
-			@RequestParam(name="topicID", required=true) String topicID,
+	public SimpleVO collectOrcancel(@RequestParam(name="topicID", required=true) String topicID,
 			@RequestParam(name="isCollect", required=true) Boolean isCollect,
-			HttpSession session) {
+			@RequestParam(name="userToken", required=true) String sessionId) {
 		
-//		if (session.getAttribute(userID) == null) {
-//			return new SimpleVO(false, "用户非法登录。"); 
-//		}
+		String userID = cmdService.getUserIdBySessionId(sessionId);
+		User user = userService.queryUser("userID", userID);
+		if (userID == null || user == null) {
+			return new SimpleVO(false, "用户尚未登录。"); 
+		}
 		
 		try {
-			User user = userService.queryUser("userID", userID);
 			Topic topic = topicService.queryTopic("topicID", topicID);
 			Long collectNum = topic.getCollected();
 			
@@ -235,15 +254,17 @@ public class TopicController {
 			}
 			
 			if (isCollect) {
-				if (collectTopic.add(topicID)) {
-					topicService.setTopic("topicID", topicID, "collected", collectNum + 1);
-					userService.setUser("userID", userID, "collectTopic", ListUtil.addElement(collectTopic, topicID));
+				if (collectTopic.contains(topicID)) {
+					return new SimpleVO(true, "该专题已被收藏。");
 				}
+				topicService.setTopic("topicID", topicID, "collected", collectNum + 1);
+				userService.setUser("userID", userID, "collectTopic", ListUtil.addElement(collectTopic, topicID));
 			} else {
-				if (collectTopic.remove(topicID)) {
-					userService.setUser("userID", userID, "collectTopic", ListUtil.removeElement(collectTopic, topicID));
-					topicService.setTopic("topicID", topicID, "collected", collectNum - 1);
+				if (!collectTopic.contains(topicID)) {
+					return new SimpleVO(true, "该专题尚未被收藏。"); 
 				}
+				userService.setUser("userID", userID, "collectTopic", ListUtil.removeElement(collectTopic, topicID));
+				topicService.setTopic("topicID", topicID, "collected", collectNum - 1);
 			}
 			return new SimpleVO(true, "收藏/取消专题成功！"); 
 		} catch (Exception e) {

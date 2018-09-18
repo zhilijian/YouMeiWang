@@ -11,8 +11,6 @@ public class BBS {
 	private String bbsID;
 	//用户ID userID
 	private String userID;
-	//
-	private String username;
 	//作品ID workID
 	private String workID;
 	//纠错类型 correctionType
@@ -23,7 +21,7 @@ public class BBS {
 	//类型 type：0：留言反馈 1：纠错提交
 	private Integer type;
 	//发表时间
-	private Long publishTime;
+	private String publishTime;
 	
 	public BBS() {
 	}
@@ -46,14 +44,6 @@ public class BBS {
 
 	public String getWorkID() {
 		return workID;
-	}
-
-	public String getUsername() {
-		return username;
-	}
-
-	public void setUsername(String username) {
-		this.username = username;
 	}
 
 	public void setWorkID(String workID) {
@@ -84,11 +74,11 @@ public class BBS {
 		this.type = type;
 	}
 
-	public Long getPublishTime() {
+	public String getPublishTime() {
 		return publishTime;
 	}
 
-	public void setPublishTime(Long publishTime) {
+	public void setPublishTime(String publishTime) {
 		this.publishTime = publishTime;
 	}
 }

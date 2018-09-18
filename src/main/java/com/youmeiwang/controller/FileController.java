@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -17,16 +16,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.youmeiwang.entity.Admin;
 import com.youmeiwang.entity.Config;
 import com.youmeiwang.entity.FileInfo;
 import com.youmeiwang.entity.User;
 import com.youmeiwang.entity.Work;
-import com.youmeiwang.service.AdminService;
 import com.youmeiwang.service.ConfigService;
 import com.youmeiwang.service.FileService;
 import com.youmeiwang.service.UserService;
 import com.youmeiwang.service.WorkService;
+import com.youmeiwang.sessionmanage.CmdService;
 import com.youmeiwang.util.FileUtil;
 import com.youmeiwang.util.ListUtil;
 import com.youmeiwang.vo.CommonVO;
@@ -41,9 +39,6 @@ public class FileController {
 	private UserService userService;
 	
 	@Autowired
-	private AdminService adminService;
-	
-	@Autowired
 	private WorkService workService;
 	
 	@Autowired
@@ -52,18 +47,17 @@ public class FileController {
 	@Autowired
 	private FileService fileService;
 	
+	@Autowired
+	private CmdService cmdService;
+	
 	@PostMapping(value = "uploadpicture")
     public CommonVO uploadPicture(@RequestParam(name="picture", required=true) MultipartFile file,
-			HttpSession session) {
+    		@RequestParam(name="token", required=true) String sessionId) {
 		
-		String userID = (String) session.getAttribute("userID");
-		User user = userService.queryUser("userID", userID);
-		String adminID = (String) session.getAttribute("adminID");
-		Admin admin = adminService.queryAdmin("adminID", adminID);
-		if (user == null && admin == null) {
-			return new CommonVO(false, "用户或管理员尚未登录。", "{}") ;
+		String ID = cmdService.getUserIdBySessionId(sessionId);
+		if (ID == null) {
+			return new CommonVO(false, "用户或管理员尚未登录", "{}");
 		}
-		String ID = userID == null ? adminID : userID;
        
 		try {
         	Config config1 = configService.queryConfig("configName", "uploadPicturePath");
@@ -89,16 +83,13 @@ public class FileController {
     }
 	
 	@PostMapping(value = "uploadfile")
-	public CommonVO uploadFile(@RequestParam(name="file", required=true) MultipartFile file, HttpSession session) {
+	public CommonVO uploadFile(@RequestParam(name="file", required=true) MultipartFile file, 
+			@RequestParam(name="token", required=true) String sessionId) {
 		
-		String userID = (String) session.getAttribute("userID");
-		User user = userService.queryUser("userID", userID);
-		String adminID = (String) session.getAttribute("adminID");
-		Admin admin = adminService.queryAdmin("adminID", adminID);
-		if (user == null && admin == null) {
-			return new CommonVO(false, "用户或管理员尚未登录。", "{}") ;
+		String ID = cmdService.getUserIdBySessionId(sessionId);
+		if (ID == null) {
+			return new CommonVO(false, "用户或管理员尚未登录", "{}");
 		}
-		String ID = userID == null ? adminID : userID;
 		
 		try {
 			Config config = configService.queryConfig("configName", "uploadFilePath");
@@ -125,15 +116,14 @@ public class FileController {
 	@GetMapping(value = "download")
 	public SimpleVO download(@RequestParam(name="workID", required=true) String workID,
 			@RequestParam(name="fileID", required=true) String fileID,
-			HttpServletResponse response, HttpSession session) {
+			@RequestParam(name="token", required=true) String sessionId,
+			HttpServletResponse response) {
 		
-		String userID = (String) session.getAttribute("userID");
-		User user = userService.queryUser("userID", userID);
-		String adminID = (String) session.getAttribute("adminID");
-		Admin admin = adminService.queryAdmin("adminID", adminID);
-		if (user == null && admin == null) {
-			return new SimpleVO(false, "用户或管理员尚未登录。") ;
+		String userID = cmdService.getUserIdBySessionId(sessionId);
+		if (userID == null) {
+			return new SimpleVO(false, "用户或管理员尚未登录");
 		}
+		User user = userService.queryUser("userID", userID);
 		
 		try {
 			Work work = workService.queryWork("workID", workID);
@@ -168,15 +158,14 @@ public class FileController {
 	@GetMapping(value = "downloadZIP")
 	public SimpleVO downloadZIP(@RequestParam(name="workID", required=true) String workID,
 			@RequestParam(name="fileIDs", required=true) String[] fileIDs,
-			HttpServletResponse response, HttpSession session) {
+			@RequestParam(name="token", required=true) String sessionId,
+			HttpServletResponse response) {
 		
-		String userID = (String) session.getAttribute("userID");
-		User user = userService.queryUser("userID", userID);
-		String adminID = (String) session.getAttribute("adminID");
-		Admin admin = adminService.queryAdmin("adminID", adminID);
-		if (user == null && admin == null) {
-			return new SimpleVO(false, "用户或管理员尚未登录。") ;
+		String userID = cmdService.getUserIdBySessionId(sessionId);
+		if (userID == null) {
+			return new SimpleVO(false, "用户或管理员尚未登录");
 		}
+		User user = userService.queryUser("userID", userID);
 		
 		try {
 			Work work = workService.queryWork("workID", workID);

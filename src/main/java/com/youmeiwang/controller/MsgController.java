@@ -25,7 +25,8 @@ import com.youmeiwang.vo.CommonVO;
 public class MsgController {
 	
 	@GetMapping("/sendalimsg")
-	public CommonVO sendAliMsg(@RequestParam(name="username", required=true) String username, HttpSession session) throws ClientException {
+	public CommonVO sendAliMsg(@RequestParam(name="username", required=true) String username, 
+			HttpSession session) throws ClientException {
 	    
 		String code = RandomUtil.getRandomNumber(6);
 	    String jsonContent = "{\"code\":\"" + code + "\"}";
@@ -53,10 +54,10 @@ public class MsgController {
 	}
 	
 	@GetMapping("/sendwangyimsg")
-	public CommonVO sendWangyiMsg(@RequestParam(name="phone", required=true) String phone, HttpSession session) {
+	public CommonVO sendWangyiMsg(@RequestParam(name="username", required=true) String username, HttpSession session) {
 		String code = RandomUtil.getRandomNumber(6);
 		try {
-			JSONObject jsonObject = WangyiyunMessageUtil.sendMsg(phone, code);
+			JSONObject jsonObject = WangyiyunMessageUtil.sendMsg(username, code);
 			if ("200".equals(jsonObject.getString("code"))) {
 				return new CommonVO(true, "短信发送成功！", code);
 			} else {

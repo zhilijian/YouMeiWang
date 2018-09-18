@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.SortedMap;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -24,6 +23,7 @@ import com.youmeiwang.service.OrderService;
 import com.youmeiwang.service.PurchaseService;
 import com.youmeiwang.service.UserService;
 import com.youmeiwang.service.WeChatPayService;
+import com.youmeiwang.sessionmanage.CmdService;
 import com.youmeiwang.util.ListUtil;
 import com.youmeiwang.vo.CommonVO;
 
@@ -47,12 +47,16 @@ public class WechatPayController {
 	@Autowired
 	private NewsService newsService;
 	
+	@Autowired
+	private CmdService cmdService;
+	
 	@PostMapping("/createorder")
 	public CommonVO createOrder(@RequestParam(name="workID", required=false) String workID,
 			@RequestParam(name="money", required=false) Double money,
-			HttpServletRequest request, HttpSession session) {
+			@RequestParam(name="userToken", required=true) String sessionId,
+			HttpServletRequest request) {
 		
-		String userID = (String) session.getAttribute("userID");
+		String userID = cmdService.getUserIdBySessionId(sessionId);
 		User user = userService.queryUser("userID", userID);
 		if (userID == null || user == null) {
 			return new CommonVO(false, "用户尚未登录或不存在。", "{}"); 

@@ -1,13 +1,9 @@
 package com.youmeiwang.controller;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
-import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -19,9 +15,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.youmeiwang.entity.Admin;
 import com.youmeiwang.entity.BBS;
+import com.youmeiwang.entity.User;
 import com.youmeiwang.service.AdminService;
 import com.youmeiwang.service.BBSService;
 import com.youmeiwang.service.NewsService;
+import com.youmeiwang.service.UserService;
+import com.youmeiwang.sessionmanage.CmdService;
 import com.youmeiwang.util.ContainUtil;
 import com.youmeiwang.vo.CommonVO;
 import com.youmeiwang.vo.SimpleVO;
@@ -32,6 +31,9 @@ import com.youmeiwang.vo.SimpleVO;
 public class BBSController {
 
 	@Autowired
+	private UserService userService;
+	
+	@Autowired
 	private AdminService adminService;
 	
 	@Autowired
@@ -40,43 +42,53 @@ public class BBSController {
 	@Autowired
 	private NewsService newsService;
 	
+	@Autowired
+	private CmdService cmdService;
+	
 	@PostMapping("/addbbs")
-	public CommonVO addBBS(@RequestParam(name="userID", required=true) String userID,
-			@RequestParam(name="workID", required=false) String workID,
+	public CommonVO addBBS(@RequestParam(name="workID", required=false) String workID,
 			@RequestParam(name="correctionType", required=false) Integer correctionType,
 			@RequestParam(name="comment", required=true) String comment,
-			HttpSession session) {
+			@RequestParam(name="userToken", required=true) String sessionId) {
 		
-//		if (session.getAttribute(userID) == null) {
-//			return new CommonVO(false, "用户非法登录。", "请先确认该用户是否登录。"); 
-//		}
+		String userID = cmdService.getUserIdBySessionId(sessionId);
+		User user = userService.queryUser("userID", userID);
+		if (userID == null || user == null) {
+			return new CommonVO(false, "用户尚未登录。", "{}"); 
+		}
 		
 		try {
-			String title = "信息纠错提交成功！";
-			String content = "感谢您的信息反馈，我们后台管理人员已接受并将尽快处理您的纠错信息！";
-			newsService.addNews(userID, title, content, 1);
-			
 			BBS bbs = bbsService.addBBS(userID, workID, correctionType, comment);
 			Map<String, Object> data = new HashMap<String, Object>();
 			data.put("bbsID", bbs.getBbsID());
 			data.put("userID", userID);
 			data.put("comment", comment);
 			data.put("type", bbs.getType());
+			
+			String title = "";
+			String content = "";
 			if (workID != null) {
 				data.put("workID", workID);
 				data.put("correctionType", correctionType);
-			} 
+				title = "信息纠错提交成功！";
+				content = "感谢您的信息反馈，我们后台管理人员已接受并将尽快处理您的纠错信息！";
+			} else {
+				title = "留言信息提交成功！";
+				content = "感谢您的信息反馈，我们后台管理人员已接受并将会考虑您宝贵的建议！";
+			}
+			newsService.addNews(userID, title, content, 1);
 			return new CommonVO(true, "添加BBS成功！", data);
 		} catch (Exception e) {
 			e.printStackTrace();
-			return new CommonVO(false, "添加BBS失败。", "出错信息：" + e.getMessage());
+			return new CommonVO(false, "添加BBS失败。", "出错信息：" + e.toString());
 		}
 	}
 	
 	@GetMapping("/removebbs")
-	public SimpleVO removeBBS(@RequestParam(name="bbsID", required=true) String bbsID, HttpSession session) {
+	public SimpleVO removeBBS(@RequestParam(name="bbsID", required=true) String bbsID, 
+			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = (String) session.getAttribute("adminID");
+		String adminID = cmdService.getUserIdBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new SimpleVO(false, "用户尚未登录或不存在。");
@@ -97,9 +109,10 @@ public class BBSController {
 	}
 	
 	@GetMapping("/batchremovebbs")
-	public SimpleVO batchRemoveBBS(@RequestParam(name="bbsIDs", required=true) String[] bbsIDs, HttpSession session) {
+	public SimpleVO batchRemoveBBS(@RequestParam(name="bbsIDs", required=true) String[] bbsIDs, 
+			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = (String) session.getAttribute("adminID");
+		String adminID = cmdService.getUserIdBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new SimpleVO(false, "用户尚未登录或不存在。");
@@ -121,12 +134,14 @@ public class BBSController {
 		}
 	}
 	
-	@GetMapping("/querybbs")
-	public CommonVO queryBBS(@RequestParam(name="bbsID", required=true) String bbsID, HttpSession session) {
+	@GetMapping("/bbsdetail")
+	public CommonVO BBSdetail(@RequestParam(name="bbsID", required=true) String bbsID, 
+			@RequestParam(name="userToken", required=true) String sessionId) {
 		
-		String userID = (String) session.getAttribute("userID");
-		if (userID == null) {
-			return new CommonVO(false, "用户非法登录。", "请先确认该用户是否登录。"); 
+		String userID = cmdService.getUserIdBySessionId(sessionId);
+		User user = userService.queryUser("userID", userID);
+		if (userID == null || user == null) {
+			return new CommonVO(false, "用户尚未登录。", "{}"); 
 		}
 		
 		try {
@@ -143,7 +158,7 @@ public class BBSController {
 			return new CommonVO(true, "查询BBS成功！", data);
 		} catch (Exception e) {
 			e.printStackTrace();
-			return new CommonVO(false, "查询BBS失败。", "出错信息：" + e.getMessage()); 
+			return new CommonVO(false, "查询BBS失败。", "出错信息：" + e.toString()); 
 		}
 	}
 	
@@ -151,11 +166,12 @@ public class BBSController {
 	public CommonVO bbsList1(@RequestParam(name="type", required=true) Integer type,
 			@RequestParam(name="page", required=true) Integer page,
 			@RequestParam(name="size", required=true) Integer size,
-			HttpSession session) {
+			@RequestParam(name="userToken", required=true) String sessionId) {
 		
-		String userID = (String) session.getAttribute("userID");
-		if (userID == null) {
-			return new CommonVO(false, "用户非法登录。", "请先确认该用户是否登录。"); 
+		String userID = cmdService.getUserIdBySessionId(sessionId);
+		User user = userService.queryUser("userID", userID);
+		if (userID == null || user == null) {
+			return new CommonVO(false, "用户尚未登录。", "{}"); 
 		}
 		
 		if (page <= 0 || size <= 0) {
@@ -163,7 +179,7 @@ public class BBSController {
 		}
 		
 		try {
-			List<BBS> bbslist = bbsService.bbsList("userID", userID, "type", type, page, size);
+			List<BBS> bbslist = bbsService.bbslist("userID", userID, "type", type, page, size);
 			Long bbsAmount = bbsService.getBBSAmount("userID", userID, "type", type);
 			Long pageAmount = 0l;
 			if (bbsAmount % size == 0) {
@@ -172,14 +188,29 @@ public class BBSController {
 				pageAmount = bbsAmount / size + 1;
 			}
 			
+			List<Map<String, Object>> maplist = new LinkedList<Map<String, Object>>();
+			for (BBS bbs : bbslist) {
+				Map<String, Object> bbsmap = new HashMap<String, Object>();
+				bbsmap.put("bbsID", bbs.getBbsID());
+				bbsmap.put("userID", bbs.getUserID());
+				if (type == 1) {
+					bbsmap.put("workID", bbs.getWorkID());
+					bbsmap.put("correctionType", bbs.getCorrectionType());
+				}
+				bbsmap.put("comment", bbs.getComment());
+				bbsmap.put("type", bbs.getType());
+				bbsmap.put("publishTime", bbs.getPublishTime());
+				maplist.add(bbsmap);
+			}
+			
 			Map<String, Object> data = new HashMap<String, Object>();
-			data.put("bbs", bbslist);
+			data.put("bbs", maplist);
 			data.put("bbsAmount", bbsAmount);
 			data.put("pageAmount", pageAmount);
-			return new CommonVO(true, "查询BBS成功！", bbslist);
+			return new CommonVO(true, "查询BBS成功！", data);
 		} catch (Exception e) {
 			e.printStackTrace();
-			return new CommonVO(false, "查询BBS失败。", "出错信息：" + e.getMessage());
+			return new CommonVO(false, "查询BBS失败。", "出错信息：" + e.toString());
 		}
 	}
 	
@@ -188,9 +219,9 @@ public class BBSController {
 			@RequestParam(name="correctionType", required=false) Integer correctionType,
 			@RequestParam(name="page", required=true) Integer page,
 			@RequestParam(name="size", required=true) Integer size,
-			HttpSession session) {
+			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = (String) session.getAttribute("adminID");
+		String adminID = cmdService.getUserIdBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new CommonVO(false, "用户尚未登录或不存在。", "{}");
@@ -202,7 +233,7 @@ public class BBSController {
 		}
 		
 		try {
-			List<BBS> bbslist = bbsService.bbsList("type", type, "correctionType", correctionType, page, size);
+			List<BBS> bbslist = bbsService.bbslist("type", type, "correctionType", correctionType, page, size);
 			Long bbsAmount = bbsService.getBBSAmount("type", type, "correctionType", correctionType);
 			Long pageAmount = 0l;
 			if (bbsAmount % size == 0) {
@@ -210,15 +241,15 @@ public class BBSController {
 			} else {
 				pageAmount = bbsAmount / size + 1;
 			}
+			
 			List<Map<String, Object>> maplist = new LinkedList<Map<String, Object>>();
 			for (BBS bbs : bbslist) {
 				Map<String, Object> bbsmap = new HashMap<String, Object>();
 				bbsmap.put("bbsID", bbs.getBbsID());
 				bbsmap.put("userID", bbs.getUserID());
-				bbsmap.put("username", bbs.getUsername());
 				bbsmap.put("comment", bbs.getComment());
 				bbsmap.put("type", bbs.getType());
-				bbsmap.put("publishTime", new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date(bbs.getPublishTime())));
+				bbsmap.put("publishTime", bbs.getPublishTime());
 				if (type == 1) {
 					bbsmap.put("workID", bbs.getWorkID());
 					bbsmap.put("correctionType", bbs.getCorrectionType());

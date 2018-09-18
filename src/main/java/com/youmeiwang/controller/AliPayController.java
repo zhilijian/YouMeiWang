@@ -30,6 +30,7 @@ import com.youmeiwang.service.NewsService;
 import com.youmeiwang.service.OrderService;
 import com.youmeiwang.service.PurchaseService;
 import com.youmeiwang.service.UserService;
+import com.youmeiwang.sessionmanage.CmdService;
 import com.youmeiwang.util.ListUtil;
 import com.youmeiwang.vo.CommonVO;
 import com.youmeiwang.vo.SimpleVO;
@@ -57,12 +58,16 @@ public class AliPayController {
 	@Autowired
 	private NewsService newsService;
 	
+	@Autowired
+	private CmdService cmdService;
+	
 	@PostMapping("/createorder")
 	public SimpleVO createOrder(@RequestParam(name="workID", required=false) String workID, 
 			@RequestParam(name="money", required=false) Double money,
-			HttpServletResponse httpResponse, HttpSession session) {
+			@RequestParam(name="userToken", required=true) String sessionId,
+			HttpServletResponse httpResponse) {
 		
-		String userID = (String) session.getAttribute("userID");
+		String userID = cmdService.getUserIdBySessionId(sessionId);
 		User user = userService.queryUser("userID", userID);
 		if (userID == null || user == null) {
 			return new SimpleVO(false, "用户尚未登录或用户不存在");
@@ -174,12 +179,14 @@ public class AliPayController {
 	}
 	
 	@PostMapping("/closeorder")
-	public CommonVO closeOrder(String userID,  String out_trade_no,
-			HttpSession session) {
+	public CommonVO closeOrder(@RequestParam(name="out_trade_no", required=true) String out_trade_no, 
+			@RequestParam(name="userToken", required=true) String sessionId) {
 		
-//		if (session.getAttribute(userID) == null) {
-//			return new CommonVO(false, "用户尚未登录。"); 
-//		}
+		String userID = cmdService.getUserIdBySessionId(sessionId);
+		User user = userService.queryUser("userID", userID);
+		if (userID == null || user == null) {
+			return new CommonVO(false, "用户尚未登录或用户不存在", "{}");
+		}
 		
 		try {
 			AlipayTradePagePayModel model = alipayService.queryOrCloseModel(out_trade_no);
@@ -198,12 +205,13 @@ public class AliPayController {
 	}
 	
 	@PostMapping("/queryorder")
-	public CommonVO queryOrder(String userID,  String out_trade_no,
-			HttpSession session) {
+	public CommonVO queryOrder(String out_trade_no, HttpSession session) {
 		
-//		if (session.getAttribute(userID) == null) {
-//			return new CommonVO(false, "用户尚未登录。"); 
-//		}
+		String userID = (String) session.getAttribute("userID");
+		User user = userService.queryUser("userID", userID);
+		if (userID == null || user == null) {
+			return new CommonVO(false, "用户尚未登录或用户不存在", "{}");
+		}
 		
 		try {
 			AlipayTradePagePayModel model = alipayService.queryOrCloseModel(out_trade_no);

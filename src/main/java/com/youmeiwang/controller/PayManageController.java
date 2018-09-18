@@ -7,8 +7,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import javax.servlet.http.HttpSession;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,6 +29,7 @@ import com.youmeiwang.service.OrderService;
 import com.youmeiwang.service.PurchaseService;
 import com.youmeiwang.service.TransactionService;
 import com.youmeiwang.service.UserService;
+import com.youmeiwang.sessionmanage.CmdService;
 import com.youmeiwang.util.ContainUtil;
 import com.youmeiwang.util.ListUtil;
 import com.youmeiwang.vo.CommonVO;
@@ -64,6 +63,9 @@ public class PayManageController {
 	@Autowired
 	private NewsService newsService;
 	
+	@Autowired
+	private CmdService cmdService;
+	
 	@PostMapping("/orderrecord")
 	public CommonVO orderRecord(@RequestParam(name="condition", required=false) String condition,
 			@RequestParam(name="payType", required=false) Integer payType,
@@ -72,9 +74,9 @@ public class PayManageController {
 			@RequestParam(name="endTime", required=false) Long endTime,
 			@RequestParam(name="page", required=true) Integer page,
 			@RequestParam(name="size", required=true) Integer size,
-			HttpSession session) {
+			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = (String) session.getAttribute("adminID");
+		String adminID = cmdService.getUserIdBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new CommonVO(false, "用户尚未登录或不存在。", "{}");
@@ -129,9 +131,10 @@ public class PayManageController {
 	}
 	
 	@PostMapping("/supplement")
-	public CommonVO supplement(@RequestParam(name="outTradeNo", required=true) String outTradeNo, HttpSession session) {
+	public CommonVO supplement(@RequestParam(name="outTradeNo", required=true) String outTradeNo, 
+			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = (String) session.getAttribute("adminID");
+		String adminID = cmdService.getUserIdBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new CommonVO(false, "用户尚未登录或不存在。", "{}");
@@ -189,9 +192,9 @@ public class PayManageController {
 			@RequestParam(name="endTime", required=false) Long endTime,
 			@RequestParam(name="page", required=true) Integer page,
 			@RequestParam(name="size", required=true) Integer size,
-			HttpSession session) {
+			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = (String) session.getAttribute("adminID");
+		String adminID = cmdService.getUserIdBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new CommonVO(false, "用户尚未登录或不存在。", "{}");
@@ -251,9 +254,9 @@ public class PayManageController {
 			@RequestParam(name="endTime", required=false) Long endTime,
 			@RequestParam(name="page", required=true) Integer page,
 			@RequestParam(name="size", required=true) Integer size,
-			HttpSession session) {
+			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = (String) session.getAttribute("adminID");
+		String adminID = cmdService.getUserIdBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new CommonVO(false, "用户尚未登录或不存在。", "{}");
@@ -314,9 +317,9 @@ public class PayManageController {
 			@RequestParam(name="endTime", required=false) Long endTime,
 			@RequestParam(name="page", required=true) Integer page,
 			@RequestParam(name="size", required=true) Integer size,
-			HttpSession session) {
+			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = (String) session.getAttribute("adminID");
+		String adminID = cmdService.getUserIdBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new CommonVO(false, "用户尚未登录或不存在。", "{}");
@@ -376,9 +379,9 @@ public class PayManageController {
 			@RequestParam(name="endTime", required=false) Long endTime,
 			@RequestParam(name="page", required=true) Integer page,
 			@RequestParam(name="size", required=true) Integer size,
-			HttpSession session) {
+			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = (String) session.getAttribute("adminID");
+		String adminID = cmdService.getUserIdBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new CommonVO(false, "用户尚未登录或不存在。", "{}");
