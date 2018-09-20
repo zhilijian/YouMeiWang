@@ -21,7 +21,7 @@ import com.youmeiwang.entity.User;
 import com.youmeiwang.service.AdminService;
 import com.youmeiwang.service.NewsService;
 import com.youmeiwang.service.UserService;
-import com.youmeiwang.sessionmanage.CmdService;
+import com.youmeiwang.sessionmanage.SessionService;
 import com.youmeiwang.util.ContainUtil;
 import com.youmeiwang.vo.CommonVO;
 import com.youmeiwang.vo.SimpleVO;
@@ -41,7 +41,7 @@ public class UserManageController {
 	private NewsService newsService;
 	
 	@Autowired
-	private CmdService cmdService;
+	private SessionService sessionService;
 	
 	@PostMapping("/usersearch")
 	public CommonVO userSearch(@RequestParam(name="condition", required=false) String condition,
@@ -52,7 +52,7 @@ public class UserManageController {
 			@RequestParam(name="size", required=true) Integer size,
 			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = cmdService.getUserIdBySessionId(sessionId);
+		String adminID = sessionService.getIDBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new CommonVO(false, "用户尚未登录或不存在。", "{}");
@@ -89,6 +89,7 @@ public class UserManageController {
 				usermap.put("memberKind", user.getMemberKind());
 				usermap.put("youbiAmount", user.getYoubiAmount());
 				usermap.put("balance", user.getBalance());
+				usermap.put("isBanLogin", user.isBanLogin());
 				users.add(usermap);
 			}
 			
@@ -115,7 +116,7 @@ public class UserManageController {
 	public CommonVO userDetail(@RequestParam(name="userID", required=true) String userID, 
 			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = cmdService.getUserIdBySessionId(sessionId);
+		String adminID = sessionService.getIDBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new CommonVO(false, "管理员未登录或不存在。", "{}");
@@ -147,11 +148,12 @@ public class UserManageController {
 		}
 	}
 	
-	@PostMapping("/batchremoveuser")
-	public SimpleVO BatchRemoveUser(@RequestParam(name="userIDs", required=true) String[] userIDs, 
+	@PostMapping("/banuser")
+	public SimpleVO banUser(@RequestParam(name="userIDs", required=true) String[] userIDs, 
+			@RequestParam(name="banOrRelease", required=true) Boolean banOrRelease,
 			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = cmdService.getUserIdBySessionId(sessionId);
+		String adminID = sessionService.getIDBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new SimpleVO(false, "用户尚未登录或不存在。");
@@ -163,10 +165,19 @@ public class UserManageController {
 		}
 		
 		try {
-			for (String userID : userIDs) {
-				userService.removeUser("userID", userID);
+			if (banOrRelease) {
+				for (String userID : userIDs) {
+					userService.setUser("userID", userID, "isBanLogin", true);
+				}
+				return new SimpleVO(true, "禁止用户登录成功！");
+				
+			} else {
+				for (String userID : userIDs) {
+					userService.setUser("userID", userID, "isBanLogin", false);
+				}
+				return new SimpleVO(true, "解禁用户登录成功！");
 			}
-			return new SimpleVO(true, "批量删除成功！");
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new SimpleVO(false, "出错信息：" + e.toString());
@@ -179,7 +190,7 @@ public class UserManageController {
 			@RequestParam(name = "dismissalMsg", required = false) String dismissalMsg, 
 			@RequestParam(name="adminToken", required=true) String sessionId) {
 
-		String adminID = cmdService.getUserIdBySessionId(sessionId);
+		String adminID = sessionService.getIDBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new CommonVO(false, "用户尚未登录或不存在。", "{}");

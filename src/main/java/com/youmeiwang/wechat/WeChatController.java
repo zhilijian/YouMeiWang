@@ -87,11 +87,14 @@ public class WeChatController {
 		try {
 			String outTradeNo = responseMap.get("out_trade_no");
 			Order order = orderService.queryOrder("outTradeNo", outTradeNo);
+			String userID = order.getUserID();
 			String workID = order.getProductID();
+			User user = userService.queryUser("userID", userID);
+			String username = user.getUsername();
 			if (workID != null) {
-				return "redirect:http://www.linshaocong.cn:8019/#/Details?workID=" + workID;
+				return "redirect:http://www.linshaocong.cn:8019/#/Zhifubao?username=" + username + "&workID=" + workID;
 			} else {
-				return "redirect:http://www.linshaocong.cn:8019/#/PersonalInformation";
+				return "redirect:http://www.linshaocong.cn:8019/#/zhbcz";
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

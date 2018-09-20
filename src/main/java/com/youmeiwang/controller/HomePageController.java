@@ -24,7 +24,7 @@ import com.youmeiwang.service.AdminService;
 import com.youmeiwang.service.BannerService;
 import com.youmeiwang.service.FileService;
 import com.youmeiwang.service.WorkService;
-import com.youmeiwang.sessionmanage.CmdService;
+import com.youmeiwang.sessionmanage.SessionService;
 import com.youmeiwang.util.ContainUtil;
 import com.youmeiwang.vo.CommonVO;
 import com.youmeiwang.vo.SimpleVO;
@@ -47,12 +47,12 @@ public class HomePageController {
 	private FileService fileService;
 	
 	@Autowired
-	private CmdService cmdService;
+	private SessionService cmdService;
 	
 	@GetMapping("/bannerlist")
 	public CommonVO bannerList(@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = cmdService.getUserIdBySessionId(sessionId);
+		String adminID = cmdService.getIDBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new CommonVO(false, "管理员尚未登录或不存在。", "{}");
@@ -89,7 +89,7 @@ public class HomePageController {
 			@RequestParam(name="associatedLink", required=true) String associatedLink,			
 			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = cmdService.getUserIdBySessionId(sessionId);
+		String adminID = cmdService.getIDBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new SimpleVO(false, "管理员尚未登录或不存在。");
@@ -119,7 +119,7 @@ public class HomePageController {
 	public CommonVO workShowList(@RequestParam(name="bannerID", required=true) String bannerID,	
 			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = cmdService.getUserIdBySessionId(sessionId);
+		String adminID = cmdService.getIDBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new CommonVO(false, "管理员尚未登录或不存在。", "{}");
@@ -177,7 +177,7 @@ public class HomePageController {
 			@RequestParam(name="workID", required=true) String workID,
 			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = cmdService.getUserIdBySessionId(sessionId);
+		String adminID = cmdService.getIDBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new CommonVO(false, "管理员尚未登录或不存在。", "{}");
@@ -243,7 +243,7 @@ public class HomePageController {
 			@RequestParam(name="hotWord", required=true) String[] hotWord1,			
 			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = cmdService.getUserIdBySessionId(sessionId);
+		String adminID = cmdService.getIDBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new SimpleVO(false, "管理员尚未登录或不存在。");
@@ -273,7 +273,7 @@ public class HomePageController {
 			@RequestParam(name="index", required=true) Integer index,
 			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = cmdService.getUserIdBySessionId(sessionId);
+		String adminID = cmdService.getIDBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new SimpleVO(false, "管理员尚未登录或不存在。");
@@ -306,7 +306,7 @@ public class HomePageController {
 	public SimpleVO publishWorkShow(@RequestParam(name="bannerID", required=true) String bannerID1, 
 			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = cmdService.getUserIdBySessionId(sessionId);
+		String adminID = cmdService.getIDBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new SimpleVO(false, "管理员尚未登录或不存在。");
@@ -385,6 +385,7 @@ public class HomePageController {
 				workmap.put("price", work.getPrice());
 				workmap.put("downloadNum", work.getDownloadNum());
 				workmap.put("collectNum", work.getCollectNum()); 
+				workmap.put("browseNum", work.getBrowseNum()); 
 				workmap.put("yijifenlei", work.getYijifenlei());
 				if (work.getGeshi() != null && work.getGeshi().size() > 0) {
 					workmap.put("pattern", work.getGeshi().get(0)); 

@@ -23,7 +23,7 @@ import com.youmeiwang.service.OrderService;
 import com.youmeiwang.service.PurchaseService;
 import com.youmeiwang.service.UserService;
 import com.youmeiwang.service.WeChatPayService;
-import com.youmeiwang.sessionmanage.CmdService;
+import com.youmeiwang.sessionmanage.SessionService;
 import com.youmeiwang.util.ListUtil;
 import com.youmeiwang.vo.CommonVO;
 
@@ -48,7 +48,7 @@ public class WechatPayController {
 	private NewsService newsService;
 	
 	@Autowired
-	private CmdService cmdService;
+	private SessionService cmdService;
 	
 	@PostMapping("/createorder")
 	public CommonVO createOrder(@RequestParam(name="workID", required=false) String workID,
@@ -56,7 +56,7 @@ public class WechatPayController {
 			@RequestParam(name="userToken", required=true) String sessionId,
 			HttpServletRequest request) {
 		
-		String userID = cmdService.getUserIdBySessionId(sessionId);
+		String userID = cmdService.getIDBySessionId(sessionId);
 		User user = userService.queryUser("userID", userID);
 		if (userID == null || user == null) {
 			return new CommonVO(false, "用户尚未登录或不存在。", "{}"); 

@@ -23,7 +23,7 @@ import com.youmeiwang.service.FileService;
 import com.youmeiwang.service.UserService;
 import com.youmeiwang.service.VerifyService;
 import com.youmeiwang.service.WorkService;
-import com.youmeiwang.sessionmanage.CmdService;
+import com.youmeiwang.sessionmanage.SessionService;
 import com.youmeiwang.util.ListUtil;
 import com.youmeiwang.vo.CommonVO;
 import com.youmeiwang.vo.SimpleVO;
@@ -49,7 +49,7 @@ public class WorkController {
 	private ConfigService configService;
 	
 	@Autowired
-	private CmdService cmdService;
+	private SessionService cmdService;
 	
 	@PostMapping("/addverifyingwork") 
 	public CommonVO addVerifyingWork(@RequestParam(name="workName", required=true) String workName,
@@ -62,11 +62,12 @@ public class WorkController {
 			@RequestParam(name="hasCartoon", required=true) boolean hasCartoon,
 			@RequestParam(name="price", required=true) Integer price,
 			@RequestParam(name="labels", required=true) String[] labels,
+			@RequestParam(name="remarks", required=true) String remarks,
 			@RequestParam(name="pictures", required=true) String[] pictures,
 			@RequestParam(name="files", required=true) String[] files,
 			@RequestParam(name="userToken", required=true) String sessionId) {
 		
-		String userID = cmdService.getUserIdBySessionId(sessionId);
+		String userID = cmdService.getIDBySessionId(sessionId);
 		User user = userService.queryUser("userID", userID);
 		if (userID == null || user == null) {
 			return new CommonVO(false, "用户尚未登录或不存在。", "请先登录再操作"); 
@@ -75,7 +76,7 @@ public class WorkController {
 		try {
 			Work work = workService.addWork(workName, userID, primaryClassification, 
 					secondaryClassification, reclassify, pattern, hasTextureMapping, 
-					isBinding, hasCartoon, price, labels, pictures, files);
+					isBinding, hasCartoon, price, labels, remarks, pictures, files);
 			String workID = work.getWorkID();
 			verifyService.addVerifyingWork(userID, workID);
 			
@@ -95,7 +96,7 @@ public class WorkController {
 	public SimpleVO removeWork(@RequestParam(name="workID", required=true) String workID, 
 			@RequestParam(name="userToken", required=true) String sessionId) {
 		
-		String userID = cmdService.getUserIdBySessionId(sessionId);
+		String userID = cmdService.getIDBySessionId(sessionId);
 		User user = userService.queryUser("userID", userID);
 		if (userID == null || user == null) {
 			return new SimpleVO(false, "用户尚未登录或不存在。"); 
@@ -135,7 +136,7 @@ public class WorkController {
 	public CommonVO workDetail(@RequestParam(name="workID", required=true) String workID, 
 			@RequestParam(name="userToken", required=false) String sessionId) {
 		
-		String userID = cmdService.getUserIdBySessionId(sessionId);
+		String userID = cmdService.getIDBySessionId(sessionId);
 		User user1 = userService.queryUser("userID", userID);
 		
 		try {
@@ -143,22 +144,31 @@ public class WorkController {
 			if (work == null || work.getIsDelete() == true) {
 				return new CommonVO(false, "不存在此ID的作品或者该作品已被作者删除", "{}");
 			}
+			long browseNum = work.getBrowseNum() + 1;
+			workService.setWork("workID", workID, "browseNum", browseNum);
 			
 			User user2 = userService.queryUser("userID", work.getAuthor());
 			String nickname = "";
+			String portrait = "";
 			if (user2 == null) {
 				nickname = "游模网_游客";
+				portrait = "";
 			} else {
-				nickname = user2.getNickname() == null ? "游模网_游客" : user2.getNickname();
+				nickname = user2.getNickname();
+				portrait = user2.getPortrait();
 			}
 			
 			Map<String, Object> data = new HashMap<String, Object>();
 			data.put("workID", workID);
 			data.put("workName", work.getWorkName());
 			data.put("author", nickname);
-			data.put("primaryClassification", work.getYijifenlei());
-			data.put("secondaryClassification", work.getErjifenlei());
-			data.put("reclassify", work.getSanjifenlei());
+			data.put("portrait", portrait);
+			data.put("primaryClassification", work.getPrimaryClassification());
+			data.put("yijifenlei", work.getYijifenlei());
+			data.put("secondaryClassification", work.getSecondaryClassification());
+			data.put("erjifenlei", work.getErjifenlei());
+			data.put("reclassify", work.getReclassify());
+			data.put("sanjifenlei", work.getSanjifenlei());
 			data.put("pattern", work.getGeshi());
 			data.put("hasTextureMapping", work.isHasTextureMapping());
 			data.put("isBinding", work.isBinding());
@@ -184,7 +194,7 @@ public class WorkController {
 				filelist.add(filemap);
 			}
 			data.put("files", filelist);
-			data.put("browseNum", work.getBrowseNum());
+			data.put("browseNum", browseNum);
 			data.put("collectNum", work.getCollectNum());
 			data.put("downloadNum", work.getDownloadNum());
 			data.put("uploadTime", new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date(work.getUploadTime())));
@@ -234,7 +244,7 @@ public class WorkController {
 			@RequestParam(name="size", required=true) Integer size,
 			@RequestParam(name="userToken", required=true) String sessionId) {
 		
-		String userID = cmdService.getUserIdBySessionId(sessionId);
+		String userID = cmdService.getIDBySessionId(sessionId);
 		User user = userService.queryUser("userID", userID);
 		if (userID == null || user == null) {
 			return new CommonVO(false, "用户尚未登录。", "{}"); 
@@ -295,6 +305,7 @@ public class WorkController {
 				workmap.put("uploadTime", new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date(work.getUploadTime())));
 				workmap.put("downloadNum", work.getDownloadNum());
 				workmap.put("collectNum", work.getCollectNum());
+				workmap.put("browseNum", work.getBrowseNum());
 				workmap.put("workType", workType);
 				if (work.getGeshi() != null && work.getGeshi().size() > 0) {
 					workmap.put("pattern", work.getGeshi().get(0)); 
@@ -357,6 +368,7 @@ public class WorkController {
 				workmap.put("picture", picture);
 				workmap.put("downloadNum", work.getDownloadNum());
 				workmap.put("collectNum", work.getCollectNum());
+				workmap.put("browseNum", work.getBrowseNum());
 				if (work.getGeshi() != null && work.getGeshi().size() > 0) {
 					workmap.put("pattern", work.getGeshi().get(0)); 
 				} else {
@@ -398,6 +410,7 @@ public class WorkController {
 				workmap.put("price", work.getPrice());
 				workmap.put("downloadNum", work.getDownloadNum());
 				workmap.put("collectNum", work.getCollectNum()); 
+				workmap.put("browseNum", work.getBrowseNum()); 
 				if (work.getGeshi() != null && work.getGeshi().size() > 0) {
 					workmap.put("pattern", work.getGeshi().get(0)); 
 				} else {
@@ -422,7 +435,7 @@ public class WorkController {
 			@RequestParam(name="collectOrCancel", required=true) Boolean collectOrCancel,
 			@RequestParam(name="userToken", required=true) String sessionId) {
 		
-		String userID = cmdService.getUserIdBySessionId(sessionId);
+		String userID = cmdService.getIDBySessionId(sessionId);
 		User user1 = userService.queryUser("userID", userID);
 		if (userID == null || user1 == null) {
 			return new SimpleVO(false, "用户尚未登录。"); 

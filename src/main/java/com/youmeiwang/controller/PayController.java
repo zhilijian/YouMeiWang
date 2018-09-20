@@ -24,7 +24,7 @@ import com.youmeiwang.service.PurchaseService;
 import com.youmeiwang.service.TransactionService;
 import com.youmeiwang.service.UserService;
 import com.youmeiwang.service.WorkService;
-import com.youmeiwang.sessionmanage.CmdService;
+import com.youmeiwang.sessionmanage.SessionService;
 import com.youmeiwang.util.ListUtil;
 import com.youmeiwang.vo.SimpleVO;
 
@@ -58,13 +58,13 @@ public class PayController {
 	private ConfigService configService;
 	
 	@Autowired
-	private CmdService cmdService;
+	private SessionService cmdService;
 	
 	@GetMapping("/purchasework")
 	public SimpleVO purchaseWork(@RequestParam(name="workID", required=true) String workID, 
 			@RequestParam(name="userToken", required=true) String sessionId ) {
 		
-		String userID = cmdService.getUserIdBySessionId(sessionId);
+		String userID = cmdService.getIDBySessionId(sessionId);
 		User user1 = userService.queryUser("userID", userID);
 		if (userID == null || user1 == null) {
 			return new SimpleVO(false, "用户尚未登录。"); 
@@ -153,7 +153,7 @@ public class PayController {
 			@RequestParam(name="taocanType", required=true) Integer taocanType,
 			@RequestParam(name="userToken", required=true) String sessionId) {
 		
-		String userID = cmdService.getUserIdBySessionId(sessionId);
+		String userID = cmdService.getIDBySessionId(sessionId);
 		User user = userService.queryUser("userID", userID);
 		if (userID == null || user == null) {
 			return new SimpleVO(false, "用户尚未登录或用户不存在");
@@ -261,7 +261,7 @@ public class PayController {
 	public SimpleVO exchange(@RequestParam(name="money", required=true) Integer money,
 			@RequestParam(name="userToken", required=true) String sessionId) {
 		
-		String userID = cmdService.getUserIdBySessionId(sessionId);
+		String userID = cmdService.getIDBySessionId(sessionId);
 		User user = userService.queryUser("userID", userID);
 		if (userID == null || user == null) {
 			return new SimpleVO(false, "用户尚未登录或用户不存在。");

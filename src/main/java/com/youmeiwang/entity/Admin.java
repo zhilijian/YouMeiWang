@@ -3,7 +3,7 @@ package com.youmeiwang.entity;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document(collection = "youmei_admin")
+@Document(collection = "meikuu_3dyoo_admin")
 public class Admin {
 	
 	//管理员ID

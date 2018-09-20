@@ -3,7 +3,7 @@ package com.youmeiwang.entity;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document(collection = "youmei_order")
+@Document(collection = "meikuu_3dyoo_order")
 public class Order {
 
 	//商户订单号 outTradeNo

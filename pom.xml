@@ -3,13 +3,13 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>com.youmeiwang</groupId>
-	<artifactId>YouMeiWang</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<groupId>com.meikuu</groupId>
+	<artifactId>3dyoo</artifactId>
+	<version>1.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
-	<name>YouMeiWang</name>
-	<description>Demo project for Spring Boot</description>
+	<name>meikuu_3dyoo_java</name>
+	<description>project for meikuu_3dyoo</description>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
@@ -159,6 +159,13 @@
 		    <artifactId>commons-io</artifactId>
 		    <version>2.6</version>
 		</dependency>
+		
+		<dependency>
+		    <groupId>org.springframework</groupId>
+		    <artifactId>spring-context</artifactId>
+		    <version>4.3.18.RELEASE</version><!--$NO-MVN-MAN-VER$-->
+		</dependency>
+		
 	</dependencies>
 
 	<build>

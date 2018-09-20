@@ -20,7 +20,7 @@ import com.youmeiwang.service.AdminService;
 import com.youmeiwang.service.BBSService;
 import com.youmeiwang.service.NewsService;
 import com.youmeiwang.service.UserService;
-import com.youmeiwang.sessionmanage.CmdService;
+import com.youmeiwang.sessionmanage.SessionService;
 import com.youmeiwang.util.ContainUtil;
 import com.youmeiwang.vo.CommonVO;
 import com.youmeiwang.vo.SimpleVO;
@@ -43,7 +43,7 @@ public class BBSController {
 	private NewsService newsService;
 	
 	@Autowired
-	private CmdService cmdService;
+	private SessionService cmdService;
 	
 	@PostMapping("/addbbs")
 	public CommonVO addBBS(@RequestParam(name="workID", required=false) String workID,
@@ -51,7 +51,7 @@ public class BBSController {
 			@RequestParam(name="comment", required=true) String comment,
 			@RequestParam(name="userToken", required=true) String sessionId) {
 		
-		String userID = cmdService.getUserIdBySessionId(sessionId);
+		String userID = cmdService.getIDBySessionId(sessionId);
 		User user = userService.queryUser("userID", userID);
 		if (userID == null || user == null) {
 			return new CommonVO(false, "用户尚未登录。", "{}"); 
@@ -88,7 +88,7 @@ public class BBSController {
 	public SimpleVO removeBBS(@RequestParam(name="bbsID", required=true) String bbsID, 
 			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = cmdService.getUserIdBySessionId(sessionId);
+		String adminID = cmdService.getIDBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new SimpleVO(false, "用户尚未登录或不存在。");
@@ -112,7 +112,7 @@ public class BBSController {
 	public SimpleVO batchRemoveBBS(@RequestParam(name="bbsIDs", required=true) String[] bbsIDs, 
 			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = cmdService.getUserIdBySessionId(sessionId);
+		String adminID = cmdService.getIDBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new SimpleVO(false, "用户尚未登录或不存在。");
@@ -138,7 +138,7 @@ public class BBSController {
 	public CommonVO BBSdetail(@RequestParam(name="bbsID", required=true) String bbsID, 
 			@RequestParam(name="userToken", required=true) String sessionId) {
 		
-		String userID = cmdService.getUserIdBySessionId(sessionId);
+		String userID = cmdService.getIDBySessionId(sessionId);
 		User user = userService.queryUser("userID", userID);
 		if (userID == null || user == null) {
 			return new CommonVO(false, "用户尚未登录。", "{}"); 
@@ -168,7 +168,7 @@ public class BBSController {
 			@RequestParam(name="size", required=true) Integer size,
 			@RequestParam(name="userToken", required=true) String sessionId) {
 		
-		String userID = cmdService.getUserIdBySessionId(sessionId);
+		String userID = cmdService.getIDBySessionId(sessionId);
 		User user = userService.queryUser("userID", userID);
 		if (userID == null || user == null) {
 			return new CommonVO(false, "用户尚未登录。", "{}"); 
@@ -221,7 +221,7 @@ public class BBSController {
 			@RequestParam(name="size", required=true) Integer size,
 			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = cmdService.getUserIdBySessionId(sessionId);
+		String adminID = cmdService.getIDBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new CommonVO(false, "用户尚未登录或不存在。", "{}");

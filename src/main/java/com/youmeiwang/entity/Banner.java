@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document(collection = "youmei_banner")
+@Document(collection = "meikuu_3dyoo_banner")
 public class Banner {
 
 	@Indexed

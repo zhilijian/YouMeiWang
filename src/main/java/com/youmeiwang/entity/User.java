@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document(collection = "youmei_user")
+@Document(collection = "meikuu_3dyoo_user")
 public class User {
 
 	//用户ID userID
@@ -72,8 +72,8 @@ public class User {
 	private String verifyMessage;
 	//佣金比例
 	private String commissionRate;
-	//
-	private boolean isDelete;
+	//禁止登录
+	private boolean isBanLogin;
 
 	public User() {
 	}
@@ -254,11 +254,11 @@ public class User {
 	public void setCommissionRate(String commissionRate) {
 		this.commissionRate = commissionRate;
 	}
-	public boolean isDelete() {
-		return isDelete;
+	public boolean isBanLogin() {
+		return isBanLogin;
 	}
-	public void setDelete(boolean isDelete) {
-		this.isDelete = isDelete;
+	public void setBanLogin(boolean isBanLogin) {
+		this.isBanLogin = isBanLogin;
 	}
 
 	@Override

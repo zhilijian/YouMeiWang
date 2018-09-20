@@ -9,7 +9,6 @@ import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -30,7 +29,7 @@ import com.youmeiwang.service.NewsService;
 import com.youmeiwang.service.OrderService;
 import com.youmeiwang.service.PurchaseService;
 import com.youmeiwang.service.UserService;
-import com.youmeiwang.sessionmanage.CmdService;
+import com.youmeiwang.sessionmanage.SessionService;
 import com.youmeiwang.util.ListUtil;
 import com.youmeiwang.vo.CommonVO;
 import com.youmeiwang.vo.SimpleVO;
@@ -59,7 +58,7 @@ public class AliPayController {
 	private NewsService newsService;
 	
 	@Autowired
-	private CmdService cmdService;
+	private SessionService cmdService;
 	
 	@PostMapping("/createorder")
 	public SimpleVO createOrder(@RequestParam(name="workID", required=false) String workID, 
@@ -67,7 +66,7 @@ public class AliPayController {
 			@RequestParam(name="userToken", required=true) String sessionId,
 			HttpServletResponse httpResponse) {
 		
-		String userID = cmdService.getUserIdBySessionId(sessionId);
+		String userID = cmdService.getIDBySessionId(sessionId);
 		User user = userService.queryUser("userID", userID);
 		if (userID == null || user == null) {
 			return new SimpleVO(false, "用户尚未登录或用户不存在");
@@ -156,33 +155,11 @@ public class AliPayController {
 		}
 	}
 	
-	@GetMapping("/alipayreturn")
-	public String alipayReturn(HttpServletRequest request) {
-		Map<String, String> responseMap = alipayService.receiveOrder(request);
-		if (responseMap == null) { 
-			return "fail";
-		}
-
-		try {
-			String outTradeNo = responseMap.get("out_trade_no");
-			Order order = orderService.queryOrder("outTradeNo", outTradeNo);
-			String workID = order.getProductID();
-			if (workID != null) {
-				return "redirect:http://www.linshaocong.cn:8019/#/Details?workID=" + workID;
-			} else {
-				return "redirect:http://www.linshaocong.cn:8019/#/PersonalInformation";
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-			return "fail"; 
-		}
-	}
-	
 	@PostMapping("/closeorder")
 	public CommonVO closeOrder(@RequestParam(name="out_trade_no", required=true) String out_trade_no, 
 			@RequestParam(name="userToken", required=true) String sessionId) {
 		
-		String userID = cmdService.getUserIdBySessionId(sessionId);
+		String userID = cmdService.getIDBySessionId(sessionId);
 		User user = userService.queryUser("userID", userID);
 		if (userID == null || user == null) {
 			return new CommonVO(false, "用户尚未登录或用户不存在", "{}");

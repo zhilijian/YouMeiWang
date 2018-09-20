@@ -29,7 +29,7 @@ import com.youmeiwang.service.OrderService;
 import com.youmeiwang.service.PurchaseService;
 import com.youmeiwang.service.TransactionService;
 import com.youmeiwang.service.UserService;
-import com.youmeiwang.sessionmanage.CmdService;
+import com.youmeiwang.sessionmanage.SessionService;
 import com.youmeiwang.util.ContainUtil;
 import com.youmeiwang.util.ListUtil;
 import com.youmeiwang.vo.CommonVO;
@@ -64,7 +64,7 @@ public class PayManageController {
 	private NewsService newsService;
 	
 	@Autowired
-	private CmdService cmdService;
+	private SessionService cmdService;
 	
 	@PostMapping("/orderrecord")
 	public CommonVO orderRecord(@RequestParam(name="condition", required=false) String condition,
@@ -76,7 +76,7 @@ public class PayManageController {
 			@RequestParam(name="size", required=true) Integer size,
 			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = cmdService.getUserIdBySessionId(sessionId);
+		String adminID = cmdService.getIDBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new CommonVO(false, "用户尚未登录或不存在。", "{}");
@@ -134,7 +134,7 @@ public class PayManageController {
 	public CommonVO supplement(@RequestParam(name="outTradeNo", required=true) String outTradeNo, 
 			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = cmdService.getUserIdBySessionId(sessionId);
+		String adminID = cmdService.getIDBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new CommonVO(false, "用户尚未登录或不存在。", "{}");
@@ -194,7 +194,7 @@ public class PayManageController {
 			@RequestParam(name="size", required=true) Integer size,
 			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = cmdService.getUserIdBySessionId(sessionId);
+		String adminID = cmdService.getIDBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new CommonVO(false, "用户尚未登录或不存在。", "{}");
@@ -256,7 +256,7 @@ public class PayManageController {
 			@RequestParam(name="size", required=true) Integer size,
 			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = cmdService.getUserIdBySessionId(sessionId);
+		String adminID = cmdService.getIDBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new CommonVO(false, "用户尚未登录或不存在。", "{}");
@@ -319,7 +319,7 @@ public class PayManageController {
 			@RequestParam(name="size", required=true) Integer size,
 			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = cmdService.getUserIdBySessionId(sessionId);
+		String adminID = cmdService.getIDBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new CommonVO(false, "用户尚未登录或不存在。", "{}");
@@ -381,7 +381,7 @@ public class PayManageController {
 			@RequestParam(name="size", required=true) Integer size,
 			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = cmdService.getUserIdBySessionId(sessionId);
+		String adminID = cmdService.getIDBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new CommonVO(false, "用户尚未登录或不存在。", "{}");

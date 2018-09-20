@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.youmeiwang.entity.Admin;
 import com.youmeiwang.service.AdminService;
-import com.youmeiwang.sessionmanage.CmdService;
+import com.youmeiwang.sessionmanage.SessionService;
 import com.youmeiwang.util.ContainUtil;
 import com.youmeiwang.vo.CommonVO;
 import com.youmeiwang.vo.SimpleVO;
@@ -29,7 +29,7 @@ public class AdminController {
 	private AdminService adminService;
 	
 	@Autowired
-	private CmdService cmdService;
+	private SessionService cmdService;
 	 
 	@PostMapping("/login")
 	public CommonVO login(@RequestParam(name="adminname", required=true) String adminname, 
@@ -64,7 +64,7 @@ public class AdminController {
 	public SimpleVO logout(@RequestParam(name="adminToken", required=true) String sessionId) {
 		
 		try {
-			String adminID = cmdService.getUserIdBySessionId(sessionId);
+			String adminID = cmdService.getIDBySessionId(sessionId);
 			if (adminID == null) {
 				return new SimpleVO(false, "管理员尚未登录");
 			}
@@ -87,7 +87,7 @@ public class AdminController {
 			@RequestParam(name="roleAuthority", required=false) Integer[] roleAuthority,
 			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = cmdService.getUserIdBySessionId(sessionId);
+		String adminID = cmdService.getIDBySessionId(sessionId);
 		Admin admin1 = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin1 == null) {
 			return new SimpleVO(false, "用户尚未登录或不存在。");
@@ -113,7 +113,7 @@ public class AdminController {
 			@RequestParam(name="password2", required=true) String password2,
 			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = cmdService.getUserIdBySessionId(sessionId);
+		String adminID = cmdService.getIDBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
 			return new SimpleVO(false, "用户尚未登录或不存在。");
@@ -143,7 +143,7 @@ public class AdminController {
 			@RequestParam(name="roleAuthority", required=true) Integer[] roleAuthority,
 			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID1 = cmdService.getUserIdBySessionId(sessionId);
+		String adminID1 = cmdService.getIDBySessionId(sessionId);
 		Admin admin1 = adminService.queryAdmin("adminID", adminID1);
 		if (adminID1 == null || admin1 == null) {
 			return new SimpleVO(false, "用户尚未登录或不存在。");
@@ -196,7 +196,7 @@ public class AdminController {
 	public SimpleVO removeAdmin(@RequestParam(name="adminID", required=true) String adminID2, 
 			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID1 = cmdService.getUserIdBySessionId(sessionId);
+		String adminID1 = cmdService.getIDBySessionId(sessionId);
 		Admin admin1 = adminService.queryAdmin("adminID", adminID1);
 		if (adminID1 == null || admin1 == null) {
 			return new SimpleVO(false, "用户尚未登录或不存在。");
@@ -220,13 +220,42 @@ public class AdminController {
 		}
 	}
 	
+	@GetMapping("/batchremove")
+	public SimpleVO BatchRemoveAdmin(@RequestParam(name="adminIDs", required=true) String[] adminIDs, 
+			@RequestParam(name="adminToken", required=true) String sessionId) {
+		
+		String adminID1 = cmdService.getIDBySessionId(sessionId);
+		Admin admin = adminService.queryAdmin("adminID", adminID1);
+		if (adminID1 == null || admin == null) {
+			return new SimpleVO(false, "用户尚未登录或不存在。");
+		}
+		
+		boolean flag = ContainUtil.hasNumber(admin.getRoleAuthority(), 0);
+		if (!flag) {
+			return new SimpleVO(false, "该用户无此权限。");
+		}
+		
+		try {
+			for (String adminID2 : adminIDs) {
+				if (adminID2.equals("8888")) {
+					continue;
+				}
+				adminService.removeAdmin("adminID", adminID2);
+			}
+			return new SimpleVO(true, "批量删除成功！");
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new SimpleVO(false, "出错信息：" + e.toString());
+		}
+	}
+	
 	@GetMapping("/adminlist")
 	public CommonVO adminlist(@RequestParam(name="position", required=false) String position,
 			@RequestParam(name="page", required=true) Integer page,
 			@RequestParam(name="size", required=true) Integer size,
 			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
-		String adminID = cmdService.getUserIdBySessionId(sessionId);
+		String adminID = cmdService.getIDBySessionId(sessionId);
 		Admin admin1 = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin1 == null) {
 			return new CommonVO(false, "用户尚未登录或不存在。","{}");
@@ -279,35 +308,6 @@ public class AdminController {
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new CommonVO(false,"返回所有管理员失败。", "出错信息：" + e.toString());
-		}
-	}
-	
-	@GetMapping("/batchremove")
-	public SimpleVO BatchRemoveAdmin(@RequestParam(name="adminIDs", required=true) String[] adminIDs, 
-			@RequestParam(name="adminToken", required=true) String sessionId) {
-		
-		String adminID1 = cmdService.getUserIdBySessionId(sessionId);
-		Admin admin = adminService.queryAdmin("adminID", adminID1);
-		if (adminID1 == null || admin == null) {
-			return new SimpleVO(false, "用户尚未登录或不存在。");
-		}
-		
-		boolean flag = ContainUtil.hasNumber(admin.getRoleAuthority(), 0);
-		if (!flag) {
-			return new SimpleVO(false, "该用户无此权限。");
-		}
-		
-		try {
-			for (String adminID2 : adminIDs) {
-				if (adminID2.equals("8888")) {
-					continue;
-				}
-				adminService.removeAdmin("adminID", adminID2);
-			}
-			return new SimpleVO(true, "批量删除成功！");
-		} catch (Exception e) {
-			e.printStackTrace();
-			return new SimpleVO(false, "出错信息：" + e.toString());
 		}
 	}
 }

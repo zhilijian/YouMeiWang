@@ -31,7 +31,7 @@ public class WorkService {
 	
 	public Work addWork(String workName, String userID, String primaryClassification, 
 			String secondaryClassification, String reclassify, String pattern, boolean hasTextureMapping, 
-			boolean isBinding, boolean hasCartoon, Integer price, String[] labels,  
+			boolean isBinding, boolean hasCartoon, Integer price, String[] labels, String remarks, 
 			String[] pictures, String[] files) {
 		
 		Work work = new Work();
@@ -69,6 +69,7 @@ public class WorkService {
 		work.setHasCartoon(hasCartoon);
 		work.setPrice(price);
 		work.setLabels(Arrays.asList(labels));
+		work.setRemarks(remarks);
 		work.setVerifyState(0);
 		List<String> picturelist = Arrays.asList(pictures);
 		work.setPictures(picturelist);

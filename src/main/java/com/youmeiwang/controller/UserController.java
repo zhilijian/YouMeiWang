@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.youmeiwang.entity.User;
 import com.youmeiwang.service.NewsService;
 import com.youmeiwang.service.UserService;
-import com.youmeiwang.sessionmanage.CmdService;
+import com.youmeiwang.sessionmanage.SessionService;
 import com.youmeiwang.util.VerifyUtil;
 import com.youmeiwang.vo.CommonVO;
 import com.youmeiwang.vo.SimpleVO;
@@ -35,7 +35,7 @@ public class UserController {
 	private NewsService newsService;
 	
 	@Autowired
-	private CmdService cmdService;
+	private SessionService cmdService;
 	
 	@PostMapping("/loginorregister")
 	public CommonVO loginOrRegister(@RequestParam(name="username", required=true) String username,
@@ -53,6 +53,9 @@ public class UserController {
 				user = userService.queryUser("username", username);
 				if (user == null) {
 					return new CommonVO(false, "不存在此账号的用户。", "{}");
+				}
+				if (user.isBanLogin()) {
+					return new CommonVO(false, "该用户已被禁止登录。", "{}");
 				}
 				
 			} else {
@@ -107,7 +110,7 @@ public class UserController {
 	public SimpleVO logout(@RequestParam(name="userToken", required=true) String sessionId) {
 		
 		try {
-			String userID = cmdService.getUserIdBySessionId(sessionId);
+			String userID = cmdService.getIDBySessionId(sessionId);
 			if (userID == null) {
 				return new SimpleVO(false, "用户尚未登录。");
 			}
@@ -131,7 +134,7 @@ public class UserController {
 			@RequestParam(name="alipay", required=false) String alipay,
 			@RequestParam(name="userToken", required=true) String sessionId) {
 		
-		String userID = cmdService.getUserIdBySessionId(sessionId);
+		String userID = cmdService.getIDBySessionId(sessionId);
 		User user1 = userService.queryUser("userID", userID);
 		if (userID == null || user1 == null) {
 			return new CommonVO(false, "用户尚未登录。", "{}");

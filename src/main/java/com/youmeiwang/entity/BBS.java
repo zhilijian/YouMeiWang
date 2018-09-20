@@ -3,7 +3,7 @@ package com.youmeiwang.entity;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document(collection = "youmei_bbs")
+@Document(collection = "meikuu_3dyoo_bbs")
 public class BBS {
 
 	//bbs编号 bbsID

@@ -411,8 +411,11 @@ public class WorkMongodb implements WorkDao{
 			query.addCriteria(Criteria.where("primaryClassification").is(primaryClassification));
 		}
 		if (verifyState) {
+			query.addCriteria(Criteria.where("verifyState").is(0));
+		} else {
 			query.addCriteria(Criteria.where("verifyState").is(1));
 		}
+		query.with(new Sort(new Order(Sort.Direction.DESC, "uploadTime")));
 		return mongoTemplate.find(query, Work.class);
 	}
 

@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document(collection="youmei_work")
+@Document(collection="meikuu_3dyoo_work")
 public class Work {
 
 	//workID 用户ID

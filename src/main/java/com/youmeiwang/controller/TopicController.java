@@ -21,7 +21,7 @@ import com.youmeiwang.service.FileService;
 import com.youmeiwang.service.TopicService;
 import com.youmeiwang.service.UserService;
 import com.youmeiwang.service.WorkService;
-import com.youmeiwang.sessionmanage.CmdService;
+import com.youmeiwang.sessionmanage.SessionService;
 import com.youmeiwang.util.ListUtil;
 import com.youmeiwang.vo.CommonVO;
 import com.youmeiwang.vo.SimpleVO;
@@ -44,19 +44,16 @@ public class TopicController {
 	private FileService fileService;
 	
 	@Autowired
-	private CmdService cmdService;
+	private SessionService cmdService;
 	
 	@GetMapping("/topicdetail")
 	public CommonVO topicDetail(@RequestParam(name="topicID", required=true) String topicID,
 			@RequestParam(name="page", required=true) Integer page,
 			@RequestParam(name="size", required=true) Integer size,
-			@RequestParam(name="userToken", required=true) String sessionId) {
+			@RequestParam(name="userToken", required=false) String sessionId) {
 		
-		String userID = cmdService.getUserIdBySessionId(sessionId);
+		String userID = cmdService.getIDBySessionId(sessionId);
 		User user = userService.queryUser("userID", userID);
-		if (userID == null || user == null) {
-			return new CommonVO(false, "用户尚未登录。", "{}"); 
-		}
 		
 		try {
 			Topic topic = topicService.queryTopic("topicID", topicID);
@@ -94,6 +91,7 @@ public class TopicController {
 				workmap.put("picture", picturePath);
 				workmap.put("collectNum", work.getCollectNum());
 				workmap.put("downloadNum", work.getDownloadNum());
+				workmap.put("browseNum", work.getBrowseNum());
 				if (work.getGeshi() != null && work.getGeshi().size() > 0) {
 					workmap.put("pattern", work.getGeshi().get(0)); 
 				} else {
@@ -133,12 +131,12 @@ public class TopicController {
 	}
 	
 	@GetMapping("/topiclist")
-	public CommonVO topicList(@RequestParam(name="isRecommend", required=true) boolean isRecommend,
+	public CommonVO topicList(@RequestParam(name="topicType", required=true) Integer topicType,
 			@RequestParam(name="page", required=false, defaultValue="1") Integer page,
 			@RequestParam(name="size", required=false, defaultValue="4") Integer size,
 			@RequestParam(name="userToken", required=false) String sessionId) {
 		
-		String userID = cmdService.getUserIdBySessionId(sessionId);
+		String userID = cmdService.getIDBySessionId(sessionId);
 		User user = userService.queryUser("userID", userID);
 		
 		if (page <= 0 || size <= 0) {
@@ -148,9 +146,14 @@ public class TopicController {
 			List<Topic> topiclist1 = new ArrayList<Topic>();
 			List<Topic> topiclist2 = new ArrayList<Topic>();
 			
-			if (isRecommend) {
-				topiclist1 = topicService.topiclist(isRecommend);
-			} else {
+			switch (topicType) {
+			case 1:
+				topiclist1 = topicService.topiclist(true);
+				break;
+			case 2:
+				topiclist1 = topicService.topiclist();
+				break;
+			case 3:
 				if (userID == null || user == null) {
 					return new CommonVO(false, "用户尚未登录。", "{}"); 
 				}
@@ -170,8 +173,9 @@ public class TopicController {
 					return new CommonVO(false, "该用户无收藏专题", "{}");
 				}
 				userService.setUser("userID", userID, "collectTopic", collectTopic2);
+				break;
 			}
-			
+
 			int currIdx = (page > 1 ? (page-1)*size : 0);
 			for (int i = 0; i < size && i < topiclist1.size()-currIdx; i++) {
 				Topic topic = topiclist1.get(currIdx + i);
@@ -222,7 +226,7 @@ public class TopicController {
 			}
 			Map<String, Object> data = new HashMap<String, Object>();
 			data.put("topiclist", maplist);
-			if (!isRecommend) {
+			if (topicType == 1) {
 				data.put("topicAmount", topicAmount);
 				data.put("pageAmount", pageAmount);
 			}
@@ -238,7 +242,7 @@ public class TopicController {
 			@RequestParam(name="isCollect", required=true) Boolean isCollect,
 			@RequestParam(name="userToken", required=true) String sessionId) {
 		
-		String userID = cmdService.getUserIdBySessionId(sessionId);
+		String userID = cmdService.getIDBySessionId(sessionId);
 		User user = userService.queryUser("userID", userID);
 		if (userID == null || user == null) {
 			return new SimpleVO(false, "用户尚未登录。"); 
