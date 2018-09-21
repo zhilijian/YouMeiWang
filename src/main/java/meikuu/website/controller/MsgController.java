@@ -1,4 +1,4 @@
-package meikuu.web.controller;
+package meikuu.website.controller;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -18,7 +18,7 @@ import com.aliyuncs.exceptions.ClientException;
 import meikuu.domain.util.AliyunMessageUtil;
 import meikuu.domain.util.RandomUtil;
 import meikuu.domain.util.WangyiyunMessageUtil;
-import meikuu.web.vo.CommonVO;
+import meikuu.website.vo.CommonVO;
 
 @CrossOrigin
 @RestController

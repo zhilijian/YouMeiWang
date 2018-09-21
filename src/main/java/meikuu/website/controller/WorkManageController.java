@@ -1,4 +1,4 @@
-package meikuu.web.controller;
+package meikuu.website.controller;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -26,8 +26,8 @@ import meikuu.repertory.service.SessionService;
 import meikuu.repertory.service.UserService;
 import meikuu.repertory.service.VerifyService;
 import meikuu.repertory.service.WorkService;
-import meikuu.web.vo.CommonVO;
-import meikuu.web.vo.SimpleVO;
+import meikuu.website.vo.CommonVO;
+import meikuu.website.vo.SimpleVO;
 
 @CrossOrigin
 @RestController

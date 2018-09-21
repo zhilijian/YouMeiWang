@@ -1,4 +1,4 @@
-package meikuu.web.controller;
+package meikuu.website.controller;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -26,8 +26,8 @@ import meikuu.repertory.service.FileService;
 import meikuu.repertory.service.SessionService;
 import meikuu.repertory.service.UserService;
 import meikuu.repertory.service.WorkService;
-import meikuu.web.vo.CommonVO;
-import meikuu.web.vo.SimpleVO;
+import meikuu.website.vo.CommonVO;
+import meikuu.website.vo.SimpleVO;
 
 @CrossOrigin
 @RestController
@@ -64,7 +64,7 @@ public class FileController {
         	
         	Map<String, Object> configmap = FileUtil.upload(ID, file, uploadPath);
         	String fileName = (String) configmap.get("fileName");
-			String filePath = downloadPath + String.valueOf(configmap.get("filePath")).substring(3).replace("\\", "/");
+			String filePath = downloadPath + String.valueOf(configmap.get("filePath")).substring(41);
 			Long fileSize = (Long) configmap.get("fileSize");
 			String pattern = (String) configmap.get("pattern");
 			FileInfo fileInfo = fileService.addFile(ID, fileName, filePath, fileSize, pattern);
@@ -130,7 +130,7 @@ public class FileController {
 			FileInfo fileInfo = fileService.queryFile("fileID", fileID);
 			if (user != null) {
 				boolean isPurchase = user.getPurchaseWork().contains(workID);
-				boolean isAuthor = user.getUsername().equals(fileInfo.getAuthor());
+				boolean isAuthor = ID.equals(fileInfo.getAuthor());
 				if (!isPurchase && !isAuthor) {
 					return new SimpleVO(false, "该用户尚未购买此作品。");
 				}

@@ -1,5 +1,6 @@
-package meikuu.web.controller;
+package meikuu.website.controller;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
@@ -26,7 +27,7 @@ import meikuu.repertory.service.SessionService;
 import meikuu.repertory.service.TransactionService;
 import meikuu.repertory.service.UserService;
 import meikuu.repertory.service.WorkService;
-import meikuu.web.vo.SimpleVO;
+import meikuu.website.vo.SimpleVO;
 
 @CrossOrigin
 @RestController
@@ -163,6 +164,10 @@ public class PayController {
 			double fee = 0;
 			int monthNum = 0;
 			Calendar calendar = Calendar.getInstance();
+			List<Integer> vips = new ArrayList<Integer>();
+			Long initialTime = 0l;
+			Long vipTime = 0l;
+			
 			switch (vipKind) {
 			case 1:
 				switch (taocanType) {
@@ -183,17 +188,18 @@ public class PayController {
 					break;
 				}
 				
-				Long shareVIPTime = 0l;
-				if (user.getShareVIPTime() == null || user.getShareVIPTime() < System.currentTimeMillis()) {
-					shareVIPTime = System.currentTimeMillis();
+				initialTime = 0l;
+				vipTime = user.getShareVIPTime();
+				if (vipTime == null || vipTime < System.currentTimeMillis()) {
+					initialTime = System.currentTimeMillis();
 				} else {
-					shareVIPTime = user.getShareVIPTime();
+					initialTime = vipTime;
 				}
 				
-				calendar.setTime(new Date(shareVIPTime));
-				calendar.add(Calendar.MONDAY, monthNum);
+				calendar.setTime(new Date(initialTime));
+				calendar.add(Calendar.MONTH, monthNum);
 				userService.setUser("userID", userID, "shareVIPTime", calendar.getTimeInMillis());
-				List<Integer> vips = ListUtil.addElement(user.getVipKind(), 1);
+				vips = ListUtil.addElement(user.getVipKind(), 1);
 				vips = ListUtil.removeElement(vips, 0);
 				Collections.sort(vips);
 				userService.setUser("userID", userID, "vipKind", vips);
@@ -216,6 +222,22 @@ public class PayController {
 					purchaseService.addPurchase(userID, 1, null, "原创VIP包年套餐", (double)fee, (double)fee, null, null);
 					break;
 				}
+				
+				initialTime = 0l;
+				vipTime = user.getOriginalVIPTime();
+				if (vipTime == null || vipTime < System.currentTimeMillis()) {
+					initialTime = System.currentTimeMillis();
+				} else {
+					initialTime = vipTime;
+				}
+				
+				calendar.setTime(new Date(initialTime));
+				calendar.add(Calendar.MONTH, monthNum);
+				userService.setUser("userID", userID, "originalVIPTime", calendar.getTimeInMillis());
+				vips = ListUtil.addElement(user.getVipKind(), 1);
+				vips = ListUtil.removeElement(vips, 0);
+				Collections.sort(vips);
+				userService.setUser("userID", userID, "vipKind", vips);
 				break;
 			case 3:
 				switch (taocanType) {
@@ -235,6 +257,21 @@ public class PayController {
 					purchaseService.addPurchase(userID, 1, null, "企业VIP包年套餐", (double)fee, (double)fee, null, null);
 					break;
 				}
+				initialTime = 0l;
+				vipTime = user.getOriginalVIPTime();
+				if (vipTime == null || vipTime < System.currentTimeMillis()) {
+					initialTime = System.currentTimeMillis();
+				} else {
+					initialTime = vipTime;
+				}
+				
+				calendar.setTime(new Date(initialTime));
+				calendar.add(Calendar.MONTH, monthNum);
+				userService.setUser("userID", userID, "companyVIPTime", calendar.getTimeInMillis());
+				vips = ListUtil.addElement(user.getVipKind(), 3);
+				vips = ListUtil.removeElement(vips, 0);
+				Collections.sort(vips);
+				userService.setUser("userID", userID, "vipKind", vips);
 				break;
 			}
 			

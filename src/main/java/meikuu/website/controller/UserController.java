@@ -1,4 +1,4 @@
-package meikuu.web.controller;
+package meikuu.website.controller;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -20,8 +20,8 @@ import meikuu.domain.util.VerifyUtil;
 import meikuu.repertory.service.NewsService;
 import meikuu.repertory.service.SessionService;
 import meikuu.repertory.service.UserService;
-import meikuu.web.vo.CommonVO;
-import meikuu.web.vo.SimpleVO;
+import meikuu.website.vo.CommonVO;
+import meikuu.website.vo.SimpleVO;
 
 @CrossOrigin
 @RestController
@@ -55,7 +55,7 @@ public class UserController {
 					return new CommonVO(false, "不存在此账号的用户。", "{}");
 				}
 				if (user.isBanLogin()) {
-					return new CommonVO(false, "该用户已被禁止登录。", "{}");
+					return new CommonVO(false, "违规操作，禁止登录，详情请联系客服。", "{}");
 				}
 				
 			} else {
@@ -148,7 +148,7 @@ public class UserController {
 				}
 				user1.setUsername(username);
 			}
-			if (nickname != null && !"".equals(nickname.trim())) {
+			if (nickname != null) {
 				user1.setNickname(nickname);
 			}
 			if (portrait != null && !"".equals(portrait.trim())) {

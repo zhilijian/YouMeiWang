@@ -96,8 +96,7 @@ public class WorkService {
 	public void addCollectWork(String userID, String workID) {
 		User user = userDao.queryUser("userID", userID);
 		List<String> collectWork = ListUtil.addElement(user.getCollectWork(), workID);
-		user.setVerifyingWork(collectWork);
-		userDao.updateUser(user);
+		userDao.setUser("userID", userID, "collectWork", collectWork);
 	}
 	
 	public void removeWork(String condition, Object value) {
@@ -111,8 +110,7 @@ public class WorkService {
 	public void removeCollectWork(String userID, String workID) {
 		User user = userDao.queryUser("userID", userID);
 		List<String> collectWork = ListUtil.removeElement(user.getCollectWork(), workID);
-		user.setVerifyingWork(collectWork);
-		userDao.updateUser(user);
+		userDao.setUser("userID", userID, "collectWork", collectWork);
 	}
 
 	public void updateWork(Work work) {

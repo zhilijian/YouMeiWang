@@ -1,4 +1,4 @@
-package meikuu.web.controller;
+package meikuu.website.controller;
 
 import java.util.Map;
 import java.util.concurrent.ExecutionException;

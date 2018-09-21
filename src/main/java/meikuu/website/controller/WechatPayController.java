@@ -1,4 +1,4 @@
-package meikuu.web.controller;
+package meikuu.website.controller;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -25,7 +25,7 @@ import meikuu.repertory.service.PurchaseService;
 import meikuu.repertory.service.SessionService;
 import meikuu.repertory.service.UserService;
 import meikuu.repertory.service.WeChatPayService;
-import meikuu.web.vo.CommonVO;
+import meikuu.website.vo.CommonVO;
 
 @CrossOrigin
 @RestController

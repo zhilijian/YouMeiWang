@@ -53,48 +53,6 @@ public class UserMongodb implements UserDao {
 		if (user.getEmail() != null) {
 			update.set("email", user.getEmail());
 		}
-		if (user.getYoubiAmount() != null) {
-			update.set("youbiAmount", user.getYoubiAmount());
-		}
-		if (user.getBalance() != null) {
-			update.set("balance", user.getBalance());
-		}
-		if (user.getVipKind() != null) {
-			update.set("vipKind", user.getVipKind());
-		}
-		if (user.getMemberKind() != null) {
-			update.set("memberKind", user.getMemberKind());
-		}
-		if (user.getMemberKind() != null) {
-			update.set("memberKind", user.getMemberKind());
-		}
-		if (user.getVerifyingWork() != null) {
-			update.set("verifyingWork", user.getVerifyingWork());
-		}
-		if (user.getVerifiedWork() != null) {
-			update.set("verifiedWork", user.getVerifiedWork());
-		}
-		if (user.getNotPassWork() != null) {
-			update.set("notPassWork", user.getNotPassWork());
-		}
-		if (user.getCollectWork() != null) {
-			update.set("collectWork", user.getCollectWork());
-		}
-		if (user.getDownWork() != null) {
-			update.set("downWork", user.getDownWork());
-		}
-		if (user.getPurchaseWork() != null) {
-			update.set("purchaseWork", user.getPurchaseWork());
-		}
-		if (user.getApplyForOriginal() != null) {
-			update.set("applyForOriginal", user.getApplyForOriginal());
-		}
-		if (user.getVerifyMessage() != null) {
-			update.set("verifyMessage", user.getVerifyMessage());
-		}
-		if (user.getCommissionRate() != null) {
-			update.set("commissionRate", user.getCommissionRate());
-		}
 		mongoTemplate.updateFirst(query, update, User.class);
 	}
 

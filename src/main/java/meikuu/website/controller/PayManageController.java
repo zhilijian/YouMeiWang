@@ -1,4 +1,4 @@
-package meikuu.web.controller;
+package meikuu.website.controller;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -32,7 +32,7 @@ import meikuu.repertory.service.PurchaseService;
 import meikuu.repertory.service.SessionService;
 import meikuu.repertory.service.TransactionService;
 import meikuu.repertory.service.UserService;
-import meikuu.web.vo.CommonVO;
+import meikuu.website.vo.CommonVO;
 
 @CrossOrigin
 @RestController
@@ -281,7 +281,6 @@ public class PayManageController {
 				Map<String, Object> balanceRecordmap = new HashMap<String, Object>();
 				balanceRecordmap.put("balanceRecordID", balanceRecord.getBalanceRecordID());
 				balanceRecordmap.put("userID", balanceRecord.getUserID());
-				balanceRecordmap.put("username", balanceRecord.getUsername());
 				balanceRecordmap.put("money", balanceRecord.getMoney());
 				balanceRecordmap.put("use", balanceRecord.getUse());
 				balanceRecordmap.put("balance", balanceRecord.getBalance());

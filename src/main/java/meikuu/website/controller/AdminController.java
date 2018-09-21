@@ -1,4 +1,4 @@
-package meikuu.web.controller;
+package meikuu.website.controller;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -17,8 +17,8 @@ import meikuu.domain.entity.user.Admin;
 import meikuu.domain.util.ContainUtil;
 import meikuu.repertory.service.AdminService;
 import meikuu.repertory.service.SessionService;
-import meikuu.web.vo.CommonVO;
-import meikuu.web.vo.SimpleVO;
+import meikuu.website.vo.CommonVO;
+import meikuu.website.vo.SimpleVO;
 
 @CrossOrigin
 @RestController

@@ -6,24 +6,47 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "meikuu_3dyoo_admin")
 public class Admin {
 	
-	//管理员ID
+	/**
+	 * 管理员ID
+	 */
 	@Indexed
 	private String adminID;
-	//管理员名称
+	/**
+	 * 管理员名称
+	 */
 	private String adminname;
-	//密码
+	/**
+	 * 密码
+	 */
 	private String password;
-	//职位
+	/**
+	 * 职位
+	 */
 	private String position;
-	//adminManager  用户管理	0:用户查询  1：原创作者审核  2：留言反馈  3：纠错提交
+	/**
+	 * 用户管理
+	 * 0:用户查询  1：原创作者审核  2：留言反馈  3：纠错提交
+	 */
 	private Integer[] userManage;
-	//workManager  作品管理	0：原创模型管理  1：共享模型管理  2:2D美术管理  3：作品审核
+	/**
+	 * 作品管理
+	 * 0：原创模型管理  1：共享模型管理  2:2D美术管理  3：作品审核
+	 */
 	private Integer[] workManage;
-	//homepageModule  首页模块  0：banner管理  1：专题管理  2：热门排行  3：原创推荐  4：共享推荐  5:2D美术推荐
+	/**
+	 * 首页模块
+	 * 0：banner管理  1：专题管理  2：热门排行  3：原创推荐  4：共享推荐  5：2D美术推荐
+	 */
 	private Integer[] homepageModule;
-	//rechargeManager  充值管理  0：充值记录  1：购买记录  2：余额使用记录  3：流水查询  4：提现申请  VIP设置
+	/**
+	 * 充值管理
+	 * 0：充值记录  1：购买记录  2：余额使用记录  3：流水查询  4：提现申请  5：VIP设置
+	 */
 	private Integer[] rechargeManage;
-	//roleAuthority  角色权限  0：创建后台角色  1：查看所有角色
+	/**
+	 * 角色权限
+	 * 0：创建后台角色  1：查看所有角色
+	 */
 	private Integer[] roleAuthority;
 	
 	public Admin() {

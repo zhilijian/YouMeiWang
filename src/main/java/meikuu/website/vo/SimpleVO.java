@@ -1,4 +1,4 @@
-package meikuu.web.vo;
+package meikuu.website.vo;
 
 public class SimpleVO {
 

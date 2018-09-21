@@ -1,4 +1,4 @@
-package meikuu.web.controller;
+package meikuu.website.controller;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -26,8 +26,8 @@ import meikuu.repertory.service.BannerService;
 import meikuu.repertory.service.FileService;
 import meikuu.repertory.service.SessionService;
 import meikuu.repertory.service.WorkService;
-import meikuu.web.vo.CommonVO;
-import meikuu.web.vo.SimpleVO;
+import meikuu.website.vo.CommonVO;
+import meikuu.website.vo.SimpleVO;
 
 @CrossOrigin
 @RestController

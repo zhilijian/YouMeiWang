@@ -1,4 +1,4 @@
-package meikuu.web.controller;
+package meikuu.website.controller;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,8 +23,8 @@ import meikuu.repertory.service.AdminService;
 import meikuu.repertory.service.NewsService;
 import meikuu.repertory.service.SessionService;
 import meikuu.repertory.service.UserService;
-import meikuu.web.vo.CommonVO;
-import meikuu.web.vo.SimpleVO;
+import meikuu.website.vo.CommonVO;
+import meikuu.website.vo.SimpleVO;
 
 @CrossOrigin
 @RestController
@@ -58,7 +58,12 @@ public class UserManageController {
 			return new CommonVO(false, "用户尚未登录或不存在。", "{}");
 		}
 		
-		boolean flag = ContainUtil.hasNumber(admin.getUserManage(), 0);
+		int authority = 0;
+		if (applyForOriginal == 1) {
+			authority = 1;
+		}
+		
+		boolean flag = ContainUtil.hasNumber(admin.getUserManage(), authority);
 		if (!flag) {
 			return new CommonVO(false, "该用户无此权限。","请先申请查看管理员的权限。");
 		}
