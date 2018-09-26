@@ -35,24 +35,15 @@ public class UserMongodb implements UserDao {
 		Update update = new Update();
 		update.set("username", user.getUsername());
 		update.set("nickname", user.getNickname());
-		if (user.getFullname() != null) {
-			update.set("fullname", user.getFullname());
-		}
-		if (user.getPhone() != null) {
-			update.set("phone", user.getPhone());
-		}
-		if (user.getPortrait() != null) {
-			update.set("portrait", user.getPortrait());		
-		}
-		if (user.getAlipay() != null) {
-			update.set("alipay", user.getAlipay());
-		}
-		if (user.getQq() != null) {
-			update.set("qq", user.getQq());
-		}
-		if (user.getEmail() != null) {
-			update.set("email", user.getEmail());
-		}
+		update.set("fullname", user.getFullname());
+		update.set("phone", user.getPhone());
+		update.set("portrait", user.getPortrait());		
+		update.set("alipay", user.getAlipay());
+		update.set("qq", user.getQq());
+		update.set("email", user.getEmail());
+		update.set("shareVIPTime", user.getShareVIPTime());
+		update.set("originalVIPTime", user.getOriginalVIPTime());
+		update.set("companyVIPTime", user.getCompanyVIPTime());
 		mongoTemplate.updateFirst(query, update, User.class);
 	}
 
@@ -122,7 +113,7 @@ public class UserMongodb implements UserDao {
 	}
 
 	@Override
-	public List<User> userList(String condition, Integer VIPKind, Integer memberKind, Integer applyForOriginal) {
+	public List<User> userList(String condition, Integer VIPKind, Integer memberKind, Boolean isVerify) {
 		Query query = new Query();
 		if (condition != null && !"".equals(condition)) {
 			Criteria criteria1 = Criteria.where("userID").regex(condition);
@@ -136,8 +127,8 @@ public class UserMongodb implements UserDao {
 		if (memberKind != null) {
 			query.addCriteria(Criteria.where("memberKind").is(memberKind));
 		}
-		if (applyForOriginal != null) {
-			query.addCriteria(Criteria.where("applyForOriginal").is(applyForOriginal));
+		if (isVerify) {
+			query.addCriteria(Criteria.where("applyForOriginal").is(1));
 		}
 		return mongoTemplate.find(query, User.class);
 	}

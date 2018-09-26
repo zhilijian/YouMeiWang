@@ -39,7 +39,7 @@ public class TopicService {
 		topic.setTopicName(topicName);
 		topic.setPicturePath(picturePath);
 		topic.setDescribe(describe);
-		topic.setIsRecommend(0);
+		topic.setIsRecommend(false);
 		topic.setCreateTime(new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date(System.currentTimeMillis())));
 		topic.setBrowsed(0l);
 		topic.setCollected(0l);
@@ -113,7 +113,7 @@ public class TopicService {
 		return topicDao.topiclist();
 	}
 	
-	public List<Topic> topiclist(String topicName, Integer isRecommend) {
+	public List<Topic> topiclist(String topicName, boolean isRecommend) {
 		return topicDao.topiclist(topicName, isRecommend);
 	}
 }

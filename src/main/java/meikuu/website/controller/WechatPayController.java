@@ -16,8 +16,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import meikuu.domain.entity.pay.Order;
+import meikuu.domain.entity.pay.OrderInfo;
 import meikuu.domain.entity.user.User;
+import meikuu.domain.util.DoubleUtil;
 import meikuu.domain.util.ListUtil;
 import meikuu.repertory.service.NewsService;
 import meikuu.repertory.service.OrderService;
@@ -77,7 +78,7 @@ public class WechatPayController {
 			return new CommonVO(true, "已购作品24小时内不必再次购买。", "{}"); 
 		}
 		
-		Order order = orderService.createOrder(userID, workID, money, "WeChatPay");
+		OrderInfo order = orderService.createOrder(userID, workID, money, "WeChatPay");
 		
 		try {
 			Map<String, Object> data = new HashMap<String, Object>();
@@ -123,13 +124,13 @@ public class WechatPayController {
 			String trade_state = responseMap.get("trade_state");
 			orderService.setOrder("outTradeNo", out_trade_no, "transactionID", responseMap.get("transaction_id"));
 			
-			Order order = orderService.queryOrder("outTradeNo", responseMap.get("out_trade_no"));
+			OrderInfo order = orderService.queryOrder("outTradeNo", responseMap.get("out_trade_no"));
 			User user = userService.queryUser("userID", order.getUserID());
 			if ("SUCCESS".equals(trade_state)) {
 				if ("RECHARGE".equals(responseMap.get("attach"))) {
 					Double balance1 = user.getBalance()==null ? 0 : user.getBalance();
-					Double balance2 = Double.valueOf(responseMap.get("receipt_amount"));
-					balance1 += balance2;
+					Double balance2 = Double.valueOf(responseMap.get("cash_fee"))/100;
+					balance1 = DoubleUtil.addition(balance1, balance2);
 					userService.setUser("userID", order.getUserID(), "balance", balance1);
 					
 					title = "充值成功！";
@@ -160,7 +161,7 @@ public class WechatPayController {
 	public CommonVO orderQuery(String userID, String outTradeNo) {
 		try {
 			SortedMap<String, String> responseMap = wechatPayService.queryOrder(outTradeNo);
-			Order order = orderService.queryOrder("outTradeNo", outTradeNo);
+			OrderInfo order = orderService.queryOrder("outTradeNo", outTradeNo);
 			Map<String, Object> data = new HashMap<String, Object>();
 			if (responseMap == null || "FAIL".equals(responseMap.get("return_code"))) {
 				return new CommonVO(false, "微信支付订单查询失败。", "出错信息：" + responseMap.get("return_msg"));
@@ -191,7 +192,7 @@ public class WechatPayController {
 	@PostMapping("/closeorder")
 	public CommonVO closeOrder(String userID, String outTradeNo, Integer refund_fee, String refund_desc) {
 		try {
-			Order order = orderService.queryOrder("outTradeNo", outTradeNo);
+			OrderInfo order = orderService.queryOrder("outTradeNo", outTradeNo);
 			SortedMap<String, String> responseMap = wechatPayService.closeOrder(outTradeNo);
 			Map<String, Object> data = new HashMap<String, Object>();
 			if (responseMap == null || "FAIL".equals(responseMap.get("return_code"))) {
@@ -216,7 +217,7 @@ public class WechatPayController {
 	@PostMapping("/refund")//需要双向证书，暂不执行
 	public CommonVO refund(String userID, String outTradeNo, Integer refund_fee, String refund_desc) {
 		try {
-			Order order = orderService.queryOrder("outTradeNo", outTradeNo);
+			OrderInfo order = orderService.queryOrder("outTradeNo", outTradeNo);
 			SortedMap<String, String> responseMap = wechatPayService.refundOrder(order, refund_fee, refund_desc);
 			Map<String, Object> data = new HashMap<String, Object>();
 			if (responseMap == null || "FAIL".equals(responseMap.get("return_code"))) {

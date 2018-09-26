@@ -60,9 +60,9 @@ public class AliPayConfig {
     /** 编码 */
 	public static String CHARSET = "UTF-8";
     /** 同步地址 */
-	public static String RETURNURL = "http://www.linshaocong.cn:8089/redirect/alipayreturn";
+	public static String RETURNURL = "http://java.3dyoo.com.cn/redirect/alipayreturn";
     /** 异步地址 */
-	public static String NOTIFYURL = "http://www.linshaocong.cn:8089/alipay/alipaynotify";
+	public static String NOTIFYURL = "http://java.3dyoo.com.cn/alipay/alipaynotify";
     
 	@Bean
 	public AlipayClient alipayClient(){

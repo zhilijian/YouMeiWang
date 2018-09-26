@@ -1,6 +1,7 @@
 package meikuu.domain.entity.user;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -67,7 +68,7 @@ public class User {
 	 * VIP类别
 	 * 0：大众用户 1：共享VIP 2：原创VIP 3：企业VIP
 	 */
-	private List<Integer> vipKind;
+	private Set<Integer> vipKind;
 	/**
 	 * 共享VIP免费下载次数
 	 */
@@ -238,11 +239,11 @@ public class User {
 		this.balance = balance;
 	}
 
-	public List<Integer> getVipKind() {
+	public Set<Integer> getVipKind() {
 		return vipKind;
 	}
 
-	public void setVipKind(List<Integer> vipKind) {
+	public void setVipKind(Set<Integer> vipKind) {
 		this.vipKind = vipKind;
 	}
 

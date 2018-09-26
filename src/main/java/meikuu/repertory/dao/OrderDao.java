@@ -3,23 +3,25 @@ package meikuu.repertory.dao;
 import java.util.List;
 import java.util.Map;
 
-import meikuu.domain.entity.pay.Order;
+import meikuu.domain.entity.pay.OrderInfo;
 
 public interface OrderDao {
 	
-	public void addOrder(Order order);
+	public void addOrder(OrderInfo order);
 	
 	public void removeOrder(String condition, Object value);
 	
-	public void updateOrder(Order order);
+	public void updateOrder(OrderInfo order);
 	
 	public void setOrder(String condition, Object value1, String target, Object value2);
 
-	public Order queryOrder(String condition, Object value);
+	public OrderInfo queryOrder(String condition, Object value);
 	
-	public List<Order> orderList(Integer searchType, String condition, String value, Map<String, Object> conditions, Integer page, Integer size);
+	public Long getAmount(String condition, Integer payType, String payStatus, Long startTime, Long endTime);
 	
-	public List<Order> orderList(List<Map<String, Object>> conditions, Integer page, Integer size);
+	public List<OrderInfo> orderList(Integer searchType, String condition, String value, Map<String, Object> conditions, Integer page, Integer size);
 	
-	public List<Order> orderlist(String condition, Integer payType, String payStatus, Long startTime, Long endTime);
+	public List<OrderInfo> orderList(List<Map<String, Object>> conditions, Integer page, Integer size);
+	
+	public List<OrderInfo> orderlist(String condition, Integer payType, String payStatus, Long startTime, Long endTime, Integer page, Integer size);
 }

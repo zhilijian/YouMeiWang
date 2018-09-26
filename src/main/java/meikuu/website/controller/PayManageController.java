@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import meikuu.domain.entity.pay.BalanceRecord;
 import meikuu.domain.entity.pay.CashApplication;
-import meikuu.domain.entity.pay.Order;
+import meikuu.domain.entity.pay.OrderInfo;
 import meikuu.domain.entity.pay.Purchase;
 import meikuu.domain.entity.pay.Transaction;
 import meikuu.domain.entity.user.Admin;
@@ -88,16 +88,9 @@ public class PayManageController {
 		}
 		
 		try {
-			List<Order> orderlist1 = orderService.orderlist(condition, payType, payStatus, startTime, endTime);
-			List<Order> orderlist2 = new LinkedList<Order>();
-			int currIdx = (page > 1 ? (page-1)*size : 0);
-			for (int i = 0; i < size && i < orderlist1.size()-currIdx; i++) {
-				Order order = orderlist1.get(currIdx + i);
-				orderlist2.add(order);
-			}
-			
+			List<OrderInfo> orderlist = orderService.orderlist(condition, payType, payStatus, startTime, endTime, page, size);
 			List<Map<String, Object>> maplist = new LinkedList<Map<String, Object>>();
-			for (Order order : orderlist2) {
+			for (OrderInfo order : orderlist) {
 				Map<String, Object> map = new HashMap<String, Object>();
 				map.put("outTradeNo", order.getOutTradeNo());
 				map.put("payType", order.getPayType());
@@ -107,12 +100,12 @@ public class PayManageController {
 				map.put("cashFee", order.getCashFee());
 				map.put("attach", order.getAttach());
 				map.put("payStatus", order.getPayStatus());
-				map.put("endTime", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(order.getEndTime())));
+				map.put("endTime", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(order.getStartTime())));
 				maplist.add(map);
 			}
 			
-			int orderAmount = orderlist1.size();
-			int pageAmount = 0;
+			long orderAmount = orderService.getAmount(condition, payType, payStatus, startTime, endTime);
+			long pageAmount = 0l;
 			if (orderAmount % size == 0) {
 				pageAmount = orderAmount / size;
 			} else {
@@ -146,7 +139,7 @@ public class PayManageController {
 		}
 		
 		try {
-			Order order = orderService.queryOrder("outTradeNo", outTradeNo);
+			OrderInfo order = orderService.queryOrder("outTradeNo", outTradeNo);
 			User user = userService.queryUser("userID", order.getUserID());
 			
 			if (user == null || order == null) {
@@ -343,7 +336,6 @@ public class PayManageController {
 				Map<String, Object> transactionmap = new HashMap<String, Object>();
 				transactionmap.put("transactionID", transaction.getTransactionID());
 				transactionmap.put("userID", transaction.getUserID());
-				transactionmap.put("username", transaction.getUsername());
 				transactionmap.put("memberKind", transaction.getMemberKind());
 				transactionmap.put("money", transaction.getMoney());
 				transactionmap.put("reason", transaction.getReason());
@@ -405,7 +397,6 @@ public class PayManageController {
 				Map<String, Object> cashApplicationmap = new HashMap<String, Object>();
 				cashApplicationmap.put("applicationID", cashApplication.getApplicationID());
 				cashApplicationmap.put("userID", cashApplication.getUserID());
-				cashApplicationmap.put("username", cashApplication.getUsername());
 				cashApplicationmap.put("memberKind", cashApplication.getMemberKind());
 				cashApplicationmap.put("balance", cashApplication.getBalance());
 				cashApplicationmap.put("cashApply", cashApplication.getCashApply());

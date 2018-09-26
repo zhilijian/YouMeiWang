@@ -34,5 +34,5 @@ public interface TopicDao {
 	
 	public List<Topic> topiclist();
 	
-	public List<Topic> topiclist(String topicName, Integer isRecommend);
+	public List<Topic> topiclist(String topicName, boolean isRecommend);
 }

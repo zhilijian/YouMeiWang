@@ -53,6 +53,7 @@ public class AdminController {
 			data.put("homepageModule", admin.getHomepageModule());
 			data.put("rechargeManage", admin.getRechargeManage());
 			data.put("roleAuthority", admin.getRoleAuthority());
+			data.put("dataStatistics", admin.getDataStatistics());
 			return new CommonVO(true, "用户登录成功！", data);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -85,6 +86,7 @@ public class AdminController {
 			@RequestParam(name="homepageModule", required=false) Integer[] homepageModule,
 			@RequestParam(name="rechargeManage", required=false) Integer[] rechargeManage,
 			@RequestParam(name="roleAuthority", required=false) Integer[] roleAuthority,
+			@RequestParam(name="dataStatistics", required=false) Integer[] dataStatistics,
 			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
 		String adminID = cmdService.getIDBySessionId(sessionId);
@@ -99,8 +101,8 @@ public class AdminController {
 		}
 		
 		try {
-			adminService.addAdmin(adminname, password, position, userManage, 
-					workManage, homepageModule, rechargeManage, roleAuthority);
+			adminService.addAdmin(adminname, password, position, userManage, workManage, 
+					homepageModule, rechargeManage, roleAuthority, dataStatistics);
 			return new SimpleVO(true, "添加管理员成功！");
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -141,6 +143,7 @@ public class AdminController {
 			@RequestParam(name="homepageModule", required=true) Integer[] homepageModule,
 			@RequestParam(name="rechargeManage", required=true) Integer[] rechargeManage,
 			@RequestParam(name="roleAuthority", required=true) Integer[] roleAuthority,
+			@RequestParam(name="dataStatistics", required=true) Integer[] dataStatistics,
 			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
 		String adminID1 = cmdService.getIDBySessionId(sessionId);
@@ -184,11 +187,15 @@ public class AdminController {
 				roleAuthority = new Integer[] {};
 			}
 			admin2.setRoleAuthority(roleAuthority);
+			if (dataStatistics == null) {
+				dataStatistics = new Integer[] {};
+			}
+			admin2.setDataStatistics(dataStatistics);
 			adminService.updateAdmin(admin2);
 			return new SimpleVO(true, "权限修改成功！");
 		} catch (Exception e) {
 			e.printStackTrace();
-			return new SimpleVO(false, "出错信息：" + e.getMessage());
+			return new SimpleVO(false, "出错信息：" + e.toString());
 		}
 	}
 	
@@ -297,6 +304,7 @@ public class AdminController {
 				map.put("homepageModule", admin3.getHomepageModule());
 				map.put("rechargeManage", admin3.getRechargeManage());
 				map.put("roleAuthority", admin3.getRoleAuthority());
+				map.put("dataStatistics", admin3.getDataStatistics());
 				maplist.add(map);
 			}
 			

@@ -15,7 +15,9 @@ public class AdminService {
 	@Autowired
 	private AdminDao adminDao;
 	
-	public Admin addAdmin(String adminname, String password, String position, Integer[] userManage, Integer[] workManage, Integer[] homepageModule, Integer[] rechargeManage, Integer[] roleAuthority) {
+	public Admin addAdmin(String adminname, String password, String position, 
+			Integer[] userManage, Integer[] workManage, Integer[] homepageModule, 
+			Integer[] rechargeManage, Integer[] roleAuthority, Integer[] dataStatistics) {
 		Admin admin = new Admin();
 		String adminID = null;
 		do {
@@ -45,6 +47,10 @@ public class AdminService {
 			roleAuthority = new Integer[] {};
 		}
 		admin.setRoleAuthority(roleAuthority);
+		if (dataStatistics == null) {
+			dataStatistics = new Integer[] {};
+		}
+		admin.setDataStatistics(dataStatistics);
 		adminDao.addAdmin(admin);
 		return admin;
 	}

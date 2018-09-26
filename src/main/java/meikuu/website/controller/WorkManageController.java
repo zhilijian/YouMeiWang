@@ -367,7 +367,6 @@ public class WorkManageController {
 				map.put("downloadNum", work.getDownloadNum());
 				map.put("primaryClassification", work.getPrimaryClassification());
 				map.put("verifyState", work.getVerifyState());
-				map.put("isDelete", work.getIsDelete());
 				maplist.add(map);
 			}
 			
@@ -387,6 +386,55 @@ public class WorkManageController {
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new CommonVO(false, "查询模型失败。", "出错信息：" + e.toString());
+		}
+	}
+	
+	@PostMapping("/worksort")
+	public CommonVO workSort(@RequestParam(name="adminToken", required=true) String sessionId,
+			@RequestParam(name="primaryClassification", required=false) Integer primaryClassification,				
+			@RequestParam(name="downloadOrBrowse", required=true) boolean downloadOrBrowse,				
+			@RequestParam(name="page", required=true) Integer page,
+			@RequestParam(name="size", required=true) Integer size) {
+		
+		String adminID = cmdService.getIDBySessionId(sessionId);
+		Admin admin = adminService.queryAdmin("adminID", adminID);
+		
+		boolean flag = ContainUtil.hasNumber(admin.getDataStatistics(), 0);
+		if (!flag) {
+			return new CommonVO(false, "该管理员无此权限。","{}");
+		}
+		
+		try {
+			List<Work> worklist = workService.worklist(primaryClassification, downloadOrBrowse, page, size);
+			
+			List<Map<String, Object>> maplist = new LinkedList<Map<String, Object>>();
+			for (Work work : worklist) {
+				Map<String, Object> workmap = new HashMap<String, Object>();
+				workmap.put("workID", work.getWorkID());
+				workmap.put("workName", work.getWorkName());
+				workmap.put("primaryClassification", work.getPrimaryClassification());
+				workmap.put("price", work.getPrice());
+				workmap.put("downloadNum", work.getDownloadNum());
+				workmap.put("browseNum", work.getBrowseNum());
+				maplist.add(workmap);
+			}
+			
+			Long workAmount = workService.getAmount(primaryClassification);
+			Long pageAmount = 0l;
+			if (workAmount % size == 0) {
+				pageAmount = workAmount / size;
+			} else {
+				pageAmount = workAmount / size + 1;
+			}
+			
+			Map<String, Object> data = new HashMap<String, Object>();
+			data.put("works", maplist);
+			data.put("workAmount", workAmount);
+			data.put("pageAmount", pageAmount);
+			return new CommonVO(true, "查询排行成功！", data);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new CommonVO(false, "查询排行失败。", "出错信息：" + e.toString());
 		}
 	}
 }

@@ -8,13 +8,34 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "meikuu_3dyoo_banner")
 public class Banner {
 
+	/**
+	 * 标语ID
+	 */
 	@Indexed
 	private String bannerID;
+	/**
+	 * 标语名称
+	 */
 	private String bannerName;
+	/**
+	 * 图片路径
+	 */
 	private String picturePath;
+	/**
+	 * 链接
+	 */
 	private String associatedLink;
+	/**
+	 * 发布时间
+	 */
 	private String publishTime;
+	/**
+	 * 热词
+	 */
 	private List<String> hotWord;
+	/**
+	 * 推荐作品
+	 */
 	private List<String> workShow;
 	
 	public Banner() {
@@ -100,5 +121,4 @@ public class Banner {
 			return false;
 		return true;
 	}
-
 }

@@ -6,21 +6,36 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "meikuu_3dyoo_bbs")
 public class BBS {
 
-	//bbs编号 bbsID
+	/**
+	 * bbs编号
+	 */
 	@Indexed
 	private String bbsID;
-	//用户ID userID
+	/**
+	 * 用户ID
+	 */
 	private String userID;
-	//作品ID workID
+	/**
+	 * 作品ID
+	 */
 	private String workID;
-	//纠错类型 correctionType
-	//0:其他 1：解压出错 2:模型打不开 3:图片与模型不符 4：贴图不完整
+	/**
+	 * 纠错类型
+	 * 0:其他 1：解压出错 2:模型打不开 3:图片与模型不符 4：贴图不完整
+	 */
 	private Integer correctionType;
-	//留言内容 comment
+	/**
+	 * 留言内容
+	 */
 	private String comment;
-	//类型 type：0：留言反馈 1：纠错提交
+	/**
+	 * 类型 type
+	 * 0：留言反馈 1：纠错提交
+	 */
 	private Integer type;
-	//发表时间
+	/**
+	 * 发表时间
+	 */
 	private String publishTime;
 	
 	public BBS() {

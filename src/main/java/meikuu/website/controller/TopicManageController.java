@@ -228,9 +228,9 @@ public class TopicManageController {
 		}
 	}
 	
-	@GetMapping("/topiclist")
+	@PostMapping("/topiclist")
 	public CommonVO topicList(@RequestParam(name="topicName", required=false) String topicName,
-			@RequestParam(name="isRecommend", required=false) Integer isRecommend,
+			@RequestParam(name="isRecommend", required=true) Boolean isRecommend,
 			@RequestParam(name="page", required=true) Integer page,
 			@RequestParam(name="size", required=true) Integer size,
 			@RequestParam(name="adminToken", required=true) String sessionId) {
@@ -316,7 +316,6 @@ public class TopicManageController {
 			Map<String, Object> data = new HashMap<String, Object>();
 			data.put("workID", workID);
 			data.put("workName", work.getWorkName());
-			data.put("isDelete", work.getIsDelete());
 			return new CommonVO(true, "添加关联模型成功！", data);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -347,9 +346,9 @@ public class TopicManageController {
 			for (Topic topic : topiclist) {
 				boolean isExist = ContainUtil.hasString(topicIDs, topic.getTopicID());
 				if (isExist) {
-					topicService.setTopic("topicID", topic.getTopicID(), "isRecommend", 1);
+					topicService.setTopic("topicID", topic.getTopicID(), "isRecommend", true);
 				} else {
-					topicService.setTopic("topicID", topic.getTopicID(), "isRecommend", 0);
+					topicService.setTopic("topicID", topic.getTopicID(), "isRecommend", false);
 				}
 			}
 			return new SimpleVO(true, "发布专题成功！");

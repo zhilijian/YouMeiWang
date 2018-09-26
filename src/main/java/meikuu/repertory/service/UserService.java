@@ -1,7 +1,9 @@
 package meikuu.repertory.service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,7 +19,7 @@ public class UserService {
 	private UserDao userDao;
 	
 	@Autowired
-	private FileService fileService;
+	private ConfigService configService;
 
 	public User addUser(String username) {
 		User user = new User();
@@ -31,10 +33,10 @@ public class UserService {
 		user.setSex(0);
 		user.setYoubiAmount(0l);
 		user.setBalance(0.0);
-		List<Integer> vipKind = new ArrayList<Integer>();
+		Set<Integer> vipKind = new HashSet<Integer>();
 		vipKind.add(0);
 		user.setVipKind(vipKind);
-		user.setPortrait(fileService.getFilePath("000000000001"));
+		user.setPortrait((String)configService.getConfigValue("portrait"));
 		user.setMemberKind(0);
 		user.setVerifyingWork(new ArrayList<String>());
 		user.setVerifiedWork(new ArrayList<String>());
@@ -90,8 +92,8 @@ public class UserService {
 		return userDao.userList(condition, value, page, size);
 	}
 	
-	public List<User> userlist(String condition, Integer VIPKind, Integer memberKind, Integer applyForOriginal) {
-		return userDao.userList(condition, VIPKind, memberKind, applyForOriginal);
+	public List<User> userlist(String condition, Integer VIPKind, Integer memberKind, Boolean isVerify) {
+		return userDao.userList(condition, VIPKind, memberKind, isVerify);
 	}
 	
 	public List<User> userlist(String condition1, Object value1, String condition2, String value2) {

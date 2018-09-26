@@ -32,6 +32,8 @@ public interface WorkDao {
 	
 	public Long getAmount(List<Map<String, Object>> conditions);
 	
+	public Long getAmount(Integer primaryClassification);
+	
 	public List<Work> workSortDESC(String condition1, Object value1, String condition2, Object value2, String condition3, Integer limit);
 
 	public List<Work> workSortDESC(String condition, Map<String, Object> conditions, Integer limit);
@@ -55,4 +57,6 @@ public interface WorkDao {
 	public List<Work> worklist(String condition, Integer primaryClassification, Boolean verifyState);
 	
 	public List<Work> worklist(Integer primaryClassification, Integer secondaryClassification);
+	
+	public List<Work> worklist(Integer primaryClassification, Boolean downloadOrBrowse, Integer page, Integer size);
 }

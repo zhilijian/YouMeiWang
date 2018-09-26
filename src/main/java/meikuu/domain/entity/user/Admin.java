@@ -48,6 +48,11 @@ public class Admin {
 	 * 0：创建后台角色  1：查看所有角色
 	 */
 	private Integer[] roleAuthority;
+	/**
+	 * 数据统计,
+	 * 1:下载/访问排行
+	 */
+	private Integer[] dataStatistics;
 	
 	public Admin() {
 	}
@@ -122,5 +127,13 @@ public class Admin {
 
 	public void setRoleAuthority(Integer[] roleAuthority) {
 		this.roleAuthority = roleAuthority;
+	}
+
+	public Integer[] getDataStatistics() {
+		return dataStatistics;
+	}
+
+	public void setDataStatistics(Integer[] dataStatistics) {
+		this.dataStatistics = dataStatistics;
 	}
 }

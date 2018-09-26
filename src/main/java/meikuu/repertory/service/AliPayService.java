@@ -14,18 +14,17 @@ import org.springframework.stereotype.Service;
 import com.alipay.api.domain.AlipayTradePagePayModel;
 
 import meikuu.domain.config.AliPayConfig;
-import meikuu.domain.entity.pay.Order;
+import meikuu.domain.entity.pay.OrderInfo;
 import meikuu.domain.util.VerifyUtil;
 
 @Service
 public class AliPayService {
 
-	public AlipayTradePagePayModel createModel(Order order) {
+	public AlipayTradePagePayModel createModel(OrderInfo order) {
 		AlipayTradePagePayModel model = new AlipayTradePagePayModel();
 		model.setOutTradeNo(order.getOutTradeNo());
 		model.setProductCode("FAST_INSTANT_TRADE_PAY");
 		model.setTotalAmount(order.getTotalFee().toString());
-//		model.setTotalAmount("0.01");
 		model.setSubject(order.getBody());
 		if ("RECHARGE".equals(order.getAttach())) {
 			model.setBody("RECHARGE");

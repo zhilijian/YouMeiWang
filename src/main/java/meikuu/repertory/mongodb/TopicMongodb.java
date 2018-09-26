@@ -89,9 +89,7 @@ public class TopicMongodb implements TopicDao{
 	@Override
 	public List<Topic> topiclist(boolean isRecommend) {
 		Query query = new Query();
-		if (isRecommend) {
-			query.addCriteria(Criteria.where("isRecommend").is(1));
-		}
+		query.addCriteria(Criteria.where("isRecommend").is(isRecommend));
 		return mongoTemplate.find(query, Topic.class);
 	}
 
@@ -132,13 +130,13 @@ public class TopicMongodb implements TopicDao{
 	}
 
 	@Override
-	public List<Topic> topiclist(String topicName, Integer isRecommend) {
+	public List<Topic> topiclist(String topicName, boolean isRecommend) {
 		Query query = new Query();
 		if (topicName != null && !"".equals(topicName.trim())) {
 			query.addCriteria(Criteria.where("topicName").regex(topicName));
 		}
-		if (isRecommend != null) {
-			query.addCriteria(Criteria.where("isRecommend").is(isRecommend));
+		if (isRecommend) {
+			query.addCriteria(Criteria.where("isRecommend").is(true));
 		}
 		return mongoTemplate.find(query, Topic.class);
 	}

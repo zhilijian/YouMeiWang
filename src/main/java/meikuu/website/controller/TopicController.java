@@ -136,12 +136,13 @@ public class TopicController {
 			@RequestParam(name="size", required=false, defaultValue="4") Integer size,
 			@RequestParam(name="userToken", required=false) String sessionId) {
 		
-		String userID = cmdService.getIDBySessionId(sessionId);
-		User user = userService.queryUser("userID", userID);
-		
-		if (page <= 0 || size <= 0) {
-			return new CommonVO(false, "参数输入不合理。", "请先核对后重新输入参数。");
+		String userID = null;
+		User user = null;
+		if (sessionId != null) {
+			userID = cmdService.getIDBySessionId(sessionId);
+			user = userService.queryUser("userID", userID);
 		}
+
 		try {
 			List<Topic> topiclist1 = new ArrayList<Topic>();
 			List<Topic> topiclist2 = new ArrayList<Topic>();
@@ -224,12 +225,11 @@ public class TopicController {
 				}
 				maplist.add(map);
 			}
+			
 			Map<String, Object> data = new HashMap<String, Object>();
 			data.put("topiclist", maplist);
-			if (topicType == 1) {
-				data.put("topicAmount", topicAmount);
-				data.put("pageAmount", pageAmount);
-			}
+			data.put("topicAmount", topicAmount);
+			data.put("pageAmount", pageAmount);
 			return new CommonVO(true, "返回专题列表成功！", data);
 		} catch (Exception e) {
 			e.printStackTrace();

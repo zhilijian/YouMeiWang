@@ -141,7 +141,7 @@ public class WorkController {
 		
 		try {
 			Work work = workService.queryWork("workID", workID);
-			if (work == null || work.getIsDelete() == true) {
+			if (work == null) {
 				return new CommonVO(false, "不存在此ID的作品或者该作品已被作者删除", "{}");
 			}
 			long browseNum = work.getBrowseNum() + 1;

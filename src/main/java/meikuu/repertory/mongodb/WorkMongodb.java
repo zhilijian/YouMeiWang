@@ -66,7 +66,6 @@ public class WorkMongodb implements WorkDao{
 		update.set("collectNum", work.getCollectNum());
 		update.set("browseNum", work.getBrowseNum());
 		update.set("remarks", work.getRemarks());
-		update.set("isDelete", work.getIsDelete());
 		update.set("verifyMessage", work.getVerifyMessage());
 		mongoTemplate.updateFirst(query, update, Work.class);
 	}
@@ -157,6 +156,15 @@ public class WorkMongodb implements WorkDao{
 					break;
 				}
 			}
+		}
+		return mongoTemplate.count(query, Work.class);
+	}
+
+	@Override
+	public Long getAmount(Integer primaryClassification) {
+		Query query = new Query();
+		if (primaryClassification != null) {
+			query.addCriteria(Criteria.where("primaryClassification").is(primaryClassification));
 		}
 		return mongoTemplate.count(query, Work.class);
 	}
@@ -426,6 +434,24 @@ public class WorkMongodb implements WorkDao{
 		query.addCriteria(Criteria.where("secondaryClassification").is(secondaryClassification));
 		query.addCriteria(Criteria.where("isDelete").is(false));
 		query.limit(8);
+		return mongoTemplate.find(query, Work.class);
+	}
+
+	@Override
+	public List<Work> worklist(Integer primaryClassification, Boolean downloadOrBrowse, Integer page, Integer size) {
+		Query query = new Query();
+		if (primaryClassification != null) {
+			query.addCriteria(Criteria.where("primaryClassification").is(primaryClassification));
+		}
+		if (downloadOrBrowse) {
+			query.with(new Sort(new Order(Sort.Direction.DESC, "downloadNum")));
+		} else {
+			query.with(new Sort(new Order(Sort.Direction.DESC, "browseNum")));
+		}
+		if (page != null && size != null) {
+			query.skip((page - 1) * size);
+			query.limit(size);
+		}
 		return mongoTemplate.find(query, Work.class);
 	}
 }

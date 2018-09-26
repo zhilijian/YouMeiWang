@@ -9,7 +9,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import meikuu.domain.entity.pay.Order;
+import meikuu.domain.entity.pay.OrderInfo;
 import meikuu.domain.entity.work.Work;
 import meikuu.repertory.dao.OrderDao;
 import meikuu.repertory.dao.WorkDao;
@@ -23,8 +23,8 @@ public class OrderService {
 	@Autowired
 	private OrderDao orderDao;
 	
-	public Order createOrder(String userID, String workID, Double money, String payType) {
-		Order order = new Order();
+	public OrderInfo createOrder(String userID, String workID, Double money, String payType) {
+		OrderInfo order = new OrderInfo();
 		order.setOutTradeNo(new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + userID + UUID.randomUUID().toString().substring(22, 32));
 		order.setUserID(userID);
 		order.setProductID(workID);
@@ -38,8 +38,7 @@ public class OrderService {
 			order.setAttach("RECHARGE");
 		} else {
 			order.setBody("购买" + work.getWorkName());
-//			order.setTotalFee((double)work.getPrice());
-			order.setTotalFee(0.01);
+			order.setTotalFee((double)work.getPrice());
 			order.setAttach(workID);
 		}
 		orderDao.addOrder(order);
@@ -50,7 +49,7 @@ public class OrderService {
 		orderDao.removeOrder(condition, value);
 	}
 	
-	public void updateOrder(Order order) {
+	public void updateOrder(OrderInfo order) {
 		orderDao.updateOrder(order);
 	}
 	
@@ -58,20 +57,26 @@ public class OrderService {
 		orderDao.setOrder(condition, value1, target, value2);
 	}
 
-	public Order queryOrder(String condition, Object value) {
+	public OrderInfo queryOrder(String condition, Object value) {
 		return orderDao.queryOrder(condition, value);
 	}
 	
-	public List<Order> orderList(Integer searchType, String condition, String value, 
+	public Long getAmount(String condition, Integer payType, String payStatus, Long startTime, Long endTime) {
+		return orderDao.getAmount(condition, payType, payStatus, startTime, endTime);
+	}
+	
+	public List<OrderInfo> orderList(Integer searchType, String condition, String value, 
 			Map<String, Object> conditions,Integer page, Integer size) {
 		return orderDao.orderList(searchType, condition, value, conditions, page, size);
 	}
 	
-	public List<Order> orderList(List<Map<String, Object>> conditions, Integer page, Integer size) {
+	public List<OrderInfo> orderList(List<Map<String, Object>> conditions, Integer page, Integer size) {
 		return orderDao.orderList(conditions, page, size);
 	}
 	
-	public List<Order> orderlist(String condition, Integer payType, String payStatus, Long startTime, Long endTime){
-		return orderDao.orderlist(condition, payType, payStatus, startTime, endTime);
+	public List<OrderInfo> orderlist(String condition, Integer payType, String payStatus, 
+			Long startTime, Long endTime, Integer page, Integer size){
+		return orderDao.orderlist(condition, payType, payStatus, 
+				startTime, endTime, page, size);
 	}
 }

@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.alibaba.fastjson.JSONObject;
 
-import meikuu.domain.entity.pay.Order;
+import meikuu.domain.entity.pay.OrderInfo;
 import meikuu.domain.entity.user.User;
 import meikuu.repertory.service.AliPayService;
 import meikuu.repertory.service.NewsService;
@@ -77,7 +77,7 @@ public class ReturnController {
 		}
 		
 		session.setAttribute("code", "123456");
-		return "redirect:" + "http://www.linshaocong.cn:8019/#/Wxlogin?username=" + unionid;
+		return "redirect:http://www.3dyoo.com.cn/#/Wxlogin?username=" + unionid;
 	}
 	
 	@GetMapping("/alipayreturn")
@@ -88,15 +88,15 @@ public class ReturnController {
 		}
 		try {
 			String outTradeNo = responseMap.get("out_trade_no");
-			Order order = orderService.queryOrder("outTradeNo", outTradeNo);
+			OrderInfo order = orderService.queryOrder("outTradeNo", outTradeNo);
 			String userID = order.getUserID();
 			String workID = order.getProductID();
 			User user = userService.queryUser("userID", userID);
 			String username = user.getUsername();
 			if (workID != null) {
-				return "redirect:http://www.linshaocong.cn:8019/#/Zhifubao?username=" + username + "&workID=" + workID;
+				return "redirect:http://www.3dyoo.com.cn/#/Zhifubao?username=" + username + "&workID=" + workID;
 			} else {
-				return "redirect:http://www.linshaocong.cn:8019/#/zhbcz?username=" + username;
+				return "redirect:http://www.3dyoo.com.cn/#/zhbcz?username=" + username;
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

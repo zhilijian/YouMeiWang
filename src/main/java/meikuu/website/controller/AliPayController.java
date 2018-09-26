@@ -23,7 +23,7 @@ import com.alipay.api.response.AlipayTradeCloseResponse;
 import com.alipay.api.response.AlipayTradeQueryResponse;
 
 import meikuu.domain.config.AliPayConfig;
-import meikuu.domain.entity.pay.Order;
+import meikuu.domain.entity.pay.OrderInfo;
 import meikuu.domain.entity.user.User;
 import meikuu.domain.util.ListUtil;
 import meikuu.repertory.service.AliPayService;
@@ -87,7 +87,7 @@ public class AliPayController {
 		}
 		
 		try {
-			Order order = orderService.createOrder(userID, workID, money, "AliPay");
+			OrderInfo order = orderService.createOrder(userID, workID, money, "AliPay");
 			AlipayTradePagePayModel model = alipayService.createModel(order);
 			AlipayTradePagePayRequest alipayRequest = new AlipayTradePagePayRequest();
 			alipayRequest.setReturnUrl(AliPayConfig.RETURNURL);
@@ -120,7 +120,7 @@ public class AliPayController {
 			String trade_state = responseMap.get("trade_status");
 			orderService.setOrder("outTradeNo", out_trade_no, "transactionID", responseMap.get("trade_no"));
 			
-			Order order = orderService.queryOrder("outTradeNo", out_trade_no);
+			OrderInfo order = orderService.queryOrder("outTradeNo", out_trade_no);
 			User user = userService.queryUser("userID", order.getUserID());
 			String title = "";
 			String content = "";

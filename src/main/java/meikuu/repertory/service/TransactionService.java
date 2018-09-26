@@ -32,7 +32,6 @@ public class TransactionService {
 		Transaction transaction = new Transaction();
 		transaction.setTransactionID(new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + userID);
 		transaction.setUserID(userID);
-		transaction.setUsername(user.getUsername());
 		transaction.setMemberKind(user.getMemberKind());
 		if (workID == null) {
 			transaction.setMoney(money);

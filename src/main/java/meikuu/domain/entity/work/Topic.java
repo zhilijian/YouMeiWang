@@ -8,28 +8,45 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection="meikuu_3dyoo_topic")
 public class Topic {
 	
-	//专题ID topicID
+	/**
+	 * 专题编号
+	 */
 	@Indexed
 	private String topicID;
-	//专题标题 topicName
+	/**
+	 * 专题标题
+	 */
 	private String topicName;
-	//主图路径
+	/**
+	 * 主图路径
+	 */
 	private String picturePath;
-	//专题描述 describe
+	/**
+	 * 专题描述
+	 */
 	private String describe;
-	//是否推荐 isRecommend 0：否 1：是
-	private Integer isRecommend;
-	//创建日期 createDate
+	/**
+	 * 是否推荐
+	 */
+	private Boolean isRecommend;
+	/**
+	 * 创建日期
+	 */
 	private String createTime;
-	//被浏览数目 browsed
+	/**
+	 * 被浏览数目
+	 */
 	private Long browsed;
-	//被收藏数目 collected
+	/**
+	 * 被收藏数目
+	 */
 	private Long collected;
-	//关联模型（保存作品ID）
+	/**
+	 * 关联模型（作品编号）
+	 */
 	private List<String> works;
 	
-	public Topic() {
-	}
+	public Topic() {}
 
 	public String getTopicID() {
 		return topicID;
@@ -46,7 +63,7 @@ public class Topic {
 	public void setTopicName(String topicName) {
 		this.topicName = topicName;
 	}
-	
+
 	public String getPicturePath() {
 		return picturePath;
 	}
@@ -59,16 +76,16 @@ public class Topic {
 		return describe;
 	}
 
-	public void setDescribe(String describe) {
-		this.describe = describe;
-	}
-	
-	public Integer getIsRecommend() {
+	public Boolean getIsRecommend() {
 		return isRecommend;
 	}
 
-	public void setIsRecommend(Integer isRecommend) {
+	public void setIsRecommend(Boolean isRecommend) {
 		this.isRecommend = isRecommend;
+	}
+
+	public void setDescribe(String describe) {
+		this.describe = describe;
 	}
 
 	public String getCreateTime() {
@@ -102,5 +119,4 @@ public class Topic {
 	public void setWorks(List<String> works) {
 		this.works = works;
 	}
-
 }

@@ -88,7 +88,6 @@ public class WorkService {
 		work.setCollectNum(0l);
 		work.setBrowseNum(0l);
 		work.setUploadTime(System.currentTimeMillis());
-		work.setIsDelete(false);
 		workDao.addWork(work);
 		return work;
 	}
@@ -150,6 +149,10 @@ public class WorkService {
 		return workDao.getAmount(conditions);
 	}
 	
+	public Long getAmount(Integer primaryClassification) {
+		return workDao.getAmount(primaryClassification);
+	}
+	
 	public List<Work> workSortDESC(String condition1, Object value1, String condition2, Object value2, String condition3, Integer limit) {
 		return workDao.workSortDESC(condition1, value1, condition2, value2, condition3, limit);
 	}
@@ -207,5 +210,9 @@ public class WorkService {
 	
 	public List<Work> worklist(Integer primaryClassification, Integer secondaryClassification) {
 		return workDao.worklist(primaryClassification, secondaryClassification);
+	}
+	
+	public List<Work> worklist(Integer primaryClassification, Boolean downloadOrBrowse, Integer page, Integer size) {
+		return workDao.worklist(primaryClassification, downloadOrBrowse, page, size);
 	}
 }

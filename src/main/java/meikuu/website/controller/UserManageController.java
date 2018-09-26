@@ -47,7 +47,7 @@ public class UserManageController {
 	public CommonVO userSearch(@RequestParam(name="condition", required=false) String condition,
 			@RequestParam(name="VIPKind", required=false) Integer VIPKind,
 			@RequestParam(name="memberKind", required=false) Integer memberKind,
-			@RequestParam(name="applyForOriginal", required=false) Integer applyForOriginal,
+			@RequestParam(name="isVerify", required=true) Boolean isVerify,
 			@RequestParam(name="page", required=true) Integer page,
 			@RequestParam(name="size", required=true) Integer size,
 			@RequestParam(name="adminToken", required=true) String sessionId) {
@@ -59,7 +59,7 @@ public class UserManageController {
 		}
 		
 		int authority = 0;
-		if (applyForOriginal == 1) {
+		if (isVerify) {
 			authority = 1;
 		}
 		
@@ -74,7 +74,7 @@ public class UserManageController {
 		
 		try {
 			Set<User> userset = new HashSet<User>();
-			userset.addAll(userService.userlist(condition, VIPKind, memberKind, applyForOriginal));
+			userset.addAll(userService.userlist(condition, VIPKind, memberKind, isVerify));
 			
 			List<User> userlist1 = new ArrayList<User>(userset);
 			List<User> userlist2 = new LinkedList<User>();

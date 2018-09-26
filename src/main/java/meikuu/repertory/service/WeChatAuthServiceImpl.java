@@ -31,11 +31,12 @@ public class WeChatAuthServiceImpl extends DefaultAuthServiceImpl implements WeC
     private static final String APP_SECRET="c88cc6b110238ed69c58e4d6842fd817";
     private static final String SCOPE = "snsapi_login";
 
-    private String callbackUrl = "http://www.linshaocong.cn/redirect/wechatuser"; //回调域名
+    private String callbackUrl = "http://java.3dyoo.com.cn/redirect/wechatuser"; //回调域名
     
     @Override
     public String getAuthorizationUrl() throws UnsupportedEncodingException {
-        String url = String.format(AUTHORIZATION_URL, APP_ID, callbackUrl, SCOPE, System.currentTimeMillis());
+//    	callbackUrl = java.net.URLEncoder.encode(callbackUrl, "UTF-8");
+    	String url = String.format(AUTHORIZATION_URL, APP_ID, callbackUrl, SCOPE, System.currentTimeMillis());
         return url;
     }
     

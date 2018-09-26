@@ -86,17 +86,17 @@ public class UserController {
 			if (user.getShareVIPTime() == null) {
 				data.put("shareVIPTime", null);
 			} else {
-				data.put("shareVIPTime", new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date(user.getShareVIPTime())));
+				data.put("shareVIPTime", new SimpleDateFormat("yyyy-MM-dd").format(new Date(user.getShareVIPTime())));
 			}
 			if (user.getOriginalVIPTime() == null) {
 				data.put("originalVIPTime", null);
 			} else {
-				data.put("originalVIPTime", new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date(user.getOriginalVIPTime())));
+				data.put("originalVIPTime", new SimpleDateFormat("yyyy-MM-dd").format(new Date(user.getOriginalVIPTime())));
 			}
 			if (user.getCompanyVIPTime() == null) {
 				data.put("companyVIPTime", null);
 			} else {
-				data.put("companyVIPTime", new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date(user.getCompanyVIPTime())));
+				data.put("companyVIPTime", new SimpleDateFormat("yyyy-MM-dd").format(new Date(user.getCompanyVIPTime())));
 			}
 			data.put("newsAmount", newsService.getAmount(userID));
 			return new CommonVO(true, "用户登录成功！", data);

@@ -19,20 +19,24 @@ import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import meikuu.domain.config.WeChatConfig;
-import meikuu.domain.entity.pay.Order;
+import meikuu.domain.entity.pay.OrderInfo;
 import meikuu.domain.util.MD5Util;
 import meikuu.domain.util.XMLObjectConvertUtil;
 
 @Service
 public class WeChatPayService {
 
+	@Autowired
+	private ConfigService configService;
+	
 	/**
 	 * 调用微信统一下单接口
 	 */
-	public SortedMap<String, String> createOrder(Order order, String reqIP) throws MalformedURLException, IOException {
+	public SortedMap<String, String> createOrder(OrderInfo order, String reqIP) throws MalformedURLException, IOException {
 		// 微信统一下单接口
 		final String url = "https://api.mch.weixin.qq.com/pay/unifiedorder";
 		String orderInfo = createOrderInfo(order, reqIP);
@@ -72,7 +76,7 @@ public class WeChatPayService {
 		return orderRequest(orderInfo, url);
 	}
 	
-	public SortedMap<String, String> refundOrder(Order order, Integer refund_fee, String refund_desc) throws MalformedURLException, IOException {
+	public SortedMap<String, String> refundOrder(OrderInfo order, Integer refund_fee, String refund_desc) throws MalformedURLException, IOException {
 		final String url = "https://api.mch.weixin.qq.com/secapi/pay/refund";
 		String orderInfo = createRefundInfo(order, refund_fee, refund_desc);
 		return orderRequest(orderInfo, url);
@@ -81,15 +85,17 @@ public class WeChatPayService {
 	/**
 	 * 生成统一下单信息
 	 */
-	public String createOrderInfo(Order order, String reqIP) {
+	public String createOrderInfo(OrderInfo order, String reqIP) {
+		String appID = (String) configService.getConfigValue("wechat_APPID");
+		String mch_ID = (String) configService.getConfigValue("wechat_MCH_ID");
+		
 		SortedMap<String, String> parameters = new TreeMap<String, String>();
-		parameters.put("appid", WeChatConfig.APPID);
-		parameters.put("mch_id", WeChatConfig.MCH_ID);
+		parameters.put("appid", appID);
+		parameters.put("mch_id", mch_ID);
 		parameters.put("nonce_str", UUID.randomUUID().toString().substring(0, 32));
 		parameters.put("body", order.getBody());
 		parameters.put("out_trade_no", order.getOutTradeNo());
 		Integer total_fee = (int) (order.getTotalFee() * 100);
-//		Integer total_fee = order.getTotalFee().intValue();
 		parameters.put("total_fee", total_fee.toString());
 		parameters.put("spbill_create_ip", reqIP);
 		parameters.put("notify_url", WeChatConfig.NOTIFY_URL);
@@ -115,10 +121,13 @@ public class WeChatPayService {
 	/*
 	 * 生成申请退款信息
 	 */
-	public String createRefundInfo(Order order, Integer refund_fee, String refund_desc) {
+	public String createRefundInfo(OrderInfo order, Integer refund_fee, String refund_desc) {
+		String appID = (String) configService.getConfigValue("wechat_APPID");
+		String mch_ID = (String) configService.getConfigValue("wechat_MCH_ID");
+		
 		SortedMap<String, String> parameters = new TreeMap<String, String>();
-		parameters.put("appid", WeChatConfig.APPID);
-		parameters.put("mch_id", WeChatConfig.MCH_ID);
+		parameters.put("appid", appID);
+		parameters.put("mch_id", mch_ID);
 		parameters.put("nonce_str", UUID.randomUUID().toString().substring(0, 32));
 		parameters.put("sign", createSign(parameters));
 		parameters.put("out_trade_no", order.getOutTradeNo());

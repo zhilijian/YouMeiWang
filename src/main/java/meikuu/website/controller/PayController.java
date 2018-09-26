@@ -2,7 +2,6 @@ package meikuu.website.controller;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -14,10 +13,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import meikuu.domain.entity.pay.Order;
+import meikuu.domain.entity.pay.OrderInfo;
 import meikuu.domain.entity.user.User;
 import meikuu.domain.entity.work.Work;
-import meikuu.domain.util.ListUtil;
 import meikuu.repertory.service.BalanceRecordService;
 import meikuu.repertory.service.ConfigService;
 import meikuu.repertory.service.NewsService;
@@ -72,7 +70,7 @@ public class PayController {
 		}
 
 		Work work = workService.queryWork("workID", workID);
-		if (work == null || work.getIsDelete() == true) {
+		if (work == null) {
 			return new SimpleVO(false, "该作品不存在或已被删除。"); 
 		}
 		
@@ -199,10 +197,14 @@ public class PayController {
 				calendar.setTime(new Date(initialTime));
 				calendar.add(Calendar.MONTH, monthNum);
 				userService.setUser("userID", userID, "shareVIPTime", calendar.getTimeInMillis());
-				vips = ListUtil.addElement(user.getVipKind(), 1);
-				vips = ListUtil.removeElement(vips, 0);
-				Collections.sort(vips);
+				vips.add(1);
+				vips.remove(0);
 				userService.setUser("userID", userID, "vipKind", vips);
+				
+				Integer freedownload = user.getFreedownload();
+				if (freedownload == null) {
+					userService.setUser("userID", userID, "freedownload", 20);
+				}
 				break;
 			case 2:
 				switch (taocanType) {
@@ -234,9 +236,8 @@ public class PayController {
 				calendar.setTime(new Date(initialTime));
 				calendar.add(Calendar.MONTH, monthNum);
 				userService.setUser("userID", userID, "originalVIPTime", calendar.getTimeInMillis());
-				vips = ListUtil.addElement(user.getVipKind(), 1);
-				vips = ListUtil.removeElement(vips, 0);
-				Collections.sort(vips);
+				vips.add(2);
+				vips.remove(0);
 				userService.setUser("userID", userID, "vipKind", vips);
 				break;
 			case 3:
@@ -268,9 +269,8 @@ public class PayController {
 				calendar.setTime(new Date(initialTime));
 				calendar.add(Calendar.MONTH, monthNum);
 				userService.setUser("userID", userID, "companyVIPTime", calendar.getTimeInMillis());
-				vips = ListUtil.addElement(user.getVipKind(), 3);
-				vips = ListUtil.removeElement(vips, 0);
-				Collections.sort(vips);
+				vips.add(3);
+				vips.remove(0);
 				userService.setUser("userID", userID, "vipKind", vips);
 				break;
 			}
@@ -334,7 +334,7 @@ public class PayController {
 	public SimpleVO isSucceed(@RequestParam(name="outTradeNo", required=true) String outTradeNo) {
 		
 		try {
-			Order order = orderService.queryOrder("outTradeNo", outTradeNo);
+			OrderInfo order = orderService.queryOrder("outTradeNo", outTradeNo);
 			if (order == null) {
 				return new SimpleVO(false, "该订单不存在。");
 			}

@@ -64,7 +64,7 @@ public class FileController {
         	
         	Map<String, Object> configmap = FileUtil.upload(ID, file, uploadPath);
         	String fileName = (String) configmap.get("fileName");
-			String filePath = downloadPath + String.valueOf(configmap.get("filePath")).substring(41);
+			String filePath = downloadPath + String.valueOf(configmap.get("filePath")).substring(40);
 			Long fileSize = (Long) configmap.get("fileSize");
 			String pattern = (String) configmap.get("pattern");
 			FileInfo fileInfo = fileService.addFile(ID, fileName, filePath, fileSize, pattern);
@@ -123,7 +123,7 @@ public class FileController {
 		
 		try {
 			Work work = workService.queryWork("workID", workID);
-			if (work == null || work.getIsDelete()) {
+			if (work == null) {
 				return new SimpleVO(false, "该作品并不存在或已被删除。");
 			}
 			
@@ -165,7 +165,7 @@ public class FileController {
 		
 		try {
 			Work work = workService.queryWork("workID", workID);
-			if (work == null || work.getIsDelete()) {
+			if (work == null) {
 				return new SimpleVO(false, "该作品并不存在或已被删除。");
 			}
 			
