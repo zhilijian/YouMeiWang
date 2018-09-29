@@ -206,7 +206,7 @@ public class TopicController {
 				if (workIDs != null && workIDs.size() > 0) {
 					List<Map<String, Object>> picturePaths = new LinkedList<Map<String, Object>>();
 					
-					for (int i = 0, j = 0; i < workIDs.size() && j < 3; i++) {
+					for (int i = 0, j = 0; i < workIDs.size() && j < 4; i++) {
 						Map<String, Object> picturemap = new HashMap<String, Object>();
 						Work work = workService.queryWork("workID", workIDs.get(i));
 						if (work == null) {

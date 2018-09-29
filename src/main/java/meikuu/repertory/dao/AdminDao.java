@@ -11,7 +11,7 @@ public interface AdminDao {
 
 	public void addAdmin(Admin admin);
 	
-	public void removeAdmin(String condition, String value);
+	public void removeAdmin(String condition, Object value);
 	
 	public void updateAdmin(Admin admin);
 	
@@ -21,6 +21,8 @@ public interface AdminDao {
 
 	public Admin queryAdmin(String condition1, String value1, String condition2, String value2);
 	
-	public List<Admin> adminlist(String condition, String value);
+	public Long getAmount(String condition, String value);
+	
+	public List<Admin> adminlist(String condition, String value, Integer page, Integer size);
 	
 }

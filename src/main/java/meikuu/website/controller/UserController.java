@@ -23,6 +23,10 @@ import meikuu.repertory.service.UserService;
 import meikuu.website.vo.CommonVO;
 import meikuu.website.vo.SimpleVO;
 
+/**
+ * 前台界面项目·用户模块
+ * @author zhilijian
+ */
 @CrossOrigin
 @RestController
 @RequestMapping("/user")
@@ -37,6 +41,9 @@ public class UserController {
 	@Autowired
 	private SessionService cmdService;
 	
+	/**
+	 * 用户登录/注册
+	 */
 	@PostMapping("/loginorregister")
 	public CommonVO loginOrRegister(@RequestParam(name="username", required=true) String username,
 			@RequestParam(name="loginOrRegister", required=true) boolean loginOrRegister,
@@ -57,7 +64,6 @@ public class UserController {
 				if (user.isBanLogin()) {
 					return new CommonVO(false, "违规操作，禁止登录，详情请联系客服。", "{}");
 				}
-				
 			} else {
 				if (userService.queryUser("username", username) != null) {
 					return new CommonVO(false, "该手机号已被注册。","{}");
@@ -66,7 +72,7 @@ public class UserController {
 				
 				String userID = user.getUserID();
 				String title = "新用户注册成功！";
-				String content = "亲爱的" + username+ "先生/女士，欢迎来到奇妙的游模网。";
+				String content = "亲爱的 " + username+ " ，欢迎来到奇妙的游模网。";
 				newsService.addNews(userID, title, content, 1);
 			}
 			
@@ -83,6 +89,7 @@ public class UserController {
 			data.put("applyForOriginal", user.getApplyForOriginal());
 			data.put("youbiAmount", user.getYoubiAmount());
 			data.put("balance", user.getBalance());
+			data.put("freedownload", user.getFreedownload());
 			if (user.getShareVIPTime() == null) {
 				data.put("shareVIPTime", null);
 			} else {
@@ -99,21 +106,21 @@ public class UserController {
 				data.put("companyVIPTime", new SimpleDateFormat("yyyy-MM-dd").format(new Date(user.getCompanyVIPTime())));
 			}
 			data.put("newsAmount", newsService.getAmount(userID));
-			return new CommonVO(true, "用户登录成功！", data);
+			return new CommonVO(true, "用户登录/注册成功！", data);
 		} catch (Exception e) {
 			e.printStackTrace();
-			return new CommonVO(false, "用户登录失败。", "出错信息：" + e.toString());
+			return new CommonVO(false, "用户登录/注册失败。", "出错信息：" + e.toString());
 		}
 	}
 	
+	/**
+	 * 用户退出
+	 */
 	@GetMapping("/logout")
 	public SimpleVO logout(@RequestParam(name="userToken", required=true) String sessionId) {
 		
 		try {
 			String userID = cmdService.getIDBySessionId(sessionId);
-			if (userID == null) {
-				return new SimpleVO(false, "用户尚未登录。");
-			}
 			cmdService.removeSession(userID);
 			return new SimpleVO(true, "用户退出成功！");
 		} catch (Exception e) {
@@ -122,6 +129,9 @@ public class UserController {
 		}
 	}
 	
+	/**
+	 * 编辑个人信息/申请原创作者
+	 */
 	@PostMapping("/edituser")
 	public CommonVO editUser(@RequestParam(name="username", required=false) String username,
 			@RequestParam(name="nickname", required=false) String nickname,
@@ -137,14 +147,14 @@ public class UserController {
 		String userID = cmdService.getIDBySessionId(sessionId);
 		User user1 = userService.queryUser("userID", userID);
 		if (userID == null || user1 == null) {
-			return new CommonVO(false, "用户尚未登录。", "{}");
+			return new CommonVO(false, "请求失败，请重新登录。", "{}");
 		}
 		
 		try {
 			if (username != null && !"".equals(username.trim())) {
 				User user2 = userService.queryUser("username", username);
 				if (!VerifyUtil.isValidPhone(username) || user2 != null) {
-					return new CommonVO(false, "该手机号不可用。", "{}"); 
+					return new CommonVO(false, "该手机号不可用或已被注册。", "{}"); 
 				}
 				user1.setUsername(username);
 			}
@@ -156,7 +166,7 @@ public class UserController {
 			}
 			if (isApplyOriginalAuthor) {
 				if (fullname == null || phone == null || alipay == null || qq == null || email ==null) {
-					return new CommonVO(false, "信息填写不完整。", "{}"); 
+					return new CommonVO(false, "申请原创信息填写不完整。", "{}"); 
 				}
 				user1.setFullname(fullname);
 				user1.setPhone(phone);
@@ -177,10 +187,59 @@ public class UserController {
 			data.put("email", user1.getEmail());
 			data.put("alipay", user1.getAlipay());
 			data.put("applyForOriginal", user1.getApplyForOriginal());
-			return new CommonVO(true, "信息保存成功！", data); 
+			return new CommonVO(true, "编辑个人信息/申请原创作者成功！", data); 
 		} catch (Exception e) {
 			e.printStackTrace();
-			return new CommonVO(false, "信息保存失败。", "出错信息：" + e.toString());
+			return new CommonVO(false, "编辑个人信息/申请原创作者失败。", "出错信息：" + e.toString());
+		}
+	}
+	
+	/**
+	 * 获取个人信息
+	 */
+	@GetMapping("/getuserinfo")
+	public CommonVO getUserInfo(@RequestParam(name="username", required=false) String username,
+			@RequestParam(name="userToken", required=true) String sessionId) {
+		
+		String userID = cmdService.getIDBySessionId(sessionId);
+		User user = userService.queryUser("userID", userID);
+		if (userID == null || user == null) {
+			return new CommonVO(false, "请求失败，请重新登录。", "{}");
+		}
+		
+		try {
+			Map<String, Object> data = new HashMap<String, Object>();
+			data.put("userID", userID);
+			data.put("userToken", sessionId);
+			data.put("username", user.getUsername());
+			data.put("nickname", user.getNickname());
+			data.put("portrait", user.getPortrait());
+			data.put("vipKind", user.getVipKind());
+			data.put("memberKind", user.getMemberKind());
+			data.put("applyForOriginal", user.getApplyForOriginal());
+			data.put("youbiAmount", user.getYoubiAmount());
+			data.put("balance", user.getBalance());
+			data.put("freedownload", user.getFreedownload());
+			if (user.getShareVIPTime() == null) {
+				data.put("shareVIPTime", null);
+			} else {
+				data.put("shareVIPTime", new SimpleDateFormat("yyyy-MM-dd").format(new Date(user.getShareVIPTime())));
+			}
+			if (user.getOriginalVIPTime() == null) {
+				data.put("originalVIPTime", null);
+			} else {
+				data.put("originalVIPTime", new SimpleDateFormat("yyyy-MM-dd").format(new Date(user.getOriginalVIPTime())));
+			}
+			if (user.getCompanyVIPTime() == null) {
+				data.put("companyVIPTime", null);
+			} else {
+				data.put("companyVIPTime", new SimpleDateFormat("yyyy-MM-dd").format(new Date(user.getCompanyVIPTime())));
+			}
+			data.put("newsAmount", newsService.getAmount(userID));
+			return new CommonVO(true, "获取个人信息成功！", data); 
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new CommonVO(false, "获取个人信息失败。", "出错信息：" + e.toString());
 		}
 	}
 }

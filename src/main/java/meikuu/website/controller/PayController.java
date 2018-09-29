@@ -1,9 +1,10 @@
 package meikuu.website.controller;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import meikuu.domain.entity.pay.OrderInfo;
 import meikuu.domain.entity.user.User;
 import meikuu.domain.entity.work.Work;
+import meikuu.domain.util.DoubleUtil;
 import meikuu.repertory.service.BalanceRecordService;
 import meikuu.repertory.service.ConfigService;
 import meikuu.repertory.service.NewsService;
@@ -27,6 +29,12 @@ import meikuu.repertory.service.UserService;
 import meikuu.repertory.service.WorkService;
 import meikuu.website.vo.SimpleVO;
 
+/**
+ * 前台界面项目·支付相关
+ * 支付对象表现层
+ * @author zhilijian
+ *
+ */
 @CrossOrigin
 @RestController
 @RequestMapping("/pay")
@@ -59,6 +67,9 @@ public class PayController {
 	@Autowired
 	private SessionService cmdService;
 	
+	/**
+	 * 余额购买作品
+	 */
 	@GetMapping("/purchasework")
 	public SimpleVO purchaseWork(@RequestParam(name="workID", required=true) String workID, 
 			@RequestParam(name="userToken", required=true) String sessionId ) {
@@ -77,7 +88,7 @@ public class PayController {
 		try {
 			User user2 = userService.queryUser("userID", work.getAuthor());
 			if (user2 == null) {
-				return new SimpleVO(false, "模型作者不存在或已销户。"); 
+				return new SimpleVO(false, "该模型作者不存在。"); 
 			}
 			
 			if (user1 == user2) {
@@ -95,25 +106,26 @@ public class PayController {
 			if (work.getPrimaryClassification() == 1) {
 				Double balance1 = 0.0;
 				Double balance2 = 0.0;
-				double fee = 0.0;
+				double fee1 = 0.0;
+				double fee2 = 0.0;
 				if (user1.getVipKind().contains(2)) {
-					fee = work.getPrice() * discount;
+					fee1 = work.getPrice() * discount;
 				} else {
-					fee = work.getPrice();
+					fee1 = work.getPrice();
 				}
 				
-				balance1 = user1.getBalance() - fee;
+				balance1 = DoubleUtil.Subtraction(user1.getBalance(), fee1);
 				if (balance1 < 0) {
 					return new SimpleVO(false, "余额不足，请先充值。");
 				}
-				
-				balance2 = user2.getBalance() + fee * commissionRate;
-				
+				fee2 = fee1 * commissionRate;
+				balance2 = DoubleUtil.addition(user2.getBalance(), fee2);
 				userService.setUser("userID", userID, "balance", balance1);
 				userService.setUser("username", work.getAuthor(), "balance", balance2);
+				
 				purchaseService.addPurchase(userID, 2, workID, work.getWorkName(), (double)work.getPrice(), (double)work.getPrice(), null, null);
 				transactionService.addTransaction(userID, workID, null, 0, 1);
-				transactionService.addTransaction(user2.getUserID(), null, fee * commissionRate, 0, 0);
+				transactionService.addTransaction(user2.getUserID(), null, fee2, 0, 0);
 				balanceRecordService.addBalanceRecord(userID, (double)work.getPrice(), 2);
 			} else {
 				Integer freedownload = user1.getFreedownload();
@@ -129,24 +141,29 @@ public class PayController {
 					}
 					userService.setUser("userID", userID, "youbiAmount", youbiAmount1);
 					userService.setUser("username", work.getAuthor(), "youbiAmount", youbiAmount2);
+					
 					purchaseService.addPurchase(userID, 3, workID, work.getWorkName(), null, null, work.getPrice(), work.getPrice());
 					transactionService.addTransaction(userID, workID, null, 1, 1);
 					transactionService.addTransaction(user2.getUserID(), null, (double)work.getPrice(), 1, 0);
 				}
 			}
+			
 			worklist.add(workID);
 			userService.setUser("userID", userID, "purchaseWork", worklist);
 			
 			String title = "购买作品成功！"; 
 			String content = "恭喜您，您已成功购买《" + work.getWorkName() +"》作品，请前往下载界面下载。下载有效时间为24小时。";
 			newsService.addNews(userID, title, content, 1);
-			return new SimpleVO(true, "购买作品成功！");
+			return new SimpleVO(true, "余额购买作品成功！");
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new SimpleVO(false, "出错信息：" + e.toString());
 		}
 	}
 	
+	/**
+	 * 余额购买VIP
+	 */
 	@PostMapping("/purchasevip")
 	public SimpleVO purchaseVIP(@RequestParam(name="vipKind", required=true) Integer vipKind,
 			@RequestParam(name="taocanType", required=true) Integer taocanType,
@@ -155,16 +172,20 @@ public class PayController {
 		String userID = cmdService.getIDBySessionId(sessionId);
 		User user = userService.queryUser("userID", userID);
 		if (userID == null || user == null) {
-			return new SimpleVO(false, "用户尚未登录或用户不存在");
+			return new SimpleVO(false, "请求失败，请重新登录。");
 		}
 		
 		try {
 			double fee = 0;
 			int monthNum = 0;
 			Calendar calendar = Calendar.getInstance();
-			List<Integer> vips = new ArrayList<Integer>();
+			Set<Integer> vips = user.getVipKind();
+			if (vips == null) {
+				vips = new HashSet<Integer>();
+			}
 			Long initialTime = 0l;
 			Long vipTime = 0l;
+			Integer freedownload = user.getFreedownload();
 			
 			switch (vipKind) {
 			case 1:
@@ -186,7 +207,6 @@ public class PayController {
 					break;
 				}
 				
-				initialTime = 0l;
 				vipTime = user.getShareVIPTime();
 				if (vipTime == null || vipTime < System.currentTimeMillis()) {
 					initialTime = System.currentTimeMillis();
@@ -197,14 +217,17 @@ public class PayController {
 				calendar.setTime(new Date(initialTime));
 				calendar.add(Calendar.MONTH, monthNum);
 				userService.setUser("userID", userID, "shareVIPTime", calendar.getTimeInMillis());
+				
+				if (freedownload == null) {
+					userService.setUser("userID", userID, "freedownload", 10);
+				}
+				if (!vips.contains(1)) {
+					userService.setUser("userID", userID, "freedownload", freedownload + 10);
+				}
+				
 				vips.add(1);
 				vips.remove(0);
 				userService.setUser("userID", userID, "vipKind", vips);
-				
-				Integer freedownload = user.getFreedownload();
-				if (freedownload == null) {
-					userService.setUser("userID", userID, "freedownload", 20);
-				}
 				break;
 			case 2:
 				switch (taocanType) {
@@ -225,7 +248,6 @@ public class PayController {
 					break;
 				}
 				
-				initialTime = 0l;
 				vipTime = user.getOriginalVIPTime();
 				if (vipTime == null || vipTime < System.currentTimeMillis()) {
 					initialTime = System.currentTimeMillis();
@@ -236,6 +258,7 @@ public class PayController {
 				calendar.setTime(new Date(initialTime));
 				calendar.add(Calendar.MONTH, monthNum);
 				userService.setUser("userID", userID, "originalVIPTime", calendar.getTimeInMillis());
+				
 				vips.add(2);
 				vips.remove(0);
 				userService.setUser("userID", userID, "vipKind", vips);
@@ -258,24 +281,31 @@ public class PayController {
 					purchaseService.addPurchase(userID, 1, null, "企业VIP包年套餐", (double)fee, (double)fee, null, null);
 					break;
 				}
-				initialTime = 0l;
+				
 				vipTime = user.getOriginalVIPTime();
 				if (vipTime == null || vipTime < System.currentTimeMillis()) {
 					initialTime = System.currentTimeMillis();
 				} else {
 					initialTime = vipTime;
 				}
-				
 				calendar.setTime(new Date(initialTime));
 				calendar.add(Calendar.MONTH, monthNum);
 				userService.setUser("userID", userID, "companyVIPTime", calendar.getTimeInMillis());
+				
+				if (freedownload == null) {
+					userService.setUser("userID", userID, "freedownload", 50);
+				}
+				if (!vips.contains(3)) {
+					userService.setUser("userID", userID, "freedownload", freedownload + 50);
+				}
+				
 				vips.add(3);
 				vips.remove(0);
 				userService.setUser("userID", userID, "vipKind", vips);
 				break;
 			}
 			
-			Double balance = user.getBalance() - fee;
+			Double balance = DoubleUtil.Subtraction(user.getBalance(), fee);
 			if (balance < 0) {
 				return new SimpleVO(false, "余额不足，请先充值。");
 			}
@@ -287,13 +317,16 @@ public class PayController {
 			String title = "购买VIP成功！";
 			String content = "恭喜您，您已成功VIP权益，赶紧去体验我们的会员服务吧。";
 			newsService.addNews(userID, title, content, 1);
-			return new SimpleVO(true, "购买VIP成功！");
+			return new SimpleVO(true, "余额购买VIP成功！");
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new SimpleVO(false, "出错信息：" + e.toString());
 		}
 	}
 	
+	/**
+	 * 余额兑换游币
+	 */
 	@GetMapping("/exchange")
 	public SimpleVO exchange(@RequestParam(name="money", required=true) Integer money,
 			@RequestParam(name="userToken", required=true) String sessionId) {
@@ -301,7 +334,7 @@ public class PayController {
 		String userID = cmdService.getIDBySessionId(sessionId);
 		User user = userService.queryUser("userID", userID);
 		if (userID == null || user == null) {
-			return new SimpleVO(false, "用户尚未登录或用户不存在。");
+			return new SimpleVO(false, "请求失败，请重新登录。");
 		}
 		
 		if (money < 10) {
@@ -310,7 +343,7 @@ public class PayController {
 		
 		try {
 			transactionService.addTransaction(userID, null, (double)money, 0, 3);
-			Double balance = user.getBalance() - money;
+			Double balance = DoubleUtil.Subtraction(user.getBalance(), money);
 			Long youbiAmount = user.getYoubiAmount() + money * 10;
 			if (balance < 0) {
 				return new SimpleVO(false, "余额不足，请先充值。"); 
@@ -322,7 +355,6 @@ public class PayController {
 			String title = "兑换游币成功！";
 			String content = "恭喜您，您已成功兑换" + money * 10 + "游币";
 			newsService.addNews(userID, title, content, 1);
-			
 			return new SimpleVO(true, "余额兑换游币成功。"); 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -330,16 +362,19 @@ public class PayController {
 		}
 	}
 	
+	/**
+	 * 支付是否成功
+	 */
 	@GetMapping("/issucceed")
 	public SimpleVO isSucceed(@RequestParam(name="outTradeNo", required=true) String outTradeNo) {
 		
 		try {
 			OrderInfo order = orderService.queryOrder("outTradeNo", outTradeNo);
 			if (order == null) {
-				return new SimpleVO(false, "该订单不存在。");
+				return new SimpleVO(false, "该查询订单并不存在。");
 			}
 			if ("SUCCESS".equals(order.getPayStatus()) || "FAIL".equals(order.getPayStatus())) {
-				return new SimpleVO(true, "该订单已支付支付成功！");
+				return new SimpleVO(true, "该订单已支付成功！");
 			} else {
 				return new SimpleVO(false, "该订单尚未支付。");
 			}

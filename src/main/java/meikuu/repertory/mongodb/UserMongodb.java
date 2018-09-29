@@ -24,7 +24,7 @@ public class UserMongodb implements UserDao {
 	}
 	
 	@Override
-	public void removeUser(String condition, String value) {
+	public void removeUser(String condition, Object value) {
 		Query query = new Query(Criteria.where(condition).is(value));
 		mongoTemplate.remove(query, User.class);
 	}
@@ -56,66 +56,24 @@ public class UserMongodb implements UserDao {
 	}
 
 	@Override
-	public User queryUser(String condition, String value) {
+	public User queryUser(String condition, Object value) {
 		Query query = new Query(Criteria.where(condition).is(value));
 		return mongoTemplate.findOne(query, User.class);
 	}
 
 	@Override
-	public Long getAmount(String condition, String value) {
-		Query query = new Query();
-		if (value != null) {
-			query.addCriteria(Criteria.where(condition).regex(value));
-		}
-		return mongoTemplate.count(query, User.class);
-	}
-	
-	@Override
 	public Long getAmount(String condition, Object value) {
 		Query query = new Query();
-		if (value != null) {
+		if (condition != null) {
 			query.addCriteria(Criteria.where(condition).is(value));
 		}
 		return mongoTemplate.count(query, User.class);
 	}
 	
 	@Override
-	public Long getAmount(String condition1, String value1, String condition2, Integer value2, 
-			String condition3, Integer value3) {
+	public Long getAmount(String condition, Integer VIPKind, Integer memberKind, Boolean isVerify) {
 		Query query = new Query();
-		if (value1 != null) {
-			query.addCriteria(Criteria.where(condition1).regex(value1));
-		}
-		if (value2 != null) {
-			query.addCriteria(Criteria.where(condition2).in(value2));
-		}
-		if (value3 != null) {
-			query.addCriteria(Criteria.where(condition3).is(value3));
-		}
-		return mongoTemplate.count(query, User.class);
-	}
-	
-	@Override
-	public List<User> userlist() {
-		Query query = new Query();
-		return mongoTemplate.find(query, User.class);
-	}
-
-	@Override
-	public List<User> userList(String condition, Object value, Integer page, Integer size) {
-		Query query = new Query();
-		if (value != null) {
-			query.addCriteria(Criteria.where(condition).is(value));
-		}
-		query.skip((page - 1) * size);
-		query.limit(size);
-		return mongoTemplate.find(query, User.class);
-	}
-
-	@Override
-	public List<User> userList(String condition, Integer VIPKind, Integer memberKind, Boolean isVerify) {
-		Query query = new Query();
-		if (condition != null && !"".equals(condition)) {
+		if (condition != null && !"".equals(condition.trim())) {
 			Criteria criteria1 = Criteria.where("userID").regex(condition);
 			Criteria criteria2 = Criteria.where("username").regex(condition);
 			Criteria criteria3 = Criteria.where("nickname").regex(condition);
@@ -130,20 +88,51 @@ public class UserMongodb implements UserDao {
 		if (isVerify) {
 			query.addCriteria(Criteria.where("applyForOriginal").is(1));
 		}
+		return mongoTemplate.count(query, User.class);
+	}
+	
+	@Override
+	public List<User> userlist() {
+		Query query = new Query();
+		query.addCriteria(Criteria.where("vipKind").ne(0));
 		return mongoTemplate.find(query, User.class);
 	}
 
 	@Override
-	public List<User> userlist(String condition1, Object value1, String condition2, String value2) {
+	public List<User> userlist(String condition, String value, Integer page, Integer size) {
 		Query query = new Query();
-		if (value1 != null) {
-			query.addCriteria(Criteria.where(condition1).is(value1));
+		if (condition != null) {
+			query.addCriteria(Criteria.where(condition).regex(value));
 		}
-		if (value2 != null && !"".equals(value2)) {
-			query.addCriteria(Criteria.where(condition2).regex(value2));
+		if (page != null && size != null) {
+			query.skip((page - 1) * size);
+			query.limit(size);
 		}
 		return mongoTemplate.find(query, User.class);
 	}
 
-
+	@Override
+	public List<User> userlist(String condition, Integer VIPKind, Integer memberKind, Boolean isVerify, Integer page, Integer size) {
+		Query query = new Query();
+		if (condition != null && !"".equals(condition.trim())) {
+			Criteria criteria1 = Criteria.where("userID").regex(condition);
+			Criteria criteria2 = Criteria.where("username").regex(condition);
+			Criteria criteria3 = Criteria.where("nickname").regex(condition);
+			query.addCriteria(new Criteria().orOperator(criteria1, criteria2, criteria3));
+		}
+		if (VIPKind != null) {
+			query.addCriteria(Criteria.where("vipKind").is(VIPKind));
+		}
+		if (memberKind != null) {
+			query.addCriteria(Criteria.where("memberKind").is(memberKind));
+		}
+		if (isVerify) {
+			query.addCriteria(Criteria.where("applyForOriginal").is(1));
+		}
+		if (page != null && size != null) {
+			query.skip((page - 1) * size);
+			query.limit(size);
+		}
+		return mongoTemplate.find(query, User.class);
+	}
 }

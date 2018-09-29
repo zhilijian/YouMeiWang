@@ -19,7 +19,10 @@ import meikuu.repertory.service.AdminService;
 import meikuu.repertory.service.SessionService;
 import meikuu.website.vo.CommonVO;
 import meikuu.website.vo.SimpleVO;
-
+/**
+ * 后台管理项目·角色权限
+ * @author zhilijian
+ */
 @CrossOrigin
 @RestController
 @RequestMapping("/admin")
@@ -31,13 +34,16 @@ public class AdminController {
 	@Autowired
 	private SessionService cmdService;
 	 
+	/**
+	 * 管理员登录
+	 */
 	@PostMapping("/login")
 	public CommonVO login(@RequestParam(name="adminname", required=true) String adminname, 
 			@RequestParam(name="password", required=true) String password) {
 		
 		Admin admin = adminService.queryAdmin("adminname", adminname, "password", password);
 		if (admin == null) {
-			return new CommonVO(false, "用户不存在或密码错误。", "{}");
+			return new CommonVO(false, "管理员不存在或密码错误。", "{}");
 		}
 		
 		try {
@@ -54,21 +60,21 @@ public class AdminController {
 			data.put("rechargeManage", admin.getRechargeManage());
 			data.put("roleAuthority", admin.getRoleAuthority());
 			data.put("dataStatistics", admin.getDataStatistics());
-			return new CommonVO(true, "用户登录成功！", data);
+			return new CommonVO(true, "管理员登录成功！", data);
 		} catch (Exception e) {
 			e.printStackTrace();
-			return new CommonVO(false, "用户登录失败。", "出错信息：" + e.toString());
+			return new CommonVO(false, "管理员登录失败。", "出错信息：" + e.toString());
 		}
 	}
 	
+	/**
+	 * 管理员退出
+	 */
 	@GetMapping("/logout")
 	public SimpleVO logout(@RequestParam(name="adminToken", required=true) String sessionId) {
 		
 		try {
 			String adminID = cmdService.getIDBySessionId(sessionId);
-			if (adminID == null) {
-				return new SimpleVO(false, "管理员尚未登录");
-			}
 			cmdService.removeSession(adminID);
 			return new SimpleVO(true, "管理员退出成功！");
 		} catch (Exception e) {
@@ -77,6 +83,9 @@ public class AdminController {
 		}
 	}
 	
+	/**
+	 * 创建管理员
+	 */
 	@PostMapping("/addadmin")
 	public SimpleVO addAdmin(@RequestParam(name="adminname", required=true) String adminname,
 			@RequestParam(name="password", required=true) String password,
@@ -90,14 +99,14 @@ public class AdminController {
 			@RequestParam(name="adminToken", required=true) String sessionId) {
 		
 		String adminID = cmdService.getIDBySessionId(sessionId);
-		Admin admin1 = adminService.queryAdmin("adminID", adminID);
-		if (adminID == null || admin1 == null) {
-			return new SimpleVO(false, "用户尚未登录或不存在。");
+		Admin admin = adminService.queryAdmin("adminID", adminID);
+		if (adminID == null || admin == null) {
+			return new SimpleVO(false, "登录超时，请重新登录。");
 		}
 		
-		boolean flag = ContainUtil.hasNumber(admin1.getRoleAuthority(), 0);
+		boolean flag = ContainUtil.hasNumber(admin.getRoleAuthority(), 0);
 		if (!flag) {
-			return new SimpleVO(false, "该用户无此权限");
+			return new SimpleVO(false, "该管理员无创建管理员权限");
 		}
 		
 		try {
@@ -110,6 +119,9 @@ public class AdminController {
 		}
 	}
 	
+	/**
+	 * 修改管理员密码
+	 */
 	@PostMapping("/editpassword")
 	public SimpleVO editPassword(@RequestParam(name="password1", required=true) String password1,
 			@RequestParam(name="password2", required=true) String password2,
@@ -118,7 +130,7 @@ public class AdminController {
 		String adminID = cmdService.getIDBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
-			return new SimpleVO(false, "用户尚未登录或不存在。");
+			return new SimpleVO(false, "登录超时，请重新登录。");
 		}
 		
 		try {
@@ -134,6 +146,9 @@ public class AdminController {
 		}
 	}
 	
+	/**
+	 * 修改管理员信息
+	 */
 	@PostMapping("/editadmin")
 	public SimpleVO editadmin(@RequestParam(name="adminID", required=true) String adminID2,
 			@RequestParam(name="password", required=false) String password,
@@ -149,12 +164,11 @@ public class AdminController {
 		String adminID1 = cmdService.getIDBySessionId(sessionId);
 		Admin admin1 = adminService.queryAdmin("adminID", adminID1);
 		if (adminID1 == null || admin1 == null) {
-			return new SimpleVO(false, "用户尚未登录或不存在。");
+			return new SimpleVO(false, "登录超时，请重新登录。");
 		}
 		
-		boolean flag = ContainUtil.hasNumber(admin1.getRoleAuthority(), 0);
-		if (!flag) {
-			return new SimpleVO(false, "该用户无此权限。");
+		if (!adminID1.equals("8888")) {
+			return new SimpleVO(false, "非超级管理员无修改权限。");
 		}
 		
 		if (adminID2.equals("8888")) {
@@ -192,13 +206,16 @@ public class AdminController {
 			}
 			admin2.setDataStatistics(dataStatistics);
 			adminService.updateAdmin(admin2);
-			return new SimpleVO(true, "权限修改成功！");
+			return new SimpleVO(true, "管理员权限修改成功！");
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new SimpleVO(false, "出错信息：" + e.toString());
 		}
 	}
 	
+	/**
+	 * 移除管理员
+	 */
 	@GetMapping("/removeadmin")
 	public SimpleVO removeAdmin(@RequestParam(name="adminID", required=true) String adminID2, 
 			@RequestParam(name="adminToken", required=true) String sessionId) {
@@ -206,12 +223,11 @@ public class AdminController {
 		String adminID1 = cmdService.getIDBySessionId(sessionId);
 		Admin admin1 = adminService.queryAdmin("adminID", adminID1);
 		if (adminID1 == null || admin1 == null) {
-			return new SimpleVO(false, "用户尚未登录或不存在。");
+			return new SimpleVO(false, "登录超时，请重新登录。");
 		}
 		
-		boolean flag = ContainUtil.hasNumber(admin1.getRoleAuthority(), 0);
-		if (!flag) {
-			return new SimpleVO(false, "该用户无此权限。");
+		if (!adminID1.equals("8888")) {
+			return new SimpleVO(false, "非超级管理员无移除权限。");
 		}
 		
 		if (adminID2.equals("8888")) {
@@ -223,10 +239,13 @@ public class AdminController {
 			return new SimpleVO(true, "移除管理员成功！");
 		} catch (Exception e) {
 			e.printStackTrace();
-			return new SimpleVO(false, "出错信息：" + e.getMessage());
+			return new SimpleVO(false, "出错信息：" + e.toString());
 		}
 	}
 	
+	/**
+	 * 批量移除管理员
+	 */
 	@GetMapping("/batchremove")
 	public SimpleVO BatchRemoveAdmin(@RequestParam(name="adminIDs", required=true) String[] adminIDs, 
 			@RequestParam(name="adminToken", required=true) String sessionId) {
@@ -234,12 +253,11 @@ public class AdminController {
 		String adminID1 = cmdService.getIDBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID1);
 		if (adminID1 == null || admin == null) {
-			return new SimpleVO(false, "用户尚未登录或不存在。");
+			return new SimpleVO(false, "登录超时，请重新登录。");
 		}
 		
-		boolean flag = ContainUtil.hasNumber(admin.getRoleAuthority(), 0);
-		if (!flag) {
-			return new SimpleVO(false, "该用户无此权限。");
+		if (!adminID1.equals("8888")) {
+			return new SimpleVO(false, "非超级管理员无移除权限。");
 		}
 		
 		try {
@@ -249,13 +267,16 @@ public class AdminController {
 				}
 				adminService.removeAdmin("adminID", adminID2);
 			}
-			return new SimpleVO(true, "批量删除成功！");
+			return new SimpleVO(true, "批量移除管理员成功！");
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new SimpleVO(false, "出错信息：" + e.toString());
 		}
 	}
 	
+	/**
+	 * 管理员列表
+	 */
 	@GetMapping("/adminlist")
 	public CommonVO adminlist(@RequestParam(name="position", required=false) String position,
 			@RequestParam(name="page", required=true) Integer page,
@@ -265,28 +286,35 @@ public class AdminController {
 		String adminID = cmdService.getIDBySessionId(sessionId);
 		Admin admin1 = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin1 == null) {
-			return new CommonVO(false, "用户尚未登录或不存在。","{}");
+			return new CommonVO(false, "登录超时，请重新登录。","{}");
 		}
 		
 		boolean flag = ContainUtil.hasNumber(admin1.getRoleAuthority(), 1);
 		if (!flag) {
-			return new CommonVO(false, "该用户无此权限。","请先申请查看管理员的权限。");
+			return new CommonVO(false, "管理员无查看管理员列表权限。","{}");
 		}
 		
 		if (page <= 0 || size <= 0) {
-			return new CommonVO(false, "参数输入不合理。","请先核对是否正确输入参数。");
+			return new CommonVO(false, "请先核对是否正确输入参数。","{}");
 		}
 		
 		try {
-			List<Admin> adminlist1 = adminService.adminlist("position", position);
-			List<Admin> adminlist2 = new LinkedList<Admin>();
-			int currIdx = (page > 1 ? (page-1)*size : 0);
-			for (int i = 0; i < size && i < adminlist1.size()-currIdx; i++) {
-				Admin admin2 = adminlist1.get(currIdx + i);
-				adminlist2.add(admin2);
+			List<Admin> adminlist = adminService.adminlist("position", position, page, size);
+			List<Map<String, Object>> maplist = new LinkedList<Map<String, Object>>();
+			for (Admin admin3 : adminlist) {
+				Map<String, Object> adminmap = new HashMap <String, Object>();
+				adminmap.put("adminID", admin3.getAdminID());
+				adminmap.put("position", admin3.getPosition());
+				adminmap.put("userManage", admin3.getUserManage());
+				adminmap.put("workManage", admin3.getWorkManage());
+				adminmap.put("homepageModule", admin3.getHomepageModule());
+				adminmap.put("rechargeManage", admin3.getRechargeManage());
+				adminmap.put("roleAuthority", admin3.getRoleAuthority());
+				adminmap.put("dataStatistics", admin3.getDataStatistics());
+				maplist.add(adminmap);
 			}
-			
-			Long adminAmount = (long) adminlist1.size();
+
+			Long adminAmount = adminService.getAmount("position", position);
 			Long pageAmount = 0l;
 			if (adminAmount % size == 0) {
 				pageAmount = adminAmount / size;
@@ -294,28 +322,14 @@ public class AdminController {
 				pageAmount = adminAmount / size + 1;
 			}
 			
-			List<Map<String, Object>> maplist = new LinkedList<Map<String, Object>>();
-			for (Admin admin3 : adminlist2) {
-				Map<String, Object> map = new HashMap <String, Object>();
-				map.put("adminID", admin3.getAdminID());
-				map.put("position", admin3.getPosition());
-				map.put("userManage", admin3.getUserManage());
-				map.put("workManage", admin3.getWorkManage());
-				map.put("homepageModule", admin3.getHomepageModule());
-				map.put("rechargeManage", admin3.getRechargeManage());
-				map.put("roleAuthority", admin3.getRoleAuthority());
-				map.put("dataStatistics", admin3.getDataStatistics());
-				maplist.add(map);
-			}
-			
 			Map<String, Object> data = new HashMap <String, Object>();
 			data.put("admins", maplist);
 			data.put("adminAmount", adminAmount);
 			data.put("pageAmount", pageAmount);
-			return new CommonVO(true, "返回所有管理员成功！", data);
+			return new CommonVO(true, "查询管理员列表成功！", data);
 		} catch (Exception e) {
 			e.printStackTrace();
-			return new CommonVO(false,"返回所有管理员失败。", "出错信息：" + e.toString());
+			return new CommonVO(false,"查询管理员列表失败。", "出错信息：" + e.toString());
 		}
 	}
 }

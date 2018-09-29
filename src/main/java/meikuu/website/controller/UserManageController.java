@@ -1,12 +1,9 @@
 package meikuu.website.controller;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -25,7 +22,10 @@ import meikuu.repertory.service.SessionService;
 import meikuu.repertory.service.UserService;
 import meikuu.website.vo.CommonVO;
 import meikuu.website.vo.SimpleVO;
-
+/**
+ * 后台管理项目·用户管理
+ * @author zhilijian
+ */
 @CrossOrigin
 @RestController
 @RequestMapping("/usermanage")
@@ -43,6 +43,9 @@ public class UserManageController {
 	@Autowired
 	private SessionService sessionService;
 	
+	/**
+	 * 普通用户/原创作者 查询/搜索
+	 */
 	@PostMapping("/usersearch")
 	public CommonVO userSearch(@RequestParam(name="condition", required=false) String condition,
 			@RequestParam(name="VIPKind", required=false) Integer VIPKind,
@@ -55,7 +58,7 @@ public class UserManageController {
 		String adminID = sessionService.getIDBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
-			return new CommonVO(false, "用户尚未登录或不存在。", "{}");
+			return new CommonVO(false, "请求失败，请重新登录。", "{}");
 		}
 		
 		int authority = 0;
@@ -65,27 +68,17 @@ public class UserManageController {
 		
 		boolean flag = ContainUtil.hasNumber(admin.getUserManage(), authority);
 		if (!flag) {
-			return new CommonVO(false, "该用户无此权限。","请先申请查看管理员的权限。");
+			return new CommonVO(false, "该管理员无查询/搜索权限。","{}");
 		}
 		
 		if (page <= 0 || size <= 0) {
-			return new CommonVO(false, "参数输入不合理。","请先核对是否正确输入参数。");
+			return new CommonVO(false, "请先核对是否正确输入参数。","{}");
 		}
 		
 		try {
-			Set<User> userset = new HashSet<User>();
-			userset.addAll(userService.userlist(condition, VIPKind, memberKind, isVerify));
-			
-			List<User> userlist1 = new ArrayList<User>(userset);
-			List<User> userlist2 = new LinkedList<User>();
-			int currIdx = (page > 1 ? (page-1)*size : 0);
-			for (int i = 0; i < size && i < userset.size()-currIdx; i++) {
-				User user = userlist1.get(currIdx + i);
-				userlist2.add(user);
-			}
-			
+			List<User> userlist = userService.userlist(condition, VIPKind, memberKind, isVerify, page, size);
 			List<Map<String, Object>> users = new LinkedList<Map<String, Object>>();
-			for (User user : userlist2) {
+			for (User user : userlist) {
 				Map<String, Object> usermap = new HashMap <String, Object>();
 				usermap.put("userID", user.getUserID());
 				usermap.put("username", user.getUsername());
@@ -98,7 +91,7 @@ public class UserManageController {
 				users.add(usermap);
 			}
 			
-			Long userAmount = (long) userset.size();
+			Long userAmount = userService.getAmount(condition, VIPKind, memberKind, isVerify);
 			Long pageAmount = 0l;
 			if (userAmount % size == 0) {
 				pageAmount = userAmount / size;
@@ -110,13 +103,16 @@ public class UserManageController {
 			data.put("users", users);
 			data.put("userAmount", userAmount);
 			data.put("pageAmount", pageAmount);
-			return new CommonVO(true, "用户查询成功", data);
+			return new CommonVO(true, "查询/搜索用户列表成功", data);
 		} catch (Exception e) {
 			e.printStackTrace();
-			return new CommonVO(false,"用户查询失败。", "出错信息：" + e.toString());
+			return new CommonVO(false,"查询/搜索用户列表失败。", "出错信息：" + e.toString());
 		}
 	}
 	
+	/**
+	 * 查询用户详情
+	 */
 	@GetMapping("/userdetail")
 	public CommonVO userDetail(@RequestParam(name="userID", required=true) String userID, 
 			@RequestParam(name="adminToken", required=true) String sessionId) {
@@ -124,13 +120,13 @@ public class UserManageController {
 		String adminID = sessionService.getIDBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
-			return new CommonVO(false, "管理员未登录或不存在。", "{}");
+			return new CommonVO(false, "请求失败，请重新登录。", "{}");
 		}
 		
 		try {
 			User user = userService.queryUser("userID", userID);
 			if (user == null) {
-				return new CommonVO(false, "该用户不存在。", "请先核对该用户是否存在。");
+				return new CommonVO(false, "请先核对该用户是否存在。", "{}");
 			}
 			
 			Map<String, Object> data = new HashMap<String, Object>();
@@ -146,13 +142,16 @@ public class UserManageController {
 			data.put("memberKind", user.getMemberKind());
 			data.put("youbiAmount", user.getYoubiAmount());
 			data.put("balance", user.getBalance());
-			return new CommonVO(true, "返回用户详情成功！", data);
+			return new CommonVO(true, "查询用户详情成功！", data);
 		} catch (Exception e) {
 			e.printStackTrace();
-			return new CommonVO(false, "返回用户详情失败。", "出错信息：" + e.getMessage());
+			return new CommonVO(false, "查询用户详情失败。", "出错信息：" + e.toString());
 		}
 	}
 	
+	/**
+	 * 单独/批量 禁止/解禁用户
+	 */
 	@PostMapping("/banuser")
 	public SimpleVO banUser(@RequestParam(name="userIDs", required=true) String[] userIDs, 
 			@RequestParam(name="banOrRelease", required=true) Boolean banOrRelease,
@@ -161,12 +160,11 @@ public class UserManageController {
 		String adminID = sessionService.getIDBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
-			return new SimpleVO(false, "用户尚未登录或不存在。");
+			return new SimpleVO(false, "请求失败，请重新登录。");
 		}
 		
-		boolean flag = ContainUtil.hasNumber(adminService.queryAdmin("adminID", adminID).getHomepageModule(), 1);
-		if (!flag) {
-			return new SimpleVO(false, "该用户无此权限。");
+		if (!"8888".equals(adminID)) {
+			return new SimpleVO(false, "该管理员无禁止/解禁用户权限。");
 		}
 		
 		try {
@@ -182,13 +180,15 @@ public class UserManageController {
 				}
 				return new SimpleVO(true, "解禁用户登录成功！");
 			}
-			
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new SimpleVO(false, "出错信息：" + e.toString());
 		}
 	}
 	
+	/**
+	 * 原创作者审核（列表）
+	 */
 	@PostMapping("/verifyapply")
 	public CommonVO verifyApply(@RequestParam(name = "userID", required = true) String userID,
 			@RequestParam(name = "isPass", required = true) boolean isPass,
@@ -198,18 +198,18 @@ public class UserManageController {
 		String adminID = sessionService.getIDBySessionId(sessionId);
 		Admin admin = adminService.queryAdmin("adminID", adminID);
 		if (adminID == null || admin == null) {
-			return new CommonVO(false, "用户尚未登录或不存在。", "{}");
+			return new CommonVO(false, "请求失败，请重新登录。", "{}");
 		}
 
 		boolean flag = ContainUtil.hasNumber(admin.getUserManage(), 1);
 		if (!flag) {
-			return new CommonVO(false, "该用户无此权限。", "请先核对该管理员是否有此权限。");
+			return new CommonVO(false, "该管理员无原创作者审核权限。", "{}");
 		}
 
 		try {
 			User user = userService.queryUser("userID", userID);
 			if (user == null) {
-				return new CommonVO(false, "该用户不存在或已销户", "请审核其他用户。");
+				return new CommonVO(false, "该用户不存在或已销户", "{}");
 			}
 			if (isPass) {
 				userService.setUser("userID", userID, "applyForOriginal", 2);
@@ -231,7 +231,6 @@ public class UserManageController {
 			data.put("userID", userID);
 			data.put("nickname", user.getNickname());
 			data.put("applyForOriginal", user.getApplyForOriginal());
-			
 			return new CommonVO(true, "审核原创作者成功！", data);
 		} catch (Exception e) {
 			e.printStackTrace();

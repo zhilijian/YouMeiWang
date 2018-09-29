@@ -27,6 +27,7 @@ public class MsgController {
 	
 	@GetMapping("/sendalimsg")
 	public CommonVO sendAliMsg(@RequestParam(name="username", required=true) String username, 
+			@RequestParam(name="msgType", required=true) Integer msgType, 
 			HttpSession session) throws ClientException {
 	    
 		String code = RandomUtil.getRandomNumber(6);
@@ -36,8 +37,21 @@ public class MsgController {
 	    
 	    Map<String, String> paramMap = new HashMap<String, String>();
 	    paramMap.put("phoneNumber", username);
-	    paramMap.put("msgSign", "游美网");
-	    paramMap.put("templateCode", "SMS_114070227");
+	    paramMap.put("msgSign", "3d游模网");
+	    switch (msgType) {
+		case 1:
+			//用户注册验证码
+		    paramMap.put("templateCode", "SMS_146760249");
+			break;
+		case 2:
+			//登录确认验证码
+			paramMap.put("templateCode", "SMS_146760251");
+			break;
+		case 3:
+			//修改密码验证码
+			paramMap.put("templateCode", "SMS_146760248");
+			break;
+		}
 	    paramMap.put("jsonContent", jsonContent);
 	    Map<String, Object> data = new HashMap<String, Object>();
 	    data.put("code", code);

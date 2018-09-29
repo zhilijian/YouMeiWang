@@ -24,7 +24,7 @@ public class AdminMongodb implements AdminDao{
 	}
 
 	@Override
-	public void removeAdmin(String condition, String value) {
+	public void removeAdmin(String condition, Object value) {
 		Query query = new Query(Criteria.where(condition).is(value));
 		mongoTemplate.remove(query, Admin.class);
 	}
@@ -70,10 +70,23 @@ public class AdminMongodb implements AdminDao{
 	}
 
 	@Override
-	public List<Admin> adminlist(String condition, String value) {
+	public Long getAmount(String condition, String value) {
 		Query query = new Query();
 		if (value != null) {
 			query.addCriteria(Criteria.where(condition).regex(value));
+		}
+		return mongoTemplate.count(query, Admin.class);
+	}
+
+	@Override
+	public List<Admin> adminlist(String condition, String value, Integer page, Integer size) {
+		Query query = new Query();
+		if (value != null) {
+			query.addCriteria(Criteria.where(condition).regex(value));
+		}
+		if (page != null && size != null) {
+			query.skip((page - 1) * size);
+			query.limit(size);
 		}
 		return mongoTemplate.find(query, Admin.class);
 	}

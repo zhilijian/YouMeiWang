@@ -16,8 +16,8 @@ public class AliyunMessageUtil {
     private static final String domain = "dysmsapi.aliyuncs.com";
     
  // 此处需要替换成开发者自己的AK(在阿里云访问控制台寻找)
-    private static final String accessKeyId = "1Knd40jYwXyodrtM";
-    private static final String accessKeySecret = "vODCIWVRx158buBec5OwciT5pXDrn2";
+    private static final String accessKeyId = "LTAINdAYE3iJfUFE";
+    private static final String accessKeySecret = "0nkVPBgjdE4VLWWSEENrF2Y8Q7kAwE";
     
     public static SendSmsResponse sendSms(Map<String, String> paramMap) throws com.aliyuncs.exceptions.ClientException {
 

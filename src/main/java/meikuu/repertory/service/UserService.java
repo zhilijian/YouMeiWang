@@ -12,6 +12,10 @@ import meikuu.domain.entity.user.User;
 import meikuu.domain.util.RandomUtil;
 import meikuu.repertory.dao.UserDao;
 
+/**
+ * 用户对象业务层
+ * @author zhilijian
+ */
 @Service
 public class UserService {
 
@@ -21,6 +25,9 @@ public class UserService {
 	@Autowired
 	private ConfigService configService;
 
+	/**
+	 * 添加用户对象，并初始化部分属性
+	 */
 	public User addUser(String username) {
 		User user = new User();
 		String userID;
@@ -50,53 +57,77 @@ public class UserService {
 		return user;
 	}
 	
+	/**
+	 * 单条件精确移除用户对象
+	 */
 	public void removeUser(String condition, String value) {
 		userDao.removeUser(condition, value);
 	}
 	
+	/**
+	 * 更新用户对象（注意mongodb层）
+	 */
 	public void updateUser(User user) {
 		userDao.updateUser(user);
 	}
 
-	public User queryUser(String condition, String value) {
+	/**
+	 * 单条件查询用户对象
+	 */
+	public User queryUser(String condition, Object value) {
 		return userDao.queryUser(condition, value);
 	}
 	
+	/**
+	 * 设置目标对象的的属性性
+	 */
 	public void setUser(String condition, Object value1, String target, Object value2) {
 		userDao.setUser(condition, value1, target, value2);
 	}
 	
-	public String queryNickname(String condition, String value) {
+	/**
+	 * 查询用户昵称
+	 */
+	public String queryNickname(String condition, Object value) {
 		User user = userDao.queryUser(condition, value);
 		return user.getNickname();
 	}
 	
-	public Long getAmount(String condition, String value) {
-		return userDao.getAmount(condition, value);
-	}
-	
+	/**
+	 * 单条件精确查询用户对象集合数目
+	 */
 	public Long getAmount(String condition, Object value) {
 		return userDao.getAmount(condition, value);
 	}
 	
-	public Long getAmount(String condition1, String value1, String condition2, Integer value2, 
-			String condition3, Integer value3) {
-		return userDao.getAmount(condition1, value1, condition2, value2, condition3, value3);
+	/**
+	 * 通过搜索条件、VIP类别、身份（会员类别）查选用户对象集合数量
+	 * 用于普通用户/原创作者 查询/搜索接口
+	 */
+	public Long getAmount(String condition, Integer VIPKind, Integer memberKind, Boolean isVerify) {
+		return userDao.getAmount(condition, VIPKind, memberKind, isVerify);
 	}
 	
+	/**
+	 * 查询大众用户以外的会员用户对象集合，
+	 * 用于定时器Controller
+	 */
 	public List<User> userlist() {
 		return userDao.userlist();
 	}
 	
-	public List<User> userList(String condition, Object value, Integer page, Integer size) {
-		return userDao.userList(condition, value, page, size);
+	/**
+	 * 单条件模糊分页查询用户对象集合
+	 */
+	public List<User> userlist(String condition, String value, Integer page, Integer size) {
+		return userDao.userlist(condition, value, page, size);
 	}
 	
-	public List<User> userlist(String condition, Integer VIPKind, Integer memberKind, Boolean isVerify) {
-		return userDao.userList(condition, VIPKind, memberKind, isVerify);
-	}
-	
-	public List<User> userlist(String condition1, Object value1, String condition2, String value2) {
-		return userDao.userlist(condition1, value1, condition2, value2);
+	/**
+	 * 通过搜索条件、VIP类别、身份（会员类别）查选用户对象集合
+	 * 用于普通用户/原创作者 查询/搜索接口
+	 */
+	public List<User> userlist(String condition, Integer VIPKind, Integer memberKind, Boolean isVerify, Integer page, Integer size) {
+		return userDao.userlist(condition, VIPKind, memberKind, isVerify, page, size);
 	}
 }

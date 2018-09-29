@@ -3,25 +3,22 @@ package meikuu.repertory.service;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import meikuu.domain.entity.user.User;
 import meikuu.domain.entity.work.FileInfo;
 import meikuu.domain.entity.work.Work;
-import meikuu.domain.util.ListUtil;
 import meikuu.domain.util.RandomUtil;
 import meikuu.repertory.dao.FileDao;
-import meikuu.repertory.dao.UserDao;
 import meikuu.repertory.dao.WorkDao;
 
+/**
+ * 作品对象业务层
+ * @author zhilijian
+ */
 @Service
 public class WorkService {
-
-	@Autowired
-	private UserDao userDao;
 	
 	@Autowired
 	private WorkDao workDao;
@@ -29,10 +26,12 @@ public class WorkService {
 	@Autowired
 	private FileDao fileDao;
 	
-	public Work addWork(String workName, String userID, String primaryClassification, 
-			String secondaryClassification, String reclassify, String pattern, boolean hasTextureMapping, 
-			boolean isBinding, boolean hasCartoon, Integer price, String[] labels, String remarks, 
-			String[] pictures, String[] files) {
+	/**
+	 * 添加作品，并初始化部分属性
+	 */
+	public Work addWork(String workName, String userID, String primaryClassification, String secondaryClassification, 
+			String reclassify, String pattern, Boolean hasTextureMapping, Boolean isBinding, Boolean hasCartoon, Integer price, 
+			String[] labels, String remarks, String[] pictures, String[] files) {
 		
 		Work work = new Work();
 		String workID = null;
@@ -92,126 +91,100 @@ public class WorkService {
 		return work;
 	}
 	
-	public void addCollectWork(String userID, String workID) {
-		User user = userDao.queryUser("userID", userID);
-		List<String> collectWork = ListUtil.addElement(user.getCollectWork(), workID);
-		userDao.setUser("userID", userID, "collectWork", collectWork);
-	}
-	
+	/**
+	 * 单条件精确移除作品对象
+	 */
 	public void removeWork(String condition, Object value) {
 		workDao.removeWork(condition, value);
 	}
-	
-	public void removeWork(String condition1, Object value1, String condition2, Object value2) {
-		workDao.removeWork(condition1, value1, condition2, value2);
-	}
-	
-	public void removeCollectWork(String userID, String workID) {
-		User user = userDao.queryUser("userID", userID);
-		List<String> collectWork = ListUtil.removeElement(user.getCollectWork(), workID);
-		userDao.setUser("userID", userID, "collectWork", collectWork);
-	}
 
+	/**
+	 * 更新作品（注意mongodb层）
+	 */
 	public void updateWork(Work work) {
 		workDao.updateWork(work);
 	}
 	
+	/**
+	 * 单条件精确查询作品对象
+	 */
 	public Work queryWork(String condition, Object value) {
 		return workDao.queryWork(condition, value);
 	}
 	
+	/**
+	 * 设置目标作品对象某个属性
+	 */
 	public void setWork(String condition, Object value1, String target, Object value2) {
 		workDao.setWork(condition, value1, target, value2);
 	}
 	
-	public String queryWorkName(String condition, Object value) {
-		Work work = workDao.queryWork(condition, value);
-		return work.getWorkName();
-	}
-	
-	public Long getAmount(String condition, String value) {
-		return workDao.getAmount(condition, value);
-	}
-	
+	/**
+	 * 分别查询一级分类的作品对象集合的数量，
+	 * 只针对已通过作品，
+	 * 用于后台管理项目下载/访问排行接口
+	 */
 	public Long getAmount(String condition, Object value) {
 		return workDao.getAmount(condition, value);
 	}
 	
-	public Long getAmount(String condition1, String value1, String condition2, Object value2) {
-		return workDao.getAmount(condition1, value1, condition2, value2);
+	/**
+	 * 通过搜索条件、一级分类、是否审核作品查询作品对象集合数量，
+	 * 用于后台管理项目作品管理列表/搜索接口
+	 */
+	public Long getAmount(String condition, Integer primaryClassification, Boolean verifyState) {
+		return workDao.getAmount(condition, primaryClassification, verifyState);
 	}
 	
-	public Long getAmount(String condition1, Object value1, String condition2, Object value2, String condition3, Object value3) {
-		return workDao.getAmount(condition1, value1, condition2, value2, condition3, value3);
+	/**
+	 * 通过作品类型、搜索条件、一级分类、二级分类、三级分类、格式、排序类型查询作品对象集合数量，
+	 * 用于前台项目作品搜索接口
+	 */
+	public Long getAmount(Integer modelType, String condition, Integer primaryClassification,
+			Integer secondaryClassification, Integer reclassify, Integer pattern, Integer sortType) {
+		return workDao.getAmount(modelType, condition, primaryClassification, secondaryClassification, reclassify, pattern, sortType);
 	}
 	
-	public Long getAmount(List<Map<String, Object>> conditions) {
-		return workDao.getAmount(conditions);
+	/**
+	 * 根据一级分类和二级分类进行搜索，
+	 * 限制展示个数，按照下载量从高到低排序，
+	 * 用于作品排序接口
+	 */
+	public List<Work> workSort(Integer primaryClassification, Integer secondaryClassification, Integer limit) {
+		return workDao.workSort(primaryClassification, secondaryClassification, limit);
 	}
 	
-	public Long getAmount(Integer primaryClassification) {
-		return workDao.getAmount(primaryClassification);
-	}
-	
-	public List<Work> workSortDESC(String condition1, Object value1, String condition2, Object value2, String condition3, Integer limit) {
-		return workDao.workSortDESC(condition1, value1, condition2, value2, condition3, limit);
-	}
-	
-	public List<Work> workSortASC(String condition1, Object value1, String condition2, Object value2, String condition3, Integer limit) {
-		return workDao.workSortASC(condition1, value1, condition2, value2, condition3, limit);
-	}
-	
-	public List<Work> workSortDESC(String condition, Map<String, Object> conditions, Integer limit) {
-		return workDao.workSortDESC(condition, conditions, limit);
-	}
-	
-	public List<Work> workList(String condition, List<String> values) {
-		List<Work> worklist = new LinkedList<Work>();
-		for (String value : values) {
-			worklist.add(workDao.queryWork(condition, value));
-		}
-		return worklist;
-	}
-	
-	public List<Work> workList(String condition, String value, Integer page, Integer size) {
-		return workDao.workList(condition, value, page, size);
-	}
-	
-	public List<Work> workList(String condition, Integer value, Integer page, Integer size) {
-		return workDao.workList(condition, value, page, size);
-	}
-	
-	public List<Work> workList(Boolean flag, String condition1, String value1, 
-			String condition2, Integer value2, String condition3, Integer value3, Integer page, Integer size) {
-		return workDao.workList(flag, condition1, value1, condition2, value2, condition3, value3, page, size);
-	}
-	
-	public List<Work> workList(String condition1, Object value1, 
-			String condition2, Object value2, String condition3, Object value3, Integer page, Integer size) {
-		return workDao.workList(condition1, value1, condition2, value2, condition3, value3, page, size);
-	}
-	
-	public List<Work> workList(Integer searchTpye, String condition, String value, Map<String, Object> conditions, Integer page, Integer size) {
-		return workDao.workList(searchTpye, condition, value, conditions, page, size);
-	}
-	
-	public List<Work> workList1(List<Map<String, Object>> conditions, Integer page, Integer size) {
-		return workDao.workList1(conditions, page, size);
-	}
-	
+	/**
+	 * 通过作品类型、搜索条件、一级分类、二级分类、三级分类、格式、排序类型查询作品对象集合，
+	 * 用于前台项目作品搜索接口
+	 */
 	public List<Work> worklist(Integer modelType, String condition, Integer primaryClassification, 
-			Integer secondaryClassification, Integer reclassify, Integer pattern, Integer sortType){
-		return workDao.worklist(modelType, condition, primaryClassification, secondaryClassification, reclassify, pattern, sortType);
+			Integer secondaryClassification, Integer reclassify, Integer pattern, Integer sortType, Integer page, Integer size){
+		return workDao.worklist(modelType, condition, primaryClassification, secondaryClassification, reclassify, pattern, sortType, page, size);
 	}
 	
-	public List<Work> worklist(String condition, Integer primaryClassification, Boolean verifyState) {
-		return workDao.worklist(condition, primaryClassification, verifyState);
+	/**
+	 * 通过搜索条件、一级分类、是否审核作品查询作品对象集合，
+	 * 用于后台管理项目作品管理列表/搜索接口
+	 */
+	public List<Work> worklist(String condition, Integer primaryClassification, Boolean verifyState, Integer page, Integer size) {
+		return workDao.worklist(condition, primaryClassification, verifyState, page, size);
 	}
 	
-	public List<Work> worklist(Integer primaryClassification, Integer secondaryClassification) {
-		return workDao.worklist(primaryClassification, secondaryClassification);
+	/**
+	 * 查询相同一级分类、二级分类的相关作品 ，
+	 * workID用于排除作品本身，
+	 * 用于前台界面项目作品详情接口 
+	 */
+	public List<Work> worklist(Integer primaryClassification, Integer secondaryClassification, String workID) {
+		return workDao.worklist(primaryClassification, secondaryClassification, workID);
 	}
 	
+	/**
+	 * 通过一级分类查询作品对象集合，
+	 * 按下载量或访问量从高到底排序
+	 * 用于后台管理项目下载/访问排行接口
+	 */
 	public List<Work> worklist(Integer primaryClassification, Boolean downloadOrBrowse, Integer page, Integer size) {
 		return workDao.worklist(primaryClassification, downloadOrBrowse, page, size);
 	}

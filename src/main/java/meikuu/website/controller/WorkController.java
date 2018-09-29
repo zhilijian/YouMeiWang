@@ -28,6 +28,11 @@ import meikuu.repertory.service.WorkService;
 import meikuu.website.vo.CommonVO;
 import meikuu.website.vo.SimpleVO;
 
+/**
+ * 前台界面项目·作品模块，
+ * 作品对象表现层
+ * @author zhilijian
+ */
 @CrossOrigin
 @RestController
 @RequestMapping("/work")
@@ -51,6 +56,9 @@ public class WorkController {
 	@Autowired
 	private SessionService cmdService;
 	
+	/**
+	 * 添加作品
+	 */
 	@PostMapping("/addverifyingwork") 
 	public CommonVO addVerifyingWork(@RequestParam(name="workName", required=true) String workName,
 			@RequestParam(name="primaryClassification", required=true) String primaryClassification,
@@ -70,7 +78,7 @@ public class WorkController {
 		String userID = cmdService.getIDBySessionId(sessionId);
 		User user = userService.queryUser("userID", userID);
 		if (userID == null || user == null) {
-			return new CommonVO(false, "用户尚未登录或不存在。", "请先登录再操作"); 
+			return new CommonVO(false, "请求失败，请重新登录。", "{}"); 
 		}
 		
 		try {
@@ -85,13 +93,15 @@ public class WorkController {
 			data.put("nickname", user.getNickname());
 			data.put("workID", workID);
 			data.put("workname", work.getWorkName());
-		
 			return new CommonVO(true, "添加作品成功！", data);
 		} catch (Exception e) {
 			return new CommonVO(false, "添加作品失败。", "错误信息：" + e.toString());
 		} 
 	}
 	
+	/**
+	 * 作品删除
+	 */
 	@GetMapping("/removework")
 	public SimpleVO removeWork(@RequestParam(name="workID", required=true) String workID, 
 			@RequestParam(name="userToken", required=true) String sessionId) {
@@ -99,32 +109,24 @@ public class WorkController {
 		String userID = cmdService.getIDBySessionId(sessionId);
 		User user = userService.queryUser("userID", userID);
 		if (userID == null || user == null) {
-			return new SimpleVO(false, "用户尚未登录或不存在。"); 
+			return new SimpleVO(false, "请求失败，请重新登录。"); 
 		}
 		
 		try {
 			Work work = workService.queryWork("workID", workID);
-			if (!user.getUsername().equals(work.getAuthor())) {
+			String username = user.getUsername();
+			String author = work.getAuthor();
+			if (!username.equals(author)) {
 				return new SimpleVO(false, "非作者无法删除该作品。"); 
 			}
-			List<String> worklist = new ArrayList<String>();
-			switch (work.getVerifyState()) {
-			case 0:
-				worklist = ListUtil.removeElement(user.getVerifyingWork(), workID);
-				userService.setUser("userID", userID, "verifyingWork", worklist);
-				break;
-			case 1:
-				worklist = ListUtil.removeElement(user.getVerifiedWork(), workID);
-				userService.setUser("userID", userID, "verifiedWork", worklist);
-				break;
-			case 2:
-				worklist = ListUtil.removeElement(user.getNotPassWork(), workID);
-				userService.setUser("userID", userID, "notPassWork", worklist);
-				break;
-			default:
-				break;
+			
+			if (work.getVerifyState() != 2) {
+				return new SimpleVO(false, "用户只能删除未通过作品。"); 
 			}
-			workService.setWork("workID", workID, "isDelete", true);
+
+			List<String> worklist = ListUtil.removeElement(user.getNotPassWork(), workID);
+			userService.setUser("userID", userID, "notPassWork", worklist);
+			workService.removeWork("workID", workID);
 			return new SimpleVO(true, "删除作品成功!"); 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -132,12 +134,19 @@ public class WorkController {
 		}
 	}
 	
+	/**
+	 * 作品详情
+	 */
 	@GetMapping("/workdetail")
 	public CommonVO workDetail(@RequestParam(name="workID", required=true) String workID, 
 			@RequestParam(name="userToken", required=false) String sessionId) {
 		
-		String userID = cmdService.getIDBySessionId(sessionId);
-		User user1 = userService.queryUser("userID", userID);
+		String userID = "";
+		User user1 = null;
+		if (null != sessionId && !"".equals(sessionId.trim())) {
+			userID = cmdService.getIDBySessionId(sessionId);
+			user1 = userService.queryUser("userID", userID);
+		}
 		
 		try {
 			Work work = workService.queryWork("workID", workID);
@@ -152,20 +161,23 @@ public class WorkController {
 			String portrait = "";
 			if (user2 == null) {
 				nickname = "游模网_游客";
-				portrait = "";
+				portrait = (String)configService.getConfigValue("portrait");
 			} else {
 				nickname = user2.getNickname();
 				portrait = user2.getPortrait();
 			}
+			
+			Integer primaryClassification = work.getPrimaryClassification();
+			Integer secondaryClassification = work.getSecondaryClassification();
 			
 			Map<String, Object> data = new HashMap<String, Object>();
 			data.put("workID", workID);
 			data.put("workName", work.getWorkName());
 			data.put("author", nickname);
 			data.put("portrait", portrait);
-			data.put("primaryClassification", work.getPrimaryClassification());
+			data.put("primaryClassification", primaryClassification);
 			data.put("yijifenlei", work.getYijifenlei());
-			data.put("secondaryClassification", work.getSecondaryClassification());
+			data.put("secondaryClassification", secondaryClassification);
 			data.put("erjifenlei", work.getErjifenlei());
 			data.put("reclassify", work.getReclassify());
 			data.put("sanjifenlei", work.getSanjifenlei());
@@ -201,15 +213,18 @@ public class WorkController {
 			data.put("modelSize", work.getModelSize());
 			boolean flag1 = false;
 			boolean flag2 = false;
+			boolean flag3 = false;
 			if (user1 != null) {
 				flag1 = user1.getPurchaseWork().contains(workID);
 				flag2 = user1.getCollectWork().contains(workID);
+				flag3 = user1.getVerifiedWork().contains(workID);
 			}
 			data.put("isPurchase", flag1);
 			data.put("isCollected", flag2);
+			data.put("isOwn", flag3);
 			data.put("discount", configService.getConfigValue("discount"));
 			
-			List<Work> worklist = workService.worklist(work.getPrimaryClassification(), work.getSecondaryClassification());
+			List<Work> worklist = workService.worklist(primaryClassification, secondaryClassification, workID);
 			List<Map<String, Object>> maplist = new LinkedList<Map<String, Object>>();
 			for (Work relatedWork : worklist) {
 				Map<String, Object> relatedWorks = new HashMap<String, Object>();
@@ -231,13 +246,16 @@ public class WorkController {
 				maplist.add(relatedWorks);
 			}
 			data.put("maplist", maplist);
-			return new CommonVO(true, "查看作品成功！", data);
+			return new CommonVO(true, "查看作品详情成功！", data);
 		} catch (Exception e) {
 			e.printStackTrace();
-			return new CommonVO(false, "查看作品失败。", "出错信息：" + e.toString());
+			return new CommonVO(false, "查看作品详情失败。", "出错信息：" + e.toString());
 		}
 	}
 	
+	/**
+	 * 作品列表
+	 */
 	@GetMapping("/worklist")
 	public CommonVO workList(@RequestParam(name="workType", required=true) Integer workType,
 			@RequestParam(name="page", required=true) Integer page,
@@ -247,11 +265,7 @@ public class WorkController {
 		String userID = cmdService.getIDBySessionId(sessionId);
 		User user = userService.queryUser("userID", userID);
 		if (userID == null || user == null) {
-			return new CommonVO(false, "用户尚未登录。", "{}"); 
-		}
-		
-		if (workType < 0 || workType > 4) {
-			return new CommonVO(false, "作品类型指数输入错误。", "请重新输入正确的作品类型指数。"); 
+			return new CommonVO(false, "请求失败，请重新登录。", "{}"); 
 		}
 		
 		try {
@@ -326,13 +340,16 @@ public class WorkController {
 			data.put("worklist", maplist);
 			data.put("workAmount", workAmount);
 			data.put("pageAmount", pageAmount);
-			return new CommonVO(true, "作品展示成功！", data);
+			return new CommonVO(true, "查询作品列表成功！", data);
 		} catch (Exception e) {
 			e.printStackTrace();
-			return new CommonVO(false, "作品展示失败。", "出错信息：" + e.toString());
+			return new CommonVO(false, "查询作品列表失败。", "出错信息：" + e.toString());
 		}
 	}
 
+	/**
+	 * 作品搜索
+	 */
 	@PostMapping("/worksearch")
 	public CommonVO workSearch(@RequestParam(name="modelType", required=false) Integer modelType,
 			@RequestParam(name="condition", required=false) String condition,
@@ -345,16 +362,9 @@ public class WorkController {
 			@RequestParam(name="size", required=true) Integer size) {
 		
 		try {
-			List<Work> worklist1 = workService.worklist(modelType, condition, primaryClassification, secondaryClassification, reclassify, pattern, sortType);
-			List<Work> worklist2 = new LinkedList<Work>();
-			int currIdx = (page > 1 ? (page-1)*size : 0);
-			for (int i = 0; i < size && i < worklist1.size()-currIdx; i++) {
-				Work work = worklist1.get(currIdx + i);
-				worklist2.add(work);
-			}
-			
+			List<Work> worklist = workService.worklist(modelType, condition, primaryClassification, secondaryClassification, reclassify, pattern, sortType, page, size);
 			List<Map<String, Object>> maplist = new LinkedList<Map<String, Object>>();
-			for (Work work : worklist2) {
+			for (Work work : worklist) {
 				Map<String, Object> workmap = new HashMap<String, Object>();
 				workmap.put("workID", work.getWorkID());
 				workmap.put("workName", work.getWorkName());
@@ -377,7 +387,7 @@ public class WorkController {
 				maplist.add(workmap);
 			}
 			
-			Long workAmount = (long) worklist1.size();
+			Long workAmount = workService.getAmount(modelType, condition, primaryClassification, secondaryClassification, reclassify, pattern, sortType);
 			Long pageAmount = 0l;
 			if (workAmount % size == 0) {
 				pageAmount = workAmount / size;
@@ -388,20 +398,23 @@ public class WorkController {
 			data.put("worklist", maplist);
 			data.put("workAmount", workAmount);
 			data.put("pageAmount", pageAmount);
-			return new CommonVO(true, "模型搜索成功！", data);
+			return new CommonVO(true, "作品搜索成功！", data);
 		} catch (Exception e) {
 			e.printStackTrace();
-			return new CommonVO(false, "模型搜索失败。", "出错信息：" + e.toString());
+			return new CommonVO(false, "作品搜索失败。", "出错信息：" + e.toString());
 		}
 	}
 
+	/**
+	 * 作品排行
+	 */
 	@GetMapping("/worksort")
 	public CommonVO workSort(@RequestParam(name="primaryClassification", required=false) Integer primaryClassification,
 			@RequestParam(name="secondaryClassification", required=false) Integer secondaryClassification,
 			@RequestParam(name="limit", required=true) Integer limit) {
 		
 		try {
-			List<Work> worklist = workService.workSortDESC("primaryClassification", primaryClassification, "secondaryClassification", secondaryClassification, "downloadNum", limit);
+			List<Work> worklist = workService.workSort(primaryClassification, secondaryClassification, limit);
 			List<Map<String, Object>> data = new LinkedList<Map<String, Object>>();
 			for (Work work : worklist) {
 				Map<String, Object> workmap = new HashMap<String, Object>();
@@ -423,26 +436,27 @@ public class WorkController {
 				workmap.put("picture", picture);
 				data.add(workmap);
 			}
-			return new CommonVO(true, "查询模型成功！", data);
+			return new CommonVO(true, "查询作品排行成功！", data);
 		} catch (Exception e) {
 			e.printStackTrace();
-			return new CommonVO(false, "查询模型失败。", "出错信息：" + e.toString());
+			return new CommonVO(false, "查询作品排行失败。", "出错信息：" + e.toString());
 		}
 	}
 	
+	/**
+	 * 收藏作品/取消
+	 */
 	@GetMapping("/collectorcancel")
 	public SimpleVO collectOrCancel(@RequestParam(name="workID", required=true) String workID,
 			@RequestParam(name="collectOrCancel", required=true) Boolean collectOrCancel,
 			@RequestParam(name="userToken", required=true) String sessionId) {
 		
 		String userID = cmdService.getIDBySessionId(sessionId);
-		User user1 = userService.queryUser("userID", userID);
-		if (userID == null || user1 == null) {
-			return new SimpleVO(false, "用户尚未登录。"); 
+		User user = userService.queryUser("userID", userID);
+		if (userID == null || user == null) {
 		}
 		
 		try {
- 			User user = userService.queryUser("userID", userID);
 			Work work = workService.queryWork("workID", workID);
 			Long collectNum = work.getCollectNum();
 			List<String> collectWork = new ArrayList<String>();
